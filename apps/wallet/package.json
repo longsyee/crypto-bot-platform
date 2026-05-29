@@ -1,0 +1,28 @@
+{
+  "name": "@crypto-bot-platform/wallet",
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "test": "vitest run",
+    "lint": "eslint src tests --ext .ts"
+  },
+  "dependencies": {
+    "hono": "^4.4.0",
+    "ethers": "^6.13.0",
+    "bip39": "^3.1.0",
+    "better-sqlite3": "^11.0.0",
+    "drizzle-orm": "^0.31.0",
+    "ws": "^8.17.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.10",
+    "@types/ws": "^8.5.10",
+    "@types/node": "^20.0.0",
+    "tsx": "^4.15.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.6.0"
+  }
+}

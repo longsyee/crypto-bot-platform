@@ -1,0 +1,345 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  user
+  moderator
+  admin
+}
+
+enum TransactionType {
+  deposit
+  withdraw
+  convert_in
+  convert_out
+  trade_fee
+  referral_payout
+  refund
+  admin_adjust
+}
+
+enum TransactionStatus {
+  pending
+  confirmed
+  failed
+  reversed
+}
+
+enum TransactionCurrency {
+  USDT
+  TOKEN
+}
+
+enum BotType {
+  signal
+  dca
+}
+
+enum BotStatus {
+  stopped
+  running
+  paused
+  error
+}
+
+enum BotMode {
+  paper
+  live
+}
+
+enum BotLogLevel {
+  info
+  warn
+  error
+}
+
+enum ReferralTier {
+  bronze
+  silver
+  gold
+  platinum
+  pending_kol
+  kol
+}
+
+enum CommissionStatus {
+  pending
+  paid
+  reversed
+}
+
+enum AdminAction {
+  kill_bot
+  refund
+  approve_kol
+  change_fee
+  edit_config
+  suspend_user
+  override_commission
+}
+
+enum SecurityEventType {
+  failed_webhook
+  invalid_login
+  suspicious_referral
+  rate_limit_exceeded
+  insufficient_balance_block
+}
+
+model User {
+  id                  String   @id @default(uuid()) @db.Uuid
+  email               String   @unique
+  passwordHash        String   @map("password_hash")
+  role                UserRole
+  emailVerified       Boolean  @default(false) @map("email_verified")
+  referralCode        String   @unique @map("referral_code")
+  referredBy          String?  @db.Uuid @map("referred_by")
+  totpSecretEncrypted String?  @map("totp_secret_encrypted")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  wallet              Wallet?
+  exchangeConnections ExchangeConnection[]
+  bots                Bot[]
+  referralsAsReferrer Referral[]        @relation("ReferrerRelation")
+  referralsAsReferred Referral?         @relation("ReferredRelation")
+  botComments         BotComment[]
+  adminAuditLogs      AdminAuditLog[]
+  securityEvents      SecurityEvent[]
+  commissionLedgers   CommissionLedger[] @relation("SourceUserRelation")
+
+  referrer      User?   @relation("UserReferralTree", fields: [referredBy], references: [id], onDelete: SetNull)
+  referredUsers User[]  @relation("UserReferralTree")
+
+  @@index([email])
+  @@index([referralCode])
+  @@map("users")
+}
+
+model Wallet {
+  id                  String   @id @default(uuid()) @db.Uuid
+  userId              String   @unique @db.Uuid @map("user_id")
+  bscAddressIndex     Int      @map("bsc_address_index")
+  bscAddress          String   @map("bsc_address")
+  usdtBalance         Decimal  @default("0") @db.Decimal(20, 8) @map("usdt_balance")
+  tokenBalance        Decimal  @default("0") @db.Decimal(20, 8) @map("token_balance")
+  totalDeposited      Decimal  @default("0") @db.Decimal(20, 8) @map("total_deposited")
+  totalWithdrawn      Decimal  @default("0") @db.Decimal(20, 8) @map("total_withdrawn")
+  totalFeesPaid       Decimal  @default("0") @db.Decimal(20, 8) @map("total_fees_paid")
+  totalEarnedReferral Decimal  @default("0") @db.Decimal(20, 8) @map("total_earned_referral")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@index([userId])
+  @@map("wallets")
+}
+
+model Transaction {
+  id           String              @id @default(uuid()) @db.Uuid
+  walletId     String              @db.Uuid @map("wallet_id")
+  type         TransactionType
+  amount       Decimal             @db.Decimal(20, 8)
+  currency     TransactionCurrency
+  status       TransactionStatus
+  txHash       String?             @map("tx_hash")
+  metadataJson Json?               @db.JsonB @map("metadata_json")
+  createdAt    DateTime            @default(now()) @map("created_at")
+
+  wallet            Wallet             @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  commissionLedgers CommissionLedger[]
+
+  @@index([walletId, type, createdAt(sort: desc)])
+  @@index([txHash])
+  @@map("transactions")
+}
+
+model ExchangeConnection {
+  id                  String   @id @default(uuid()) @db.Uuid
+  userId              String   @db.Uuid @map("user_id")
+  exchangeId          String   @map("exchange_id")
+  name                String
+  apiKeyEncrypted     String   @map("api_key_encrypted")
+  apiSecretEncrypted  String   @map("api_secret_encrypted")
+  passphraseEncrypted String?  @map("passphrase_encrypted")
+  isTestnet           Boolean  @default(false) @map("is_testnet")
+  isActive            Boolean  @default(true) @map("is_active")
+  createdAt           DateTime @default(now()) @map("created_at")
+
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bots Bot[]
+
+  @@index([userId])
+  @@map("exchange_connections")
+}
+
+model Bot {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @db.Uuid @map("user_id")
+  connectionId String   @db.Uuid @map("connection_id")
+  name         String
+  type         BotType
+  status       BotStatus
+  mode         BotMode
+  configJson   Json?    @db.JsonB @map("config_json")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  connection  ExchangeConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  botOrders   BotOrder[]
+  botLogs     BotLog[]
+  paperTrades PaperTrade[]
+  botComments BotComment[]
+
+  @@index([userId, status])
+  @@index([connectionId])
+  @@map("bots")
+}
+
+model BotOrder {
+  id                  String   @id @default(uuid()) @db.Uuid
+  botId               String   @db.Uuid @map("bot_id")
+  exchangeOrderId     String?  @map("exchange_order_id")
+  symbol              String
+  side                String
+  type                String
+  amount              Decimal  @db.Decimal(20, 8)
+  price               Decimal? @db.Decimal(20, 8)
+  status              String
+  filled              Decimal  @default("0") @db.Decimal(20, 8)
+  remaining           Decimal  @default("0") @db.Decimal(20, 8)
+  cost                Decimal  @default("0") @db.Decimal(20, 8)
+  fee                 Decimal  @default("0") @db.Decimal(20, 8)
+  feeCurrency         String?  @map("fee_currency")
+  feeRateAtEntry      Decimal  @default("0.2000") @db.Decimal(5, 4) @map("fee_rate_at_entry")
+  rawCcxtResponseJson Json?    @db.JsonB @map("raw_ccxt_response_json")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  bot Bot @relation(fields: [botId], references: [id], onDelete: Cascade)
+
+  @@index([botId, createdAt(sort: desc)])
+  @@map("bot_orders")
+}
+
+model BotLog {
+  id           String      @id @default(uuid()) @db.Uuid
+  botId        String      @db.Uuid @map("bot_id")
+  level        BotLogLevel
+  message      String
+  metadataJson Json?       @db.JsonB @map("metadata_json")
+  createdAt    DateTime    @default(now()) @map("created_at")
+
+  bot Bot @relation(fields: [botId], references: [id], onDelete: Cascade)
+
+  @@index([botId, createdAt(sort: desc)])
+  @@map("bot_logs")
+}
+
+model PaperTrade {
+  id           String   @id @default(uuid()) @db.Uuid
+  botId        String   @db.Uuid @map("bot_id")
+  symbol       String
+  side         String
+  amount       Decimal  @db.Decimal(20, 8)
+  price        Decimal  @db.Decimal(20, 8)
+  simulatedFee Decimal  @default("0") @db.Decimal(20, 8) @map("simulated_fee")
+  totalCost    Decimal  @default("0") @db.Decimal(20, 8) @map("total_cost")
+  pnl          Decimal  @default("0") @db.Decimal(20, 8)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  bot Bot @relation(fields: [botId], references: [id], onDelete: Cascade)
+
+  @@map("paper_trades")
+}
+
+model Referral {
+  id                    String       @id @default(uuid()) @db.Uuid
+  referrerId            String       @db.Uuid @map("referrer_id")
+  referredUserId        String       @unique @db.Uuid @map("referred_user_id")
+  tier                  ReferralTier @default(bronze)
+  commissionRate        Decimal      @default("0.0500") @db.Decimal(5, 4) @map("commission_rate")
+  totalCommissionEarned Decimal      @default("0") @db.Decimal(20, 8) @map("total_commission_earned")
+  status                String
+  createdAt             DateTime     @default(now()) @map("created_at")
+
+  referrer          User              @relation("ReferrerRelation", fields: [referrerId], references: [id], onDelete: Cascade)
+  referredUser      User              @relation("ReferredRelation", fields: [referredUserId], references: [id], onDelete: Cascade)
+  commissionLedgers CommissionLedger[]
+
+  @@index([referrerId])
+  @@index([referredUserId])
+  @@map("referrals")
+}
+
+model CommissionLedger {
+  id               String           @id @default(uuid()) @db.Uuid
+  referralId       String           @db.Uuid @map("referral_id")
+  transactionId    String           @db.Uuid @map("transaction_id")
+  sourceUserId     String           @db.Uuid @map("source_user_id")
+  commissionAmount Decimal          @db.Decimal(20, 8) @map("commission_amount")
+  status           CommissionStatus
+  createdAt        DateTime         @default(now()) @map("created_at")
+
+  referral    Referral    @relation(fields: [referralId], references: [id], onDelete: Cascade)
+  transaction Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  sourceUser  User        @relation("SourceUserRelation", fields: [sourceUserId], references: [id], onDelete: Cascade)
+
+  @@map("commission_ledger")
+}
+
+model BotComment {
+  id        String      @id @default(uuid()) @db.Uuid
+  botId     String      @db.Uuid @map("bot_id")
+  userId    String      @db.Uuid @map("user_id")
+  content   String
+  isPublic  Boolean     @default(false) @map("is_public")
+  rating    Int?
+  parentId  String?     @db.Uuid @map("parent_id")
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedAt DateTime    @updatedAt @map("updated_at")
+
+  bot     Bot         @relation(fields: [botId], references: [id], onDelete: Cascade)
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent  BotComment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: SetNull)
+  replies BotComment[] @relation("CommentReplies")
+
+  @@map("bot_comments")
+}
+
+model AdminAuditLog {
+  id           String      @id @default(uuid()) @db.Uuid
+  adminUserId  String      @db.Uuid @map("admin_user_id")
+  action       AdminAction
+  targetType   String      @map("target_type")
+  targetId     String      @map("target_id")
+  oldValueJson Json?       @db.JsonB @map("old_value_json")
+  newValueJson Json?       @db.JsonB @map("new_value_json")
+  ipAddress    String      @map("ip_address")
+  createdAt    DateTime    @default(now()) @map("created_at")
+
+  adminUser User @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+
+  @@map("admin_audit_log")
+}
+
+model SecurityEvent {
+  id          String            @id @default(uuid()) @db.Uuid
+  userId      String?           @db.Uuid @map("user_id")
+  eventType   SecurityEventType @map("event_type")
+  ipAddress   String            @map("ip_address")
+  detailsJson Json?             @db.JsonB @map("details_json")
+  createdAt   DateTime          @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("security_events")
+}

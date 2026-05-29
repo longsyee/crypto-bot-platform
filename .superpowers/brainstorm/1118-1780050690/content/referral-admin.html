@@ -1,0 +1,101 @@
+<h2>Referral Tiers & Admin Panel</h2>
+<p class="subtitle">Performance-based commission + admin control surface</p>
+
+<div class="mockup">
+  <div class="mockup-header">Referral Tier System</div>
+  <div class="mockup-body">
+    <div style="font-family:monospace; font-size:13px; line-height:1.6;">
+
+      <div style="display:flex; gap:8px; margin-bottom:10px;">
+        <div style="flex:1; border:2px solid #b8e986; border-radius:6px; padding:8px; background:#f8fff0; text-align:center;">
+          <strong>Bronze</strong><br/>
+          5% commission<br/>
+          <span style="font-size:12px; color:#555;">0–2 active referrals</span>
+        </div>
+        <div style="flex:1; border:2px solid #f5a623; border-radius:6px; padding:8px; background:#fffbf0; text-align:center;">
+          <strong>Silver</strong><br/>
+          12% commission<br/>
+          <span style="font-size:12px; color:#555;">3–5 active referrals</span>
+        </div>
+        <div style="flex:1; border:2px solid #9b9b9b; border-radius:6px; padding:8px; background:#f5f5f5; text-align:center;">
+          <strong>Gold</strong><br/>
+          20% commission<br/>
+          <span style="font-size:12px; color:#555;">6–10 active referrals</span>
+        </div>
+        <div style="flex:1; border:2px solid #4a90e2; border-radius:6px; padding:8px; background:#f0f7ff; text-align:center;">
+          <strong>Platinum</strong><br/>
+          28% commission<br/>
+          <span style="font-size:12px; color:#555;">11–20 active referrals</span>
+        </div>
+        <div style="flex:1; border:2px solid #d0021b; border-radius:6px; padding:8px; background:#fff0f2; text-align:center;">
+          <strong>KOL</strong><br/>
+          35% commission<br/>
+          <span style="font-size:12px; color:#555;">21+ active referrals + admin approval</span>
+        </div>
+      </div>
+
+      <ul style="font-size:12px;">
+        <li><strong>"Active referral"</strong> = referred user who has deposited tokens at least once.</li>
+        <li><strong>Auto-promote:</strong> Bronze→Silver→Gold→Platinum triggers automatically on threshold crossing.</li>
+        <li><strong>KOL gate:</strong> Reaching 21+ active referrals sets status to <code>pending_kol</code>. Admin reviews + approves → <code>kol</code>. Commission held at Platinum rate until approved.</li>
+        <li><strong>Demotion:</strong> If active referrals drop below tier threshold for 30 days, demote one tier down. Grace period prevents churn abuse.</li>
+        <li><strong>Commission calc:</strong> Referrer's % × platform fee (20% of winner PnL). Example: Gold referrer on $100 winner = 20% of $20 fee = $4 to referrer.</li>
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+<div class="mockup">
+  <div class="mockup-header">Admin Panel — Control Surface</div>
+  <div class="mockup-body">
+    <div style="font-family:monospace; font-size:13px; line-height:1.6;">
+
+      <div style="display:flex; gap:8px;">
+        <div style="flex:1; border:1px solid #ccc; border-radius:6px; padding:8px;">
+          <strong>👤 Users</strong><br/>
+          List/search/filter | View balances & transactions | Edit role | Suspend/activate | Reset 2FA | Impersonate (read-only)
+        </div>
+        <div style="flex:1; border:1px solid #ccc; border-radius:6px; padding:8px;">
+          <strong>🤖 Bots</strong><br/>
+          List all bots across users | Start/stop/pause any bot | Emergency kill switch | View logs & orders | Edit config (with audit trail)
+        </div>
+      </div>
+
+      <div style="display:flex; gap:8px; margin-top:8px;">
+        <div style="flex:1; border:1px solid #ccc; border-radius:6px; padding:8px;">
+          <strong>💰 Pricing & Tokens</strong><br/>
+          Adjust token price ($/token) | Change win-fee % (default 20%) | Set referral tier thresholds | Adjust commission rates | View revenue dashboard
+        </div>
+        <div style="flex:1; border:1px solid #ccc; border-radius:6px; padding:8px;">
+          <strong>🔗 Referrals</strong><br/>
+          View all referral trees | Approve KOL applications | Override commission rate per user | See top earners | Detect self-referral fraud
+        </div>
+      </div>
+
+      <div style="display:flex; gap:8px; margin-top:8px;">
+        <div style="flex:1; border:1px solid #ccc; border-radius:6px; padding:8px;">
+          <strong>📊 System Health</strong><br/>
+          Worker queue depth | Redis memory | DB connection pool | Exchange API status (up/down per exchange) | Error rate trends | Active bot count
+        </div>
+        <div style="flex:1; border:1px solid #ccc; border-radius:6px; padding:8px;">
+          <strong>🚨 Security & Audit</strong><br/>
+          Security events log (failed webhooks, suspicious logins) | Admin action log (who did what, when) | IP allowlist for admin panel | Force password resets
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Additional Edge Cases from Admin Lens</h3>
+  <ul>
+    <li><strong>Admin changes fee % mid-trade:</strong> New rate applies to trades filled after the change. In-flight trades use rate at entry time. Stored in <code>bot_orders.fee_rate_at_entry</code>.</li>
+    <li><strong>User dispute (fee too high / trade error):</strong> Admin can issue refund via <code>transactions</code> type='refund'. Refund reverses commission ledger entries for that trade too.</li>
+    <li><strong>Exchange maintenance / delisted pair:</strong> Worker detects CCXT "Market not found" or "Trading suspended" → pauses all bots on that exchange+symbol. Admin can bulk-resume when exchange recovers.</li>
+    <li><strong>Suspicious referral pattern:</strong> Multiple referrals from same IP, same deposit pattern, or circular chain → flagged in admin security panel for review.</li>
+    <li><strong>Token price change:</strong> Changing $/token rate affects future deposits only. Existing balances unchanged. Admin must broadcast notice.</li>
+    <li><strong>Bot stuck in "running" but no heartbeat:</strong> Worker writes heartbeat timestamp to Redis every 30s. Admin panel shows "healthy / stale / dead" per bot. Stale &gt; 2 min = auto-alert + mark status='unknown'.</li>
+  </ul>
+</div>

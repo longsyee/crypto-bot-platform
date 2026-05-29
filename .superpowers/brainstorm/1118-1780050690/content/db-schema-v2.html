@@ -1,0 +1,52 @@
+<h2>Platform Core — Updated DB Schema (Token + Referral)</h2>
+<p class="subtitle">Pay-as-you-go token model + affiliate commission</p>
+
+<div class="mockup">
+  <div class="mockup-header">Entity Relationship — Token & Referral Additions</div>
+  <div class="mockup-body">
+    <div style="font-family:monospace; font-size:13px; line-height:1.6;">
+
+      <div style="border:2px solid #4a90e2; border-radius:6px; padding:8px; margin-bottom:10px; background:#f0f7ff;">
+        <strong>users</strong> id (PK), email, password_hash, role (user|moderator|admin), email_verified, <b style="color:#d0021b">referral_code (unique)</b>, <b style="color:#d0021b">referred_by (FK→users, nullable)</b>, created_at, updated_at
+      </div>
+
+      <div style="border:2px solid #9013fe; border-radius:6px; padding:8px; margin-bottom:10px; background:#f5f0ff;">
+        <strong>user_balances</strong> id (PK), user_id (FK→users), token_balance DECIMAL(20,8), total_deposited, total_spent, total_earned_referral, updated_at
+      </div>
+
+      <div style="border:2px solid #bd10e0; border-radius:6px; padding:8px; margin-bottom:10px; background:#faf0ff;">
+        <strong>transactions</strong> id (PK), user_id (FK→users), type (deposit|trade_fee|referral_payout|refund), amount, currency, stripe_payment_intent_id (for deposits), metadata_json, created_at
+      </div>
+
+      <div style="border:2px solid #50e3c2; border-radius:6px; padding:8px; margin-bottom:10px; background:#f0fffb;">
+        <strong>referrals</strong> id (PK), referrer_id (FK→users), referred_user_id (FK→users, unique), commission_rate (default 10%), total_commission_earned, status, created_at
+      </div>
+
+      <div style="border:2px solid #f5a623; border-radius:6px; padding:8px; margin-bottom:10px; background:#fffbf0;">
+        <strong>commission_ledger</strong> id (PK), referral_id (FK→referrals), trade_id (FK→bot_orders|paper_trades), source_user_id, commission_amount, status (pending|paid|reversed), created_at
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Token & Fee Model Rules</h3>
+  <ul>
+    <li><strong>Deposit:</strong> Users buy tokens via Stripe (one-time payment). 1 token = $1 USD for simplicity.</li>
+    <li><strong>Fee trigger:</strong> 20% fee charged <em>only on winning trades</em>. Losing trades = $0 fee.</li>
+    <li><strong>Fee calculation:</strong> Fee = realized_pnl × 0.20. Deducted from <code>user_balances.token_balance</code> immediately on fill.</li>
+    <li><strong>Insufficient balance:</strong> If token balance &lt; fee, bot auto-pauses and sends alert. User must top up.</li>
+    <li><strong>Paper mode:</strong> No fees deducted, but simulated fees are tracked in <code>paper_trades.simulated_fee</code> for transparency.</li>
+  </ul>
+</div>
+
+<div class="section">
+  <h3>Referral Program Rules</h3>
+  <ul>
+    <li><strong>Referral code:</strong> Every user gets a unique code (e.g., <code>REF-ABC123</code>) on signup.</li>
+    <li><strong>Commission:</strong> Referrer earns % of trading fees paid by their referred user. Default 10% of the 20% fee (i.e., referrer gets 2% of winning PnL, platform keeps 18%).</li>
+    <li><strong>Payout:</strong> Commission credited to referrer's <code>user_balances.token_balance</code> as <code>type='referral_payout'</code>.</li>
+    <li><strong>Tracking:</strong> <code>commission_ledger</code> links each payout to a specific trade for audit.</li>
+  </ul>
+</div>

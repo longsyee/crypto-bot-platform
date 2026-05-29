@@ -1,0 +1,75 @@
+<h2>Platform Core — Final Database Schema (with Wallet Service)</h2>
+<p class="subtitle">All tables: users, wallet, bots, orders, logs, referrals, admin</p>
+
+<div class="mockup">
+  <div class="mockup-header">Users & Wallet</div>
+  <div class="mockup-body">
+    <div style="font-family:monospace; font-size:13px; line-height:1.6;">
+      <div style="border:2px solid #4a90e2; border-radius:6px; padding:8px; margin-bottom:10px; background:#f0f7ff;">
+        <strong>users</strong> id (PK), email, password_hash, role (user|moderator|admin), email_verified, referral_code (unique), referred_by (FK→users), created_at, updated_at
+      </div>
+      <div style="border:2px solid #9013fe; border-radius:6px; padding:8px; margin-bottom:10px; background:#f5f0ff;">
+        <strong>wallets</strong> id (PK), user_id (FK→users), bsc_address_index (int), bsc_address (varchar), usdt_balance DECIMAL(20,8), token_balance DECIMAL(20,8), total_deposited, total_withdrawn, total_fees_paid, total_earned_referral, updated_at
+      </div>
+      <div style="border:2px solid #bd10e0; border-radius:6px; padding:8px; margin-bottom:10px; background:#faf0ff;">
+        <strong>transactions</strong> id (PK), wallet_id (FK→wallets), type (deposit|withdraw|convert_in|convert_out|trade_fee|referral_payout|refund|admin_adjust), amount, currency (USDT|TOKEN), status (pending|confirmed|failed|reversed), tx_hash (for on-chain), metadata_json, created_at
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mockup">
+  <div class="mockup-header">Exchange & Bots</div>
+  <div class="mockup-body">
+    <div style="font-family:monospace; font-size:13px; line-height:1.6;">
+      <div style="border:2px solid #7ed321; border-radius:6px; padding:8px; margin-bottom:10px; background:#f4fff0;">
+        <strong>exchange_connections</strong> id (PK), user_id (FK→users), exchange_id, name, api_key_encrypted, api_secret_encrypted, passphrase_encrypted, is_testnet, is_active, created_at
+      </div>
+      <div style="border:2px solid #f5a623; border-radius:6px; padding:8px; margin-bottom:10px; background:#fffbf0;">
+        <strong>bots</strong> id (PK), user_id (FK→users), connection_id (FK→exchange_connections), name, type (signal|dca), status (stopped|running|paused|error), mode (paper|live), config_json, created_at, updated_at
+      </div>
+      <div style="border:2px solid #d0021b; border-radius:6px; padding:8px; margin-bottom:10px; background:#fff0f2;">
+        <strong>bot_orders</strong> id (PK), bot_id (FK→bots), exchange_order_id, symbol, side, type, amount, price, status, filled, remaining, cost, fee, fee_currency, fee_rate_at_entry, raw_ccxt_response_json, created_at, updated_at
+      </div>
+      <div style="border:2px solid #50e3c2; border-radius:6px; padding:8px; margin-bottom:10px; background:#f0fffb;">
+        <strong>bot_logs</strong> id (PK), bot_id (FK→bots), level (info|warn|error), message, metadata_json, created_at
+      </div>
+      <div style="border:2px solid #b8e986; border-radius:6px; padding:8px; margin-bottom:10px; background:#f8fff0;">
+        <strong>paper_trades</strong> id (PK), bot_id (FK→bots), symbol, side, amount, price, simulated_fee, total_cost, pnl, created_at
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mockup">
+  <div class="mockup-header">Referral & Admin</div>
+  <div class="mockup-body">
+    <div style="font-family:monospace; font-size:13px; line-height:1.6;">
+      <div style="border:2px solid #50e3c2; border-radius:6px; padding:8px; margin-bottom:10px; background:#f0fffb;">
+        <strong>referrals</strong> id (PK), referrer_id (FK→users), referred_user_id (FK→users, unique), tier (bronze|silver|gold|platinum|pending_kol|kol), commission_rate, total_commission_earned, status, created_at
+      </div>
+      <div style="border:2px solid #f5a623; border-radius:6px; padding:8px; margin-bottom:10px; background:#fffbf0;">
+        <strong>commission_ledger</strong> id (PK), referral_id (FK→referrals), transaction_id (FK→transactions), source_user_id, commission_amount, status (pending|paid|reversed), created_at
+      </div>
+      <div style="border:2px solid #4a90e2; border-radius:6px; padding:8px; margin-bottom:10px; background:#f0f7ff;">
+        <strong>bot_comments</strong> id (PK), bot_id (FK→bots), user_id (FK→users), content, is_public, rating, parent_id (self-FK), created_at, updated_at
+      </div>
+      <div style="border:2px solid #d0021b; border-radius:6px; padding:8px; margin-bottom:10px; background:#fff0f2;">
+        <strong>admin_audit_log</strong> id (PK), admin_user_id (FK→users), action (kill_bot|refund|approve_kol|change_fee|edit_config|suspend_user), target_type, target_id, old_value_json, new_value_json, ip_address, created_at
+      </div>
+      <div style="border:2px solid #9b9b9b; border-radius:6px; padding:8px; margin-bottom:10px; background:#f5f5f5;">
+        <strong>security_events</strong> id (PK), user_id (nullable), event_type (failed_webhook|invalid_login|suspicious_referral|rate_limit_exceeded), ip_address, details_json, created_at
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Wallet Service Tables (in Wallet Service DB, or shared schema)</h3>
+  <ul>
+    <li><strong>deposit_addresses</strong> id, user_id, address_index, bsc_address, status (active|archived), created_at</li>
+    <li><strong>blockchain_events</strong> id, tx_hash, from_address, to_address, amount, token_contract, block_number, confirmations, status (pending|confirmed|invalid), matched_user_id, created_at</li>
+    <li><strong>withdrawal_requests</strong> id, user_id, amount, to_address, tx_hash, status (pending|processing|completed|failed), fee_estimate, processed_at, created_at</li>
+  </ul>
+  <p><em>These can live in a separate Wallet Service DB (SQLite or Postgres) or shared Postgres with separate schemas. Recommendation: separate lightweight SQLite for Wallet Service to keep it self-contained, with HTTP callbacks to Main API.</em></p>
+</div>

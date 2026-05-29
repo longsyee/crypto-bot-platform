@@ -1,0 +1,52 @@
+<h2>Data Flow & Edge Cases</h2>
+<p class="subtitle">How orders, signals, and errors move through the system</p>
+
+<div class="mockup">
+  <div class="mockup-header">Signal Bot Flow</div>
+  <div class="mockup-body">
+    <div style="font-family:monospace; font-size:13px; line-height:1.6;">
+      1. TradingView Webhook → POST /webhooks/signal/:botId (HMAC verified)<br/>
+      2. API validates bot ownership, mode (paper/live), token balance ≥ projected fee<br/>
+      3. API enqueues "signal-execute" job to BullMQ (Redis)<br/>
+      4. Bot Worker picks up job → loads bot config + encrypted exchange keys<br/>
+      5. Worker calls CCXT → places market/limit order on exchange<br/>
+      6. On fill: Worker calculates PnL, deducts 20% token fee if winner<br/>
+      7. Worker writes to bot_orders + bot_logs + Redis Pub/Sub event<br/>
+      8. API forwards event via SSE to user's frontend dashboard
+    </div>
+  </div>
+</div>
+
+<div class="mockup">
+  <div class="mockup-header">DCA Martingale Bot Flow</div>
+  <div class="mockup-body">
+    <div style="font-family:monospace; font-size:13px; line-height:1.6;">
+      1. User starts bot via API → enqueues "dca-start" job<br/>
+      2. Bot Worker spawns a persistent loop for this bot<br/>
+      3. Loop polls CCXT WebSocket/ticker for configured symbol<br/>
+      4. On trigger condition (price drop %, time interval, etc.) → place safety order<br/>
+      5. Track filled base orders + safety orders; recalculate take-profit target<br/>
+      6. On full fill at take-profit: realize PnL, deduct 20% fee if winner<br/>
+      7. If max martingale levels reached without profit: stop bot + alert user<br/>
+      8. All states synced to DB; events streamed via Redis Pub/Sub
+    </div>
+  </div>
+</div>
+
+<div class="mockup">
+  <div class="mockup-header">Error Handling & Edge Cases</div>
+  <div class="mockup-body">
+    <div style="font-family:monospace; font-size:13px; line-height:1.6;">
+      <strong>Exchange API Failure:</strong> Retry with exponential backoff (max 3 retries). If persistent, pause bot + alert.<br/><br/>
+      <strong>Rate Limit Hit:</strong> Worker reads CCXT rate limit headers; throttles dynamically. Queues jobs with delayed delivery.<br/><br/>
+      <strong>Insufficient Token Balance:</strong> Bot auto-pauses BEFORE placing order. Dashboard shows "Top up required". Paper mode unaffected.<br/><br/>
+      <strong>Invalid Webhook Secret:</strong> Reject with 401. Log to security_events table (audit trail for abuse).<br/><br/>
+      <strong>Bot Crash / Worker Restart:</strong> On startup, worker reconciles: reads all bots with status='running' from DB, resumes their loops. Uses DB as source of truth.<br/><br/>
+      <strong>Paper Mode → Live Mode Toggle:</strong> Changing mode flushes paper_trades to a summary record ("session report"), resets unrealized PnL. Prevents mixing.<br/><br/>
+      <strong>Exchange Connection Invalid:</strong> CCXT "Invalid API key" → mark connection as `is_active=false`, notify user to re-verify.<br/><br/>
+      <strong>Duplicate Order Prevention:</strong> Worker uses idempotency key (botId + signalId + timestamp) in bot_orders to prevent double-execution from webhook retries.<br/><br/>
+      <strong>Referral Loop Prevention:</strong> User cannot refer themselves. `referred_by` FK + unique constraint prevents circular references.<br/><br/>
+      <strong>Admin Kill Switch:</strong> Admin endpoint `POST /admin/bots/:id/emergency-stop` bypasses normal queues, force-stops bot loop + cancels open orders via CCXT.
+    </div>
+  </div>
+</div>

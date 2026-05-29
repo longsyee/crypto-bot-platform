@@ -1,0 +1,53 @@
+<h2>Platform Core — Database Schema</h2>
+<p class="subtitle">Key tables and relationships (PostgreSQL)</p>
+
+<div class="mockup">
+  <div class="mockup-header">Entity Relationship Overview</div>
+  <div class="mockup-body">
+    <div style="font-family:monospace; font-size:13px; line-height:1.6;">
+
+      <div style="border:2px solid #4a90e2; border-radius:6px; padding:8px; margin-bottom:10px; background:#f0f7ff;">
+        <strong>users</strong> id (PK), email, password_hash, role (free_user|premium_user|moderator|admin), email_verified, created_at, updated_at
+      </div>
+
+      <div style="border:2px solid #9013fe; border-radius:6px; padding:8px; margin-bottom:10px; background:#f5f0ff;">
+        <strong>subscriptions</strong> id (PK), user_id (FK→users), stripe_customer_id, stripe_subscription_id, tier, status, current_period_end, cancel_at_period_end
+      </div>
+
+      <div style="border:2px solid #7ed321; border-radius:6px; padding:8px; margin-bottom:10px; background:#f4fff0;">
+        <strong>exchange_connections</strong> id (PK), user_id (FK→users), exchange_id, name, api_key_encrypted, api_secret_encrypted, passphrase_encrypted, is_testnet, is_active, created_at
+      </div>
+
+      <div style="border:2px solid #f5a623; border-radius:6px; padding:8px; margin-bottom:10px; background:#fffbf0;">
+        <strong>bots</strong> id (PK), user_id (FK→users), connection_id (FK→exchange_connections), name, type (signal|dca), status (stopped|running|paused|error), mode (paper|live), config_json, created_at, updated_at
+      </div>
+
+      <div style="border:2px solid #d0021b; border-radius:6px; padding:8px; margin-bottom:10px; background:#fff0f2;">
+        <strong>bot_orders</strong> id (PK), bot_id (FK→bots), exchange_order_id, symbol, side, type, amount, price, status, filled, remaining, cost, fee, fee_currency, raw_ccxt_response_json, created_at, updated_at
+      </div>
+
+      <div style="border:2px solid #50e3c2; border-radius:6px; padding:8px; margin-bottom:10px; background:#f0fffb;">
+        <strong>bot_logs</strong> id (PK), bot_id (FK→bots), level (info|warn|error), message, metadata_json, created_at
+      </div>
+
+      <div style="border:2px solid #b8e986; border-radius:6px; padding:8px; margin-bottom:10px; background:#f8fff0;">
+        <strong>paper_trades</strong> id (PK), bot_id (FK→bots), symbol, side, amount, price, simulated_fee, total_cost, pnl, created_at
+      </div>
+
+      <div style="border:2px solid #4a90e2; border-radius:6px; padding:8px; margin-bottom:10px; background:#f0f7ff;">
+        <strong>bot_comments</strong> id (PK), bot_id (FK→bots), user_id (FK→users), content, is_public, rating, parent_id (self-FK for threads), created_at, updated_at
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Design Notes</h3>
+  <ul>
+    <li><strong>Encrypted at rest:</strong> <code>api_key_encrypted</code>, <code>api_secret_encrypted</code>, <code>passphrase_encrypted</code> use AES-256-GCM with an app-level master key. Master key stored in env, never in DB.</li>
+    <li><strong>Bot polymorphism:</strong> <code>bots.config_json</code> stores type-specific settings (signal webhook secret, DCA levels, martingale ratios). Validated by Z schemas per type.</li>
+    <li><strong>Indexing strategy:</strong> <code>bots(user_id, status)</code> for dashboard listings. <code>bot_orders(bot_id, created_at DESC)</code> for trade history. <code>bot_logs(bot_id, created_at DESC)</code> for log viewer.</li>
+    <li><strong>Tier enforcement:</strong> A middleware checks <code>subscriptions.tier</code> and <code>status='active'</code> before allowing bot creation / activation. Free tier = max 2 bots, 1 connection.</li>
+  </ul>
+</div>

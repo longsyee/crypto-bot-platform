@@ -1,0 +1,64 @@
+<h2>Platform Core Architecture</h2>
+<p class="subtitle">API Server + Dedicated Worker — Approach B</p>
+
+<div class="mockup">
+  <div class="mockup-header">High-Level Component Diagram</div>
+  <div class="mockup-body">
+    <div style="display:flex; flex-direction:column; gap:12px; font-family:monospace; font-size:14px;">
+
+      <div style="border:2px solid #4a90e2; border-radius:8px; padding:10px; background:#f0f7ff;">
+        <strong>🖥️ TanStack Frontend (SPA)</strong>
+        <div style="margin-top:6px; font-size:12px; color:#555;">
+          Router + Query | Auth Context | Dashboard Shell | Bot Config UI | Charts (Lightweight-Charts)
+        </div>
+      </div>
+
+      <div style="text-align:center;"><span style="font-size:20px;">⬇️ HTTPS / JWT</span></div>
+
+      <div style="display:flex; gap:12px;">
+        <div style="flex:1; border:2px solid #7ed321; border-radius:8px; padding:10px; background:#f4fff0;">
+          <strong>🌐 Hono API Server</strong>
+          <div style="margin-top:6px; font-size:12px; color:#555;">
+            Auth (JWT/roles) | CRUD APIs | Webhooks (Signal Bot) | Billing (Stripe) | Admin endpoints
+          </div>
+        </div>
+
+        <div style="flex:1; border:2px solid #f5a623; border-radius:8px; padding:10px; background:#fffbf0;">
+          <strong>⚙️ Bot Worker</strong>
+          <div style="margin-top:6px; font-size:12px; color:#555;">
+            DCA Engine | Price Watcher | CCXT Executor | Signal Processor | Paper Trade Logger
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align:center;"><span style="font-size:20px;">⬇️⬇️ Shared State</span></div>
+
+      <div style="display:flex; gap:12px;">
+        <div style="flex:2; border:2px solid #bd10e0; border-radius:8px; padding:10px; background:#faf0ff;">
+          <strong>🐘 PostgreSQL</strong>
+          <div style="margin-top:6px; font-size:12px; color:#555;">
+            Users | Roles | Subscriptions | Exchange Connections (encrypted keys) | Bots | Orders | Logs | Paper Trades | Comments
+          </div>
+        </div>
+
+        <div style="flex:1; border:2px solid #d0021b; border-radius:8px; padding:10px; background:#fff0f2;">
+          <strong>🔴 Redis</strong>
+          <div style="margin-top:6px; font-size:12px; color:#555;">
+            BullMQ Job Queues | Pub/Sub (price alerts, signal events) | Session Cache | Rate Limit Counters
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Communication Patterns</h3>
+  <ul>
+    <li><strong>API → Worker:</strong> BullMQ queues (e.g., "bot-start", "bot-stop", "webhook-signal"). API enqueues; Worker consumes.</li>
+    <li><strong>Worker → API:</strong> Redis Pub/Sub (trade events, bot status changes). API subscribes to broadcast to connected frontends via SSE or WebSockets.</li>
+    <li><strong>Frontend → API:</strong> Standard HTTP REST/JSON. JWT in Authorization header.</li>
+    <li><strong>TradingView / External → API:</strong> Webhook POST to `/webhooks/signal/:botId` (secured by HMAC or UUID secret).</li>
+  </ul>
+</div>

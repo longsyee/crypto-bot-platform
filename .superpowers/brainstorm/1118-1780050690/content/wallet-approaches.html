@@ -1,0 +1,70 @@
+<h2>USDT Wallet Architecture — 3 Approaches</h2>
+<p class="subtitle">BSC (BEP20) USDT replaces Stripe token purchases</p>
+
+<div class="mockup">
+  <div class="mockup-header">New Token Flow: USDT → Wallet → Credits</div>
+  <div class="mockup-body">
+    <div style="font-family:monospace; font-size:13px; line-height:1.6;">
+      <strong>The Concept:</strong><br/>
+      1. User gets unique BSC deposit address<br/>
+      2. User sends USDT (BEP20) from MetaMask / exchange<br/>
+      3. Wallet Service detects deposit on-chain<br/>
+      4. Main API credits <code>wallet_usdt_balance</code><br/>
+      5. User converts USDT → Platform Tokens (1:1) = "gas" for bot fees<br/>
+      6. On winning trade: 20% fee deducted from token balance<br/>
+      7. User can withdraw USDT anytime (wallet → their external address)
+    </div>
+  </div>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Monolithic Integrated Wallet</h3>
+      <p>All wallet logic lives inside the main Hono API. One central BSC hot wallet. Users deposit to it and attach a unique deposit code (e.g., send $50.23) so we know who it belongs to. API polls BscScan.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>No extra service to run</li><li>Simple local dev</li><li>One codebase</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Deposit matching is fragile (users forget code, send wrong amount)</li><li>All custody risk in one process</li><li>Hard to scale blockchain monitoring</li><li>No clean separation of concerns</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Dedicated Wallet Service + HD Addresses</h3>
+      <p>Separate Wallet Service generates unique BSC addresses per user from a master HD seed. Monitors blockchain via WebSocket/BscScan. Notifies Main API on confirmed deposits. Handles sweeping + withdrawals independently.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Clean separation — blockchain logic isolated</li><li>Unique addresses = no deposit confusion</li><li>Can scale independently (more workers for monitoring)</li><li>Main API doesn't hold blockchain keys</li><li>Industry standard approach</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Need to manage BNB gas for sweeping/withdrawals</li><li>Two services to run in dev</li><li>Slightly more infra complexity</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Smart Contract Deposit Gateway</h3>
+      <p>Deploy a BSC smart contract that users deposit USDT into. Contract emits <code>Deposit(userId, amount)</code> events. Wallet Service listens to events. No address generation, no sweeping, one contract for all.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>No per-address gas costs</li><li>No HD key management</li><li>Deposits are self-identifying via contract events</li><li>One address to communicate to users</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Requires smart contract development + audit ($$$)</li><li>Users need to interact with contract (approve + call) — more complex than simple transfer</li><li>Contract bug = catastrophic loss</li><li>Slower to iterate than backend-only</li></ul></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>My Recommendation: Approach B</h3>
+  <p>For a trading bot platform, Approach B (Dedicated Wallet Service + HD Addresses) hits the sweet spot. It gives you clean separation without the cost/risk of smart contract development. Here's the high-level flow:</p>
+  <ul>
+    <li><strong>Wallet Service</strong> runs as a separate Node.js process (could also be Hono) with its own config.</li>
+    <li>Uses <code>bip32/bip39</code> to derive BSC addresses from a master seed. Each user gets a unique index.</li>
+    <li>Monitors USDT Transfer events on BSC via WebSocket connection to a BSC node (or QuickNode/Ankr) + BscScan API fallback.</li>
+    <li>After 12 block confirmations, sends deposit notification to Main API via Redis Pub/Sub or internal HTTP.</li>
+    <li><strong>Sweeping:</strong> Periodically consolidate deposit addresses to a central hot wallet. Only sweep if balance &gt; gas cost threshold (e.g., &gt;$1). Keeps dust manageable.</li>
+    <li><strong>Withdrawals:</strong> Main API requests withdrawal → Wallet Service signs tx from hot wallet (holds BNB for gas).</li>
+    <li><strong>Token conversion:</strong> 1 USDT = 1 Token (fixed). Deposit auto-converts, or user converts manually via UI. Tokens are just internal ledger entries.</li>
+  </ul>
+</div>

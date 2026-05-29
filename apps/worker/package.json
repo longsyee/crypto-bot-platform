@@ -1,0 +1,23 @@
+{
+  "name": "@crypto-bot-platform/worker",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "tsc",
+    "test": "vitest run",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "ccxt": "^4.2.0",
+    "bullmq": "^5.0.0",
+    "ioredis": "^5.3.0",
+    "@crypto-bot-platform/prisma": "workspace:*",
+    "@crypto-bot-platform/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "tsx": "^4.15.0",
+    "vitest": "^1.0.0"
+  }
+}
