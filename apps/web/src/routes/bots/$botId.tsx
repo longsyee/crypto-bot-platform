@@ -95,7 +95,7 @@ function CapitalCard({
   configJson: any;
 }) {
   const { data: livePriceData, isLoading: priceLoading } = useBotLivePrice(botId);
-  const livePrice = livePriceData?.data?.lastPrice || 0;
+  const livePrice = livePriceData?.lastPrice || 0;
   const leverage = Number(paperBalance.leverage || configJson?.leverage || 1);
 
   /* ---- Paper math ---- */

@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NexusBot — Trading Platform Redesign Mockup</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+            display: ['Space Grotesk', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              200: '#bfdbfe',
+              300: '#93c5fd',
+              400: '#60a5fa',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    :root {
+      /* Light mode tokens */
+      --bg-base: #f8fafc;
+      --bg-elevated: #ffffff;
+      --bg-card: #ffffff;
+      --bg-hover: #f1f5f9;
+      --bg-pressed: #e2e8f0;
+      --bg-overlay: rgba(255,255,255,0.85);
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+      --border-subtle: rgba(148,163,184,0.15);
+      --border-default: rgba(148,163,184,0.25);
+      --primary: #2563eb;
+      --primary-glow: rgba(37,99,235,0.15);
+      --success: #059669;
+      --success-glow: rgba(5,150,105,0.15);
+      --danger: #dc2626;
+      --danger-glow: rgba(220,38,38,0.15);
+      --warning: #d97706;
+      --warning-glow: rgba(217,119,6,0.15);
+      --sidebar-bg: rgba(255,255,255,0.95);
+      --sidebar-border: rgba(148,163,184,0.12);
+      --header-bg: rgba(255,255,255,0.85);
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.06), 0 4px 6px -2px rgba(0,0,0,0.03);
+      --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.06), 0 10px 10px -5px rgba(0,0,0,0.02);
+      --shadow-glow-blue: 0 0 20px rgba(37,99,235,0.12);
+      --shadow-glow-green: 0 0 20px rgba(5,150,105,0.12);
+      --shadow-glow-red: 0 0 20px rgba(220,38,38,0.12);
+    }
+
+    .dark {
+      /* Dark mode tokens */
+      --bg-base: #030712;
+      --bg-elevated: #0a0f1a;
+      --bg-card: #0f1525;
+      --bg-hover: #141d2e;
+      --bg-pressed: #1a2438;
+      --bg-overlay: rgba(10,15,26,0.92);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --border-subtle: rgba(148,163,184,0.08);
+      --border-default: rgba(148,163,184,0.12);
+      --primary: #60a5fa;
+      --primary-glow: rgba(96,165,250,0.15);
+      --success: #34d399;
+      --success-glow: rgba(52,211,153,0.15);
+      --danger: #f87171;
+      --danger-glow: rgba(248,113,113,0.15);
+      --warning: #fbbf24;
+      --warning-glow: rgba(251,191,36,0.15);
+      --sidebar-bg: rgba(10,15,26,0.98);
+      --sidebar-border: rgba(148,163,184,0.06);
+      --header-bg: rgba(10,15,26,0.85);
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.4), 0 2px 4px -1px rgba(0,0,0,0.2);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.5), 0 4px 6px -2px rgba(0,0,0,0.3);
+      --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.5), 0 10px 10px -5px rgba(0,0,0,0.3);
+      --shadow-glow-blue: 0 0 30px rgba(96,165,250,0.15);
+      --shadow-glow-green: 0 0 30px rgba(52,211,153,0.15);
+      --shadow-glow-red: 0 0 30px rgba(248,113,113,0.15);
+    }
+
+    * { border-color: var(--border-subtle); }
+    body {
+      background: var(--bg-base);
+      color: var(--text-primary);
+      font-family: 'Inter', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Card base */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .card:hover {
+      border-color: var(--border-default);
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-1px);
+    }
+
+    /* Glow effects */
+    .glow-blue { box-shadow: var(--shadow-glow-blue); }
+    .glow-green { box-shadow: var(--shadow-glow-green); }
+    .glow-red { box-shadow: var(--shadow-glow-red); }
+
+    /* Sidebar */
+    .sidebar {
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--sidebar-border);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+    }
+
+    /* Header */
+    .app-header {
+      background: var(--header-bg);
+      border-bottom: 1px solid var(--border-subtle);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+    }
+
+    /* Nav item */
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+    }
+    .nav-item:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+    .nav-item.active {
+      background: var(--bg-hover);
+      color: var(--primary);
+      border-color: var(--border-default);
+      box-shadow: var(--shadow-glow-blue);
+    }
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 3px;
+      height: 20px;
+      background: var(--primary);
+      border-radius: 0 4px 4px 0;
+    }
+
+    /* Gradient accents */
+    .gradient-teal {
+      background: linear-gradient(135deg, #2dd4bf 0%, #059669 100%);
+    }
+    .gradient-blue {
+      background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);
+    }
+    .gradient-purple {
+      background: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%);
+    }
+    .gradient-amber {
+      background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+    }
+
+    /* Number font */
+    .font-mono { font-variant-numeric: tabular-nums; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+    /* Section animation trigger */
+    .gsap-section { opacity: 0; transform: translateY(24px); }
+
+    /* Table styles */
+    .data-table th {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: var(--text-muted);
+      padding: 12px 16px;
+      text-align: left;
+      white-space: nowrap;
+    }
+    .data-table td {
+      font-size: 14px;
+      padding: 14px 16px;
+      border-top: 1px solid var(--border-subtle);
+      white-space: nowrap;
+    }
+    .data-table tr:hover td {
+      background: var(--bg-hover);
+    }
+
+    /* Badge */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+    .badge-green {
+      background: var(--success-glow);
+      color: var(--success);
+      border: 1px solid rgba(52,211,153,0.2);
+    }
+    .badge-red {
+      background: var(--danger-glow);
+      color: var(--danger);
+      border: 1px solid rgba(248,113,113,0.2);
+    }
+    .badge-blue {
+      background: var(--primary-glow);
+      color: var(--primary);
+      border: 1px solid rgba(96,165,250,0.2);
+    }
+    .badge-amber {
+      background: var(--warning-glow);
+      color: var(--warning);
+      border: 1px solid rgba(251,191,36,0.2);
+    }
+
+    /* Mobile menu overlay */
+    .mobile-overlay {
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+    }
+
+    /* Auth layout */
+    .auth-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      box-shadow: var(--shadow-xl);
+    }
+
+    /* Inputs */
+    .input-field {
+      background: var(--bg-hover);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 14px;
+      color: var(--text-primary);
+      transition: all 0.2s ease;
+      width: 100%;
+    }
+    .input-field:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+      box-shadow: var(--shadow-glow-blue);
+    }
+    .btn-primary:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid var(--border-subtle);
+    }
+    .btn-ghost:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+
+    /* Calculator bars */
+    .bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Position cards */
+    .pos-long {
+      border-color: rgba(52,211,153,0.2);
+      background: rgba(52,211,153,0.03);
+    }
+    .pos-short {
+      border-color: rgba(248,113,113,0.2);
+      background: rgba(248,113,113,0.03);
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+
+  <!-- Theme Toggle (floating) -->
+  <button id="themeToggle" class="fixed bottom-6 right-6 z-[9999] w-12 h-12 rounded-full bg-[var(--bg-card)] border border-[var(--border-subtle)] shadow-lg flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all hover:scale-110">
+    <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+    <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
+  </button>
+
+  <!-- Mobile Hamburger -->
+  <button id="mobileMenuBtn" class="lg:hidden fixed top-4 left-4 z-[2000] w-10 h-10 rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)] shadow-md flex items-center justify-center text-[var(--text-primary)]">
+    <i data-lucide="menu" class="w-5 h-5" id="menuIcon"></i>
+    <i data-lucide="x" class="w-5 h-5 hidden" id="closeIcon"></i>
+  </button>
+
+  <!-- Mobile Overlay -->
+  <div id="mobileOverlay" class="mobile-overlay fixed inset-0 z-[1500] opacity-0 pointer-events-none transition-opacity duration-300 lg:hidden"></div>
+
+  <div class="flex min-h-screen">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar fixed lg:static inset-y-0 left-0 z-[1600] w-[260px] flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] -translate-x-full lg:translate-x-0">
+      <!-- Logo -->
+      <div class="px-5 py-5 border-b border-[var(--border-subtle)] flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl gradient-teal flex items-center justify-center shadow-lg">
+          <i data-lucide="zap" class="w-5 h-5 text-white"></i>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-[15px] font-bold tracking-tight text-[var(--text-primary)] leading-none font-display">NexusBot</span>
+          <span class="text-[10px] text-[var(--text-muted)] leading-none mt-1 tracking-wide uppercase font-medium">Trading Platform</span>
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="flex-1 p-3 space-y-1 overflow-y-auto">
+        <div class="px-3 py-2 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Platform</div>
+        <a href="#dashboard" class="nav-item active relative">
+          <i data-lucide="layout-dashboard" class="w-[18px] h-[18px]"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="#wallet" class="nav-item relative">
+          <i data-lucide="wallet" class="w-[18px] h-[18px]"></i>
+          <span>Wallet</span>
+        </a>
+        <a href="#exchanges" class="nav-item relative">
+          <i data-lucide="plug" class="w-[18px] h-[18px]"></i>
+          <span>Exchanges</span>
+        </a>
+        <a href="#bots" class="nav-item relative">
+          <i data-lucide="bot" class="w-[18px] h-[18px]"></i>
+          <span>Bots</span>
+        </a>
+        <a href="#calculator" class="nav-item relative">
+          <i data-lucide="calculator" class="w-[18px] h-[18px]"></i>
+          <span>DCA Simulator</span>
+        </a>
+        <a href="#referrals" class="nav-item relative">
+          <i data-lucide="users" class="w-[18px] h-[18px]"></i>
+          <span>Referrals</span>
+        </a>
+
+        <div class="px-3 py-2 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mt-4">Administration</div>
+        <a href="#admin" class="nav-item relative">
+          <i data-lucide="shield" class="w-[18px] h-[18px]"></i>
+          <span>Admin</span>
+        </a>
+      </nav>
+
+      <!-- Bottom fade -->
+      <div class="pointer-events-none h-10 bg-gradient-to-t from-[var(--sidebar-bg)] to-transparent"></div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col min-w-0 lg:ml-0">
+      <!-- Header -->
+      <header class="app-header h-16 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-[1400]">
+        <div class="flex items-center gap-3 min-w-0 lg:ml-0 ml-12">
+          <span class="text-sm font-medium text-[var(--text-secondary)] hidden sm:inline">
+            Welcome back, <span class="text-[var(--text-primary)]">Trader</span>
+          </span>
+        </div>
+        <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+          <!-- Wallet Chip -->
+          <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--success-glow)] border border-[rgba(52,211,153,0.2)] text-[var(--success)] text-sm font-medium">
+            <i data-lucide="wallet" class="w-3.5 h-3.5"></i>
+            <span class="whitespace-nowrap font-mono">1,240.50 USDT</span>
+          </div>
+          <button class="relative p-2 rounded-xl text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors">
+            <i data-lucide="bell" class="w-[18px] h-[18px]"></i>
+            <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[var(--danger)]"></span>
+          </button>
+          <button class="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full bg-[var(--bg-hover)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all">
+            <div class="w-7 h-7 rounded-full gradient-teal flex items-center justify-center text-[11px] font-bold text-white">T</div>
+            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-[var(--text-muted)] hidden sm:block"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- Main scrollable area -->
+      <main class="flex-1 p-4 sm:p-5 lg:p-6 overflow-x-hidden overflow-y-auto space-y-16">
+
+        <!-- ==================== DASHBOARD ==================== -->
+        <section id="dashboard" class="max-w-6xl mx-auto space-y-6">
+          <div class="gsap-section">
+            <h1 class="text-2xl sm:text-3xl font-bold text-[var(--text-primary)] font-display tracking-tight">Dashboard</h1>
+            <p class="text-sm text-[var(--text-secondary)] mt-1">Overview of your trading activity</p>
+          </div>
+
+          <!-- Stats Grid -->
+          <div class="gsap-section grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            <div class="card p-5 glow-blue">
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wide">Token Balance</span>
+                <div class="w-8 h-8 rounded-lg bg-[var(--primary-glow)] flex items-center justify-center">
+                  <i data-lucide="wallet" class="w-4 h-4 text-[var(--primary)]"></i>
+                </div>
+              </div>
+              <div class="text-2xl font-bold font-mono text-[var(--text-primary)]">12,450.00</div>
+              <div class="text-xs text-[var(--text-muted)] mt-1">Platform tokens</div>
+            </div>
+
+            <div class="card p-5 glow-green">
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wide">USDT Balance</span>
+                <div class="w-8 h-8 rounded-lg bg-[var(--success-glow)] flex items-center justify-center">
+                  <i data-lucide="arrow-right-left" class="w-4 h-4 text-[var(--success)]"></i>
+                </div>
+              </div>
+              <div class="text-2xl font-bold font-mono text-[var(--text-primary)]">1,240.50</div>
+              <div class="text-xs text-[var(--text-muted)] mt-1">Trading capital</div>
+            </div>
+
+            <div class="card p-5 glow-blue">
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wide">Active Bots</span>
+                <div class="w-8 h-8 rounded-lg bg-[var(--primary-glow)] flex items-center justify-center">
+                  <i data-lucide="bot" class="w-4 h-4 text-[var(--primary)]"></i>
+                </div>
+              </div>
+              <div class="text-2xl font-bold font-mono text-[var(--text-primary)]">3 / 7</div>
+              <div class="text-xs text-[var(--text-muted)] mt-1">Running / Total</div>
+            </div>
+
+            <div class="card p-5 glow-green">
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wide">Total Deposited</span>
+                <div class="w-8 h-8 rounded-lg bg-[var(--success-glow)] flex items-center justify-center">
+                  <i data-lucide="trending-up" class="w-4 h-4 text-[var(--success)]"></i>
+                </div>
+              </div>
+              <div class="text-2xl font-bold font-mono text-[var(--text-primary)]">5,000.00</div>
+              <div class="text-xs text-[var(--text-muted)] mt-1">Lifetime deposits</div>
+            </div>
+          </div>
+
+          <!-- Recent Activity -->
+          <div class="gsap-section card overflow-hidden">
+            <div class="px-5 py-4 border-b border-[var(--border-subtle)] flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <i data-lucide="activity" class="w-4 h-4 text-[var(--primary)]"></i>
+                <span class="text-sm font-semibold text-[var(--text-primary)]">Recent Activity</span>
+              </div>
+              <span class="text-xs text-[var(--text-muted)]">Live</span>
+            </div>
+            <div class="divide-y divide-[var(--border-subtle)]">
+              <div class="px-5 py-3 flex items-center gap-3 hover:bg-[var(--bg-hover)] transition-colors">
+                <div class="w-8 h-8 rounded-full bg-[var(--success-glow)] flex items-center justify-center shrink-0">
+                  <i data-lucide="check-circle" class="w-4 h-4 text-[var(--success)]"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-medium text-[var(--text-primary)]">DCA Bot "BTC Long" placed base order</p>
+                  <p class="text-xs text-[var(--text-muted)]">0.002 BTC at $48,250</p>
+                </div>
+                <span class="text-xs text-[var(--text-muted)] shrink-0">2m ago</span>
+              </div>
+              <div class="px-5 py-3 flex items-center gap-3 hover:bg-[var(--bg-hover)] transition-colors">
+                <div class="w-8 h-8 rounded-full bg-[var(--primary-glow)] flex items-center justify-center shrink-0">
+                  <i data-lucide="info" class="w-4 h-4 text-[var(--primary)]"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-medium text-[var(--text-primary)]">Safety Order #2 triggered</p>
+                  <p class="text-xs text-[var(--text-muted)]">ETH Short at deviation -2.5%</p>
+                </div>
+                <span class="text-xs text-[var(--text-muted)] shrink-0">15m ago</span>
+              </div>
+              <div class="px-5 py-3 flex items-center gap-3 hover:bg-[var(--bg-hover)] transition-colors">
+                <div class="w-8 h-8 rounded-full bg-[var(--warning-glow)] flex items-center justify-center shrink-0">
+                  <i data-lucide="alert-triangle" class="w-4 h-4 text-[var(--warning)]"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-medium text-[var(--text-primary)]">Take Profit reached on SOL Long</p>
+                  <p class="text-xs text-[var(--text-muted)]">Profit: +$124.50 (5.2%)</p>
+                </div>
+                <span class="text-xs text-[var(--text-muted)] shrink-0">1h ago</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== BOTS LIST ==================== -->
+        <section id="bots" class="max-w-6xl mx-auto space-y-6">
+          <div class="gsap-section flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h1 class="text-2xl sm:text-3xl font-bold text-[var(--text-primary)] font-display tracking-tight">Trading Bots</h1>
+              <p class="text-sm text-[var(--text-secondary)] mt-1">Manage your DCA and signal bots</p>
+            </div>
+            <button class="btn btn-primary self-start sm:self-auto">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              Create Bot
+            </button>
+          </div>
+
+          <!-- Filter Tabs -->
+          <div class="gsap-section flex items-center gap-2 overflow-x-auto pb-1">
+            <button class="px-4 py-2 rounded-xl text-sm font-medium bg-[var(--bg-hover)] text-[var(--text-primary)] border border-[var(--border-default)]">All</button>
+            <button class="px-4 py-2 rounded-xl text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors">Running</button>
+            <button class="px-4 py-2 rounded-xl text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors">Stopped</button>
+            <button class="px-4 py-2 rounded-xl text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors">Paper</button>
+            <button class="px-4 py-2 rounded-xl text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors">Live</button>
+          </div>
+
+          <!-- Bots Grid -->
+          <div class="gsap-section grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <!-- Bot Card 1 -->
+            <div class="card p-5">
+              <div class="flex items-start justify-between mb-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-xl gradient-blue flex items-center justify-center">
+                    <i data-lucide="bot" class="w-5 h-5 text-white"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-sm font-semibold text-[var(--text-primary)]">BTC Long DCA</h3>
+                    <p class="text-xs text-[var(--text-muted)]">BTC/USDT • 10× Cross</p>
+                  </div>
+                </div>
+                <span class="badge badge-green">
+                  <span class="w-1.5 h-1.5 rounded-full bg-[var(--success)]"></span>
+                  Running
+                </span>
+              </div>
+              <div class="grid grid-cols-3 gap-3 mb-4">
+                <div>
+                  <p class="text-[10px] text-[var(--text-muted)] uppercase tracking-wide">Mode</p>
+                  <p class="text-sm font-medium text-[var(--text-primary)]">Paper</p>
+                </div>
+                <div>
+                  <p class="text-[10px] text-[var(--text-muted)] uppercase tracking-wide">Direction</p>
+                  <p class="text-sm font-medium text-[var(--success)]">Long</p>
+                </div>
+                <div>
+                  <p class="text-[10px] text-[var(--text-muted)] uppercase tracking-wide">PnL</p>
+                  <p class="text-sm font-medium font-mono text-[var(--success)]">+$245.80</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button class="btn btn-ghost flex-1 text-xs py-2">
+                  <i data-lucide="square" class="w-3.5 h-3.5"></i>
+                  Stop
+                </button>
+                <button class="btn btn-primary flex-1 text-xs py-2">
+                  <i data-lucide="settings" class="w-3.5 h-3.5"></i>
+                  Manage
+                </button>
+              </div>
+            </div>
+
+            <!-- Bot Card 2 -->
+            <div class="card p-5">
+              <div class="flex items-start justify-between mb-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-xl gradient-purple flex items-center justify-center">
+                    <i data-lucide="bot" class="w-5 h-5 text-white"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-sm font-semibold text-[var(--text-primary)]">ETH Short DCA</h3>
+                    <p class="text-xs text-[var(--text-muted)]">ETH/USDT • 5× Isolated</p>
+                  </div>
+                </div>
+                <span class="badge badge-amber">
+                  <span class="w-1.5 h-1.5 rounded-full bg-[var(--warning)]"></span>
+                  Paused
+                </span>
+              </div>
+              <div class="grid grid-cols-3 gap-3 mb-4">
+                <div>
+                  <p class="text-[10px] text-[var(--text-muted)] uppercase tracking-wide">Mode</p>
+                  <p class="text-sm font-medium text-[var(--text-primary)]">Live</p>
+                </div>
+                <div>
+                  <p class="text-[10px] text-[var(--text-muted)] uppercase tracking-wide">Direction</p>
+                  <p class="text-sm font-medium text-[var(--danger)]">Short</p>
+                </div>
+                <div>
+                  <p class="text-[10px] text-[var(--text-muted)] uppercase tracking-wide">PnL</p>
+                  <p class="text-sm font-medium font-mono text-[var(--danger)]">-$12.40</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button class="btn btn-ghost flex-1 text-xs py-2">
+                  <i data-lucide="play" class="w-3.5 h-3.5"></i>
+                  Start
+                </button>
+                <button class="btn btn-primary flex-1 text-xs py-2">
+                  <i data-lucide="settings" class="w-3.5 h-3.5"></i>
+                  Manage
+                </button>
+              </div>
+            </div>
+
+            <!-- Bot Card 3 -->
+            <div class="card p-5">
+              <div class="flex items-start justify-between mb-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-xl gradient-teal flex items-center justify-center">
+                    <i data-lucide="bot" class="w-5 h-5 text-white"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-sm font-semibold text-[var(--text-primary)]">SOL Dual Hedge</h3>
+                    <p class="text-xs text-[var(--text-muted)]">SOL/USDT • 8× Cross</p>
+                  </div>
+                </div>
+                <span class="badge badge-green">
+                  <span class="w-1.5 h-1.5 rounded-full bg-[var(--success)]"></span>
+                  Running
+                </span>
+              </div>
+              <div class="grid grid-cols-3 gap-3 mb-4">
+                <div>
+                  <p class="text-[10px] text-[var(--text-muted)] uppercase tracking-wide">Mode</p>
+                  <p class="text-sm font-medium text-[var(--text-primary)]">Paper</p>
+                </div>
+                <div>
+                  <p class="text-[10px] text-[var(--text-muted)] uppercase tracking-wide">Direction</p>
+                  <p class="text-sm font-medium text-[var(--primary)]">Both</p>
+                </div>
+                <div>
+                  <p class="text-[10px] text-[var(--text-muted)] uppercase tracking-wide">PnL</p>
+                  <p class="text-sm font-medium font-mono text-[var(--success)]">+$89.20</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button class="btn btn-ghost flex-1 text-xs py-2">
+                  <i data-lucide="square" class="w-3.5 h-3.5"></i>
+                  Stop
+                </button>
+                <button class="btn btn-primary flex-1 text-xs py-2">
+                  <i data-lucide="settings" class="w-3.5 h-3.5"></i>
+                  Manage
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== BOT DETAIL ==================== -->
+        <section id="bot-detail" class="max-w-6xl mx-auto space-y-6">
+          <div class="gsap-section">
+            <div class="flex items-center gap-2 mb-2">
+              <button class="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+              </button>
+              <span class="text-sm text-[var(--text-muted)]">Bots</span>
+              <span class="text-[var(--text-muted)]">/</span>
+              <span class="text-sm font-medium text-[var(--text-primary)]">BTC Long DCA</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-bold text-[var(--text-primary)] font-display tracking-tight">BTC Long DCA</h1>
+          </div>
+
+          <!-- Top Info Row -->
+          <div class="gsap-section flex flex-wrap items-center gap-3">
+            <span class="badge badge-green">Running</span>
+            <span class="badge badge-blue">Paper</span>
+            <span class="badge badge-amber">DCA+</span>
+            <span class="text-xs text-[var(--text-muted)]">BTC/USDT • 10× Cross • Long</span>
+          </div>
+
+          <!-- Capital Breakdown -->
+          <div class="gsap-section card">
+            <div class="px-5 py-4 border-b border-[var(--border-subtle)]">
+              <div class="flex items-center gap-2">
+                <i data-lucide="wallet" class="w-4 h-4 text-[var(--primary)]"></i>
+                <span class="text-sm font-semibold text-[var(--text-primary)]">Paper Capital Breakdown</span>
+              </div>
+            </div>
+            <div class="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div class="space-y-2">
+                <div class="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
+                  <i data-lucide="unlock" class="w-3.5 h-3.5"></i>
+                  Available Balance
+                </div>
+                <div class="text-xl font-semibold font-mono text-[var(--text-primary)]">8,450.00 <span class="text-sm font-normal text-[var(--text-muted)]">USDT</span></div>
+                <div class="text-[10px] text-[var(--text-muted)]">Free margin not in positions</div>
+              </div>
+              <div class="space-y-2">
+                <div class="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
+                  <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+                  Margin On Hold
+                </div>
+                <div class="text-xl font-semibold font-mono text-[var(--text-primary)]">1,250.00 <span class="text-sm font-normal text-[var(--text-muted)]">USDT</span></div>
+                <div class="text-[10px] text-[var(--text-muted)]">10× leverage</div>
+              </div>
+              <div class="space-y-2">
+                <div class="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
+                  <i data-lucide="dollar-sign" class="w-3.5 h-3.5"></i>
+                  Fees Paid
+                </div>
+                <div class="text-xl font-semibold font-mono text-[var(--text-primary)]">12.4500 <span class="text-sm font-normal text-[var(--text-muted)]">USDT</span></div>
+                <div class="text-[10px] text-[var(--text-muted)]">Cumulative trading fees</div>
+              </div>
+              <div class="space-y-2">
+                <div class="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
+                  <i data-lucide="trending-up" class="w-3.5 h-3.5"></i>
+                  Realized PnL
+                </div>
+                <div class="text-xl font-semibold font-mono text-[var(--success)]">+245.80 <span class="text-sm font-normal text-[var(--text-muted)]">USDT</span></div>
+                <div class="text-[10px] text-[var(--text-muted)]">Closed trade profit / loss</div>
+              </div>
+
+              <!-- Live Market Price -->
+              <div class="space-y-2 rounded-xl border border-[rgba(96,165,250,0.2)] bg-[rgba(96,165,250,0.03)] p-4">
+                <div class="flex items-center gap-1.5 text-xs text-[var(--primary)] font-medium">
+                  <i data-lucide="activity" class="w-3.5 h-3.5"></i>
+                  Live Market Price
+                </div>
+                <div class="text-xl font-semibold font-mono text-[var(--text-primary)]">48,250.00 <span class="text-sm font-normal text-[var(--text-muted)]">USDT</span></div>
+                <div class="text-[10px] text-[var(--text-muted)]">Real-time CCXT ticker</div>
+              </div>
+
+              <!-- Floating PnL -->
+              <div class="space-y-2">
+                <div class="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
+                  <i data-lucide="trending-up" class="w-3.5 h-3.5"></i>
+                  Floating PnL
+                </div>
+                <div class="text-xl font-semibold font-mono text-[var(--success)]">+78.40 <span class="text-sm font-normal text-[var(--text-muted)]">USDT</span></div>
+                <div class="text-[10px] text-[var(--text-muted)]">Unrealized (Live Price − VWAP) × Size</div>
+              </div>
+            </div>
+
+            <!-- Position Card -->
+            <div class="px-5 pb-5">
+              <div class="card pos-long p-4 sm:col-span-2">
+                <div class="flex items-center justify-between mb-3">
+                  <div class="flex items-center gap-1.5 text-xs text-[var(--success)] font-medium">
+                    <i data-lucide="trending-up" class="w-3.5 h-3.5"></i>
+                    Long Position
+                  </div>
+                  <span class="inline-flex items-center rounded-full border border-[var(--border-subtle)] px-2 py-0.5 text-[10px] font-medium text-[var(--text-muted)]">Open</span>
+                </div>
+                <div class="grid grid-cols-3 gap-3 text-sm">
+                  <div>
+                    <span class="text-[var(--text-muted)] text-xs">Size</span>
+                    <div class="font-medium font-mono">0.004200</div>
+                  </div>
+                  <div>
+                    <span class="text-[var(--text-muted)] text-xs">Entry</span>
+                    <div class="font-medium font-mono">48,500.00 USDT</div>
+                  </div>
+                  <div>
+                    <span class="text-[var(--text-muted)] text-xs">Notional</span>
+                    <div class="font-medium font-mono">203.70 USDT</div>
+                  </div>
+                  <div>
+                    <span class="text-[var(--text-muted)] text-xs">Engine VWAP</span>
+                    <div class="font-medium font-mono">48,320.50 USDT</div>
+                  </div>
+                  <div>
+                    <span class="text-[var(--text-muted)] text-xs">Live Price</span>
+                    <div class="font-medium font-mono">48,250.00 USDT</div>
+                  </div>
+                  <div>
+                    <span class="text-[var(--text-muted)] text-xs">Floating PnL</span>
+                    <div class="font-medium font-mono text-[var(--success)]">+0.2961 USDT</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== DCA CALCULATOR ==================== -->
+        <section id="calculator" class="max-w-6xl mx-auto space-y-6">
+          <div class="gsap-section">
+            <h1 class="text-2xl sm:text-3xl font-bold text-[var(--text-primary)] font-display tracking-tight">DCA Calculator</h1>
+            <p class="text-sm text-[var(--text-secondary)] mt-1">Simulate your DCA bot strategy before deploying live capital</p>
+          </div>
+
+          <div class="gsap-section flex flex-col lg:flex-row gap-6">
+            <!-- Inputs Panel -->
+            <div class="w-full lg:w-[400px] flex-shrink-0 space-y-4">
+              <div class="card p-5">
+                <div class="flex items-center gap-2 mb-5">
+                  <i data-lucide="calculator" class="w-4 h-4 text-[var(--primary)]"></i>
+                  <span class="text-sm font-semibold text-[var(--text-primary)]">Parameters</span>
+                </div>
+
+                <!-- Direction -->
+                <div class="space-y-2 mb-4">
+                  <label class="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wide">Direction</label>
+                  <div class="flex rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-hover)] p-1">
+                    <button class="flex-1 rounded-lg px-2 py-1.5 text-xs font-medium bg-[rgba(52,211,153,0.15)] text-[var(--success)] border border-[rgba(52,211,153,0.2)]">Long</button>
+                    <button class="flex-1 rounded-lg px-2 py-1.5 text-xs font-medium text-[var(--text-muted)] hover:text-[var(--text-primary)]">Short</button>
+                    <button class="flex-1 rounded-lg px-2 py-1.5 text-xs font-medium text-[var(--text-muted)] hover:text-[var(--text-primary)]">Both</button>
+                  </div>
+                </div>
+
+                <!-- Leverage -->
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                  <div class="space-y-2">
+                    <label class="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wide">Leverage</label>
+                    <div class="flex items-center gap-2">
+                      <input type="number" value="10" class="input-field" />
+                      <span class="text-sm text-[var(--text-muted)] w-6">×</span>
+                    </div>
+                  </div>
+                  <div class="space-y-2">
+                    <label class="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wide">Margin Type</label>
+                    <div class="flex rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-hover)] p-1">
+                      <button class="flex-1 rounded-lg px-2 py-1.5 text-xs font-medium bg-[var(--primary-glow)] text-[var(--primary)] border border-[rgba(96,165,250,0.2)]">Cross</button>
+                      <button class="flex-1 rounded-lg px-2 py-1.5 text-xs font-medium text-[var(--text-muted)] hover:text-[var(--text-primary)]">Isolated</button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Numeric fields -->
+                <div class="space-y-2 mb-4">
+                  <label class="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wide">Current Price</label>
+                  <div class="flex items-center gap-2">
+                    <input type="number" value="50000" class="input-field" />
+                    <span class="text-sm text-[var(--text-muted)] w-12 text-right">USDT</span>
+                  </div>
+                </div>
+
+                <div class="space-y-2 mb-4">
+                  <label class="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wide">Base Order Size</label>
+                  <div class="flex items-center gap-2">
+                    <input type="number" value="100" class="input-field" />
+                    <span class="text-sm text-[var(--text-muted)] w-12 text-right">USDT</span>
+                  </div>
+                </div>
+
+                <div class="space-y-2 mb-4">
+                  <label class="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wide">Safety Order Size</label>
+                  <div class="flex items-center gap-2">
+                    <input type="number" value="100" class="input-field" />
+                    <span class="text-sm text-[var(--text-muted)] w-12 text-right">USDT</span>
+                  </div>
+                </div>
+
+                <div class="space-y-2 mb-4">
+                  <label class="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wide">Max Safety Orders</label>
+                  <input type="range" min="1" max="50" value="5" class="w-full accent-[var(--primary)]" />
+                  <div class="flex justify-between text-xs text-[var(--text-muted)]">
+                    <span>1</span>
+                    <span class="font-medium text-[var(--text-primary)]">5</span>
+                    <span>50</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Results Panel -->
+            <div class="flex-1 space-y-5">
+              <!-- Summary Banner -->
+              <div class="gsap-section rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-hover)] p-4 flex flex-wrap items-center gap-4">
+                <span class="text-xs font-semibold uppercase tracking-wide text-[var(--success)]">Long / 10× Cross</span>
+                <div class="h-4 w-px bg-[var(--border-subtle)]"></div>
+                <div class="text-xs text-[var(--text-muted)]">Break-even: <span class="text-[var(--text-primary)] font-mono">$49,320.50</span></div>
+                <div class="text-xs text-[var(--text-muted)]">TP: <span class="text-[var(--success)] font-mono">$51,786.53</span></div>
+                <div class="text-xs text-[var(--text-muted)]">SL: <span class="text-[var(--danger)] font-mono">$44,388.45</span></div>
+              </div>
+
+              <!-- Analytics -->
+              <div class="gsap-section card">
+                <div class="px-5 py-4 border-b border-[var(--border-subtle)] flex items-center gap-2">
+                  <i data-lucide="bar-chart-3" class="w-4 h-4 text-[var(--primary)]"></i>
+                  <span class="text-sm font-semibold text-[var(--text-primary)]">Analytics</span>
+                </div>
+                <div class="p-5 grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  <div class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-hover)] p-3 space-y-1">
+                    <div class="flex items-center gap-1.5 text-[var(--text-muted)]">
+                      <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+                      <span class="text-xs font-medium">Total Margin</span>
+                    </div>
+                    <div class="text-lg font-semibold font-mono text-[var(--text-primary)]">$60.00</div>
+                  </div>
+                  <div class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-hover)] p-3 space-y-1">
+                    <div class="flex items-center gap-1.5 text-[var(--text-muted)]">
+                      <i data-lucide="scale" class="w-3.5 h-3.5"></i>
+                      <span class="text-xs font-medium">Total Notional</span>
+                    </div>
+                    <div class="text-lg font-semibold font-mono text-[var(--text-primary)]">$600.00</div>
+                  </div>
+                  <div class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-hover)] p-3 space-y-1">
+                    <div class="flex items-center gap-1.5 text-[var(--text-muted)]">
+                      <i data-lucide="target" class="w-3.5 h-3.5"></i>
+                      <span class="text-xs font-medium">Break-even</span>
+                    </div>
+                    <div class="text-lg font-semibold font-mono text-[var(--text-primary)]">$49,320.50</div>
+                  </div>
+                  <div class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-hover)] p-3 space-y-1">
+                    <div class="flex items-center gap-1.5 text-[var(--text-muted)]">
+                      <i data-lucide="trending-up" class="w-3.5 h-3.5 text-[var(--success)]"></i>
+                      <span class="text-xs font-medium">Est. Profit @ TP</span>
+                    </div>
+                    <div class="text-lg font-semibold font-mono text-[var(--success)]">$30.00</div>
+                  </div>
+                  <div class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-hover)] p-3 space-y-1">
+                    <div class="flex items-center gap-1.5 text-[var(--text-muted)]">
+                      <i data-lucide="trending-down" class="w-3.5 h-3.5 text-[var(--danger)]"></i>
+                      <span class="text-xs font-medium">Max Drawdown</span>
+                    </div>
+                    <div class="text-lg font-semibold font-mono text-[var(--danger)]">12.50%</div>
+                  </div>
+                  <div class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-hover)] p-3 space-y-1">
+                    <div class="flex items-center gap-1.5 text-[var(--text-muted)]">
+                      <i data-lucide="info" class="w-3.5 h-3.5 text-[var(--warning)]"></i>
+                      <span class="text-xs font-medium">Risk / Reward</span>
+                    </div>
+                    <div class="text-lg font-semibold font-mono text-[var(--text-primary)]">1 : 2.00</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Capital Allocation -->
+              <div class="gsap-section card">
+                <div class="px-5 py-4 border-b border-[var(--border-subtle)] flex items-center gap-2">
+                  <i data-lucide="bar-chart-3" class="w-4 h-4 text-[var(--primary)]"></i>
+                  <span class="text-sm font-semibold text-[var(--text-primary)]">Capital Allocation</span>
+                </div>
+                <div class="p-5 space-y-2">
+                  <div class="flex items-center gap-3">
+                    <span class="text-xs text-[var(--text-muted)] w-12 text-right font-mono">Base</span>
+                    <div class="flex-1 h-5 bg-[var(--bg-hover)] rounded-lg overflow-hidden">
+                      <div class="bar-fill gradient-blue" style="width: 33%"></div>
+                    </div>
+                    <span class="text-xs text-[var(--text-primary)] w-20 text-right font-mono">$100.00</span>
+                    <span class="text-[10px] text-[var(--text-muted)] w-16 text-right font-mono">10.00 mrgn</span>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <span class="text-xs text-[var(--text-muted)] w-12 text-right font-mono">SO 1</span>
+                    <div class="flex-1 h-5 bg-[var(--bg-hover)] rounded-lg overflow-hidden">
+                      <div class="bar-fill gradient-teal" style="width: 33%"></div>
+                    </div>
+                    <span class="text-xs text-[var(--text-primary)] w-20 text-right font-mono">$100.00</span>
+                    <span class="text-[10px] text-[var(--text-muted)] w-16 text-right font-mono">10.00 mrgn</span>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <span class="text-xs text-[var(--text-muted)] w-12 text-right font-mono">SO 2</span>
+                    <div class="flex-1 h-5 bg-[var(--bg-hover)] rounded-lg overflow-hidden">
+                      <div class="bar-fill gradient-teal" style="width: 33%"></div>
+                    </div>
+                    <span class="text-xs text-[var(--text-primary)] w-20 text-right font-mono">$100.00</span>
+                    <span class="text-[10px] text-[var(--text-muted)] w-16 text-right font-mono">10.00 mrgn</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Levels Table -->
+              <div class="gsap-section card overflow-hidden">
+                <div class="px-5 py-4 border-b border-[var(--border-subtle)] flex items-center gap-2">
+                  <i data-lucide="calculator" class="w-4 h-4 text-[var(--primary)]"></i>
+                  <span class="text-sm font-semibold text-[var(--text-primary)]">Order Levels</span>
+                </div>
+                <div class="overflow-x-auto">
+                  <table class="data-table w-full">
+                    <thead>
+                      <tr>
+                        <th>Level</th>
+                        <th>Deviation</th>
+                        <th>Trigger</th>
+                        <th>Order (USDT)</th>
+                        <th>Contracts</th>
+                        <th>Margin</th>
+                        <th>Cum. Margin</th>
+                        <th>VWAP</th>
+                        <th>TP Price</th>
+                        <th>SL Price</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td class="text-[var(--text-primary)]">
+                          <span class="inline-flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-[var(--primary)]"></span>
+                            Base
+                          </span>
+                        </td>
+                        <td class="text-[var(--text-secondary)] font-mono">0.00%</td>
+                        <td class="text-[var(--text-secondary)] font-mono">$50,000.00</td>
+                        <td class="text-[var(--text-secondary)] font-mono">$100.00</td>
+                        <td class="text-[var(--text-secondary)] font-mono">0.002000</td>
+                        <td class="text-[var(--text-secondary)] font-mono">$10.00</td>
+                        <td class="text-[var(--text-primary)] font-mono font-medium">$10.00</td>
+                        <td class="text-[var(--warning)] font-mono">$50,000.00</td>
+                        <td class="text-[var(--success)] font-mono">$52,500.00</td>
+                        <td class="text-[var(--danger)] font-mono">$45,000.00</td>
+                      </tr>
+                      <tr>
+                        <td class="text-[var(--text-primary)]">
+                          <span class="inline-flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-[var(--success)]"></span>
+                            SO 1
+                          </span>
+                        </td>
+                        <td class="text-[var(--text-secondary)] font-mono">1.00%</td>
+                        <td class="text-[var(--text-secondary)] font-mono">$49,500.00</td>
+                        <td class="text-[var(--text-secondary)] font-mono">$100.00</td>
+                        <td class="text-[var(--text-secondary)] font-mono">0.002020</td>
+                        <td class="text-[var(--text-secondary)] font-mono">$10.00</td>
+                        <td class="text-[var(--text-primary)] font-mono font-medium">$20.00</td>
+                        <td class="text-[var(--warning)] font-mono">$49,751.24</td>
+                        <td class="text-[var(--success)] font-mono">$52,238.80</td>
+                        <td class="text-[var(--danger)] font-mono">$44,776.12</td>
+                      </tr>
+                      <tr>
+                        <td class="text-[var(--text-primary)]">
+                          <span class="inline-flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-[var(--success)]"></span>
+                            SO 2
+                          </span>
+                        </td>
+                        <td class="text-[var(--text-secondary)] font-mono">2.00%</td>
+                        <td class="text-[var(--text-secondary)] font-mono">$49,000.00</td>
+                        <td class="text-[var(--text-secondary)] font-mono">$100.00</td>
+                        <td class="text-[var(--text-secondary)] font-mono">0.002041</td>
+                        <td class="text-[var(--text-secondary)] font-mono">$10.00</td>
+                        <td class="text-[var(--text-primary)] font-mono font-medium">$30.00</td>
+                        <td class="text-[var(--warning)] font-mono">$49,498.49</td>
+                        <td class="text-[var(--success)] font-mono">$51,973.41</td>
+                        <td class="text-[var(--danger)] font-mono">$44,548.64</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== WALLET ==================== -->
+        <section id="wallet" class="max-w-6xl mx-auto space-y-6">
+          <div class="gsap-section">
+            <h1 class="text-2xl sm:text-3xl font-bold text-[var(--text-primary)] font-display tracking-tight">Wallet</h1>
+            <p class="text-sm text-[var(--text-secondary)] mt-1">Manage your deposits, balances, and transactions</p>
+          </div>
+
+          <!-- Balance Cards -->
+          <div class="gsap-section grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="card p-5 glow-blue">
+              <div class="text-xs text-[var(--text-muted)] uppercase tracking-wide font-semibold mb-2">Token Balance</div>
+              <div class="text-2xl font-bold font-mono text-[var(--text-primary)]">12,450.00</div>
+              <div class="text-xs text-[var(--text-muted)] mt-1">Platform utility tokens</div>
+            </div>
+            <div class="card p-5 glow-green">
+              <div class="text-xs text-[var(--text-muted)] uppercase tracking-wide font-semibold mb-2">USDT Balance</div>
+              <div class="text-2xl font-bold font-mono text-[var(--text-primary)]">1,240.50</div>
+              <div class="text-xs text-[var(--text-muted)] mt-1">Trading capital</div>
+            </div>
+            <div class="card p-5 glow-blue">
+              <div class="text-xs text-[var(--text-muted)] uppercase tracking-wide font-semibold mb-2">Total Deposited</div>
+              <div class="text-2xl font-bold font-mono text-[var(--text-primary)]">5,000.00</div>
+              <div class="text-xs text-[var(--text-muted)] mt-1">Lifetime deposits</div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="gsap-section flex flex-wrap gap-3">
+            <button class="btn btn-primary">
+              <i data-lucide="arrow-down-left" class="w-4 h-4"></i>
+              Deposit
+            </button>
+            <button class="btn btn-ghost">
+              <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+              Withdraw
+            </button>
+            <button class="btn btn-ghost">
+              <i data-lucide="repeat" class="w-4 h-4"></i>
+              Convert
+            </button>
+          </div>
+
+          <!-- Transaction History -->
+          <div class="gsap-section card overflow-hidden">
+            <div class="px-5 py-4 border-b border-[var(--border-subtle)] flex items-center gap-2">
+              <i data-lucide="history" class="w-4 h-4 text-[var(--primary)]"></i>
+              <span class="text-sm font-semibold text-[var(--text-primary)]">Transaction History</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="data-table w-full">
+                <thead>
+                  <tr>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Currency</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <span class="inline-flex items-center gap-2">
+                        <div class="w-6 h-6 rounded-full bg-[var(--success-glow)] flex items-center justify-center">
+                          <i data-lucide="arrow-down-left" class="w-3 h-3 text-[var(--success)]"></i>
+                        </div>
+                        <span class="text-[var(--text-primary)]">Deposit</span>
+                      </span>
+                    </td>
+                    <td class="font-mono text-[var(--success)]">+500.00</td>
+                    <td class="text-[var(--text-secondary)]">USDT</td>
+                    <td><span class="badge badge-green">Completed</span></td>
+                    <td class="text-[var(--text-muted)]">2024-01-15 14:32</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <span class="inline-flex items-center gap-2">
+                        <div class="w-6 h-6 rounded-full bg-[var(--primary-glow)] flex items-center justify-center">
+                          <i data-lucide="repeat" class="w-3 h-3 text-[var(--primary)]"></i>
+                        </div>
+                        <span class="text-[var(--text-primary)]">Convert</span>
+                      </span>
+                    </td>
+                    <td class="font-mono text-[var(--text-primary)]">250.00</td>
+                    <td class="text-[var(--text-secondary)]">Token</td>
+                    <td><span class="badge badge-blue">Pending</span></td>
+                    <td class="text-[var(--text-muted)]">2024-01-15 10:15</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <span class="inline-flex items-center gap-2">
+                        <div class="w-6 h-6 rounded-full bg-[var(--danger-glow)] flex items-center justify-center">
+                          <i data-lucide="arrow-up-right" class="w-3 h-3 text-[var(--danger)]"></i>
+                        </div>
+                        <span class="text-[var(--text-primary)]">Withdraw</span>
+                      </span>
+                    </td>
+                    <td class="font-mono text-[var(--danger)]">-100.00</td>
+                    <td class="text-[var(--text-secondary)]">USDT</td>
+                    <td><span class="badge badge-red">Failed</span></td>
+                    <td class="text-[var(--text-muted)]">2024-01-14 09:00</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== AUTH PAGES ==================== -->
+        <section id="auth" class="max-w-6xl mx-auto space-y-6">
+          <div class="gsap-section">
+            <h1 class="text-2xl sm:text-3xl font-bold text-[var(--text-primary)] font-display tracking-tight">Authentication</h1>
+            <p class="text-sm text-[var(--text-secondary)] mt-1">Login, register, and password reset pages</p>
+          </div>
+
+          <div class="gsap-section grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Login -->
+            <div class="auth-card p-6 sm:p-8">
+              <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 rounded-xl gradient-teal flex items-center justify-center">
+                  <i data-lucide="zap" class="w-5 h-5 text-white"></i>
+                </div>
+                <div>
+                  <h2 class="text-lg font-bold text-[var(--text-primary)] font-display">Welcome back</h2>
+                  <p class="text-xs text-[var(--text-muted)]">Sign in to your NexusBot account</p>
+                </div>
+              </div>
+
+              <div class="space-y-4">
+                <div class="space-y-2">
+                  <label class="text-xs font-semibold text-[var(--text-secondary)]">Email</label>
+                  <input type="email" placeholder="you@example.com" class="input-field" />
+                </div>
+                <div class="space-y-2">
+                  <label class="text-xs font-semibold text-[var(--text-secondary)]">Password</label>
+                  <input type="password" placeholder="••••••••" class="input-field" />
+                </div>
+                <button class="btn btn-primary w-full">
+                  <i data-lucide="log-in" class="w-4 h-4"></i>
+                  Sign In
+                </button>
+              </div>
+
+              <div class="mt-6 flex items-center justify-between text-xs">
+                <a href="#" class="text-[var(--primary)] hover:underline">Forgot password?</a>
+                <a href="#" class="text-[var(--primary)] hover:underline">Create account</a>
+              </div>
+            </div>
+
+            <!-- Register -->
+            <div class="auth-card p-6 sm:p-8">
+              <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 rounded-xl gradient-blue flex items-center justify-center">
+                  <i data-lucide="user-plus" class="w-5 h-5 text-white"></i>
+                </div>
+                <div>
+                  <h2 class="text-lg font-bold text-[var(--text-primary)] font-display">Create account</h2>
+                  <p class="text-xs text-[var(--text-muted)]">Start your trading journey</p>
+                </div>
+              </div>
+
+              <div class="space-y-4">
+                <div class="space-y-2">
+                  <label class="text-xs font-semibold text-[var(--text-secondary)]">Email</label>
+                  <input type="email" placeholder="you@example.com" class="input-field" />
+                </div>
+                <div class="space-y-2">
+                  <label class="text-xs font-semibold text-[var(--text-secondary)]">Password</label>
+                  <input type="password" placeholder="••••••••" class="input-field" />
+                </div>
+                <div class="space-y-2">
+                  <label class="text-xs font-semibold text-[var(--text-secondary)]">Referral Code (optional)</label>
+                  <input type="text" placeholder="REF-12345" class="input-field" />
+                </div>
+                <button class="btn btn-primary w-full">
+                  <i data-lucide="user-plus" class="w-4 h-4"></i>
+                  Create Account
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== FOOTER ==================== -->
+        <footer class="max-w-6xl mx-auto pt-8 pb-12 border-t border-[var(--border-subtle)]">
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-2">
+              <div class="w-6 h-6 rounded-lg gradient-teal flex items-center justify-center">
+                <i data-lucide="zap" class="w-3 h-3 text-white"></i>
+              </div>
+              <span class="text-sm font-semibold text-[var(--text-primary)] font-display">NexusBot</span>
+            </div>
+            <div class="flex items-center gap-6 text-xs text-[var(--text-muted)]">
+              <a href="#" class="hover:text-[var(--text-primary)] transition-colors">Docs</a>
+              <a href="#" class="hover:text-[var(--text-primary)] transition-colors">API</a>
+              <a href="#" class="hover:text-[var(--text-primary)] transition-colors">Status</a>
+              <a href="#" class="hover:text-[var(--text-primary)] transition-colors">Support</a>
+            </div>
+            <div class="text-xs text-[var(--text-muted)]">
+              © 2024 NexusBot. All rights reserved.
+            </div>
+          </div>
+        </footer>
+
+      </main>
+    </div>
+  </div>
+
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+
+    // Theme toggle
+    const themeToggle = document.getElementById('themeToggle');
+    const html = document.documentElement;
+    const stored = localStorage.getItem('nexus-theme');
+    if (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      html.classList.add('dark');
+    }
+    themeToggle.addEventListener('click', () => {
+      html.classList.toggle('dark');
+      localStorage.setItem('nexus-theme', html.classList.contains('dark') ? 'dark' : 'light');
+    });
+
+    // Mobile menu
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const sidebar = document.getElementById('sidebar');
+    const mobileOverlay = document.getElementById('mobileOverlay');
+    const menuIcon = document.getElementById('menuIcon');
+    const closeIcon = document.getElementById('closeIcon');
+    let menuOpen = false;
+
+    mobileMenuBtn.addEventListener('click', () => {
+      menuOpen = !menuOpen;
+      sidebar.classList.toggle('-translate-x-full', !menuOpen);
+      mobileOverlay.classList.toggle('opacity-0', !menuOpen);
+      mobileOverlay.classList.toggle('pointer-events-none', !menuOpen);
+      menuIcon.classList.toggle('hidden', menuOpen);
+      closeIcon.classList.toggle('hidden', !menuOpen);
+    });
+
+    mobileOverlay.addEventListener('click', () => {
+      menuOpen = false;
+      sidebar.classList.add('-translate-x-full');
+      mobileOverlay.classList.add('opacity-0', 'pointer-events-none');
+      menuIcon.classList.remove('hidden');
+      closeIcon.classList.add('hidden');
+    });
+
+    // Close sidebar on nav click (mobile)
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', () => {
+        if (window.innerWidth < 1024) {
+          menuOpen = false;
+          sidebar.classList.add('-translate-x-full');
+          mobileOverlay.classList.add('opacity-0', 'pointer-events-none');
+          menuIcon.classList.remove('hidden');
+          closeIcon.classList.add('hidden');
+        }
+      });
+    });
+
+    // GSAP ScrollTrigger animations
+    gsap.registerPlugin(ScrollTrigger);
+
+    document.querySelectorAll('.gsap-section').forEach((section, i) => {
+      gsap.to(section, {
+        opacity: 1,
+        y: 0,
+        duration: 0.6,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: section,
+          start: 'top 85%',
+          toggleActions: 'play none none none',
+        },
+        delay: i % 4 * 0.05,
+      });
+    });
+
+    // Smooth scroll for nav links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+
+    // Active nav state on scroll
+    const sections = document.querySelectorAll('section[id]');
+    const navItems = document.querySelectorAll('.nav-item');
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop;
+        if (scrollY >= sectionTop - 200) {
+          current = section.getAttribute('id');
+        }
+      });
+      navItems.forEach(item => {
+        item.classList.remove('active');
+        if (item.getAttribute('href') === '#' + current) {
+          item.classList.add('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

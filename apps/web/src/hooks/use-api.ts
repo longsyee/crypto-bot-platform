@@ -78,7 +78,7 @@ export function useBotPaperTrades(id: string) {
 export function useBotLivePrice(id: string) {
   return useQuery({
     queryKey: ["bots", id, "price"],
-    queryFn: () => api<{ data: { lastPrice: number; bid: number; ask: number; change24hPct: number } }>(`/bots/${id}/price`),
+    queryFn: () => api<{ lastPrice: number; bid: number; ask: number; change24hPct: number }>(`/bots/${id}/price`),
     refetchInterval: 5000,
     enabled: !!id,
   });
