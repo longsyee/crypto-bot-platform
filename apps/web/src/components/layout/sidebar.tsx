@@ -206,6 +206,7 @@ export function Sidebar() {
           shadow-[0_0_60px_rgba(0,0,0,0.4)]
           transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
           ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+          will-change-transform
         `}
       >
         {/* Logo */}
