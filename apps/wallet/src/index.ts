@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { logger } from "hono/logger";
+import { serve } from "@hono/node-server";
 import internalRoutes from "./routes/internal";
 import healthRoutes from "./routes/health";
 import { startMonitor } from "./services/monitor";
@@ -11,16 +12,9 @@ app.use(logger());
 app.route("/internal", internalRoutes);
 app.route("/", healthRoutes);
 
-const port = parseInt(process.env.WALLET_PORT || "3001");
+const port = parseInt(process.env.WALLET_PORT || "3011");
+serve({ fetch: app.fetch, port });
 console.log(`Wallet Service running on port ${port}`);
-
-// Bun.serve is optional; fallback to Node if not available
-if (typeof Bun !== "undefined" && import.meta.main) {
-  Bun.serve({ fetch: app.fetch, port });
-} else if (import.meta.main) {
-  // Node fallback would require @hono/node-server; kept minimal
-  console.log("Start with Bun or integrate @hono/node-server for Node runtime.");
-}
 
 startMonitor().catch(console.error);
 startSweeper();

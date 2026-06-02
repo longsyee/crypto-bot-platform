@@ -16,9 +16,9 @@ const erc20Abi = [
 const usdt = new ethers.Contract(USDT_CONTRACT, erc20Abi, hotWallet);
 
 export async function runSweep(): Promise<void> {
-  const addresses = await db.query.depositAddresses.findMany({
-    where: and(eq(depositAddresses.status, "active")),
-  });
+  const addresses = await db.select().from(depositAddresses).where(
+    and(eq(depositAddresses.status, "active"))
+  );
 
   for (const addr of addresses) {
     try {

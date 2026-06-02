@@ -2,13 +2,11 @@ import { prisma } from "@crypto-bot-platform/prisma";
 import { getTierByActiveCount } from "@crypto-bot-platform/shared";
 
 export async function recalculateReferralTier(referrerId: string): Promise<void> {
-  const activeCount = await prisma.transaction.count({
+  const activeCount = await prisma.wallet.count({
     where: {
-      wallet: { user: { referredBy: referrerId } },
-      type: "deposit",
-      status: "confirmed",
+      user: { referredBy: referrerId },
+      transactions: { some: { type: "deposit", status: "confirmed" } },
     },
-    distinct: ["walletId"],
   });
 
   const referrals = await prisma.referral.findMany({

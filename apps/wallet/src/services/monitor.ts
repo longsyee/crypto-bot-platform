@@ -13,25 +13,22 @@ const erc20Abi = [
 ];
 
 export async function startMonitor(): Promise<void> {
-  const provider = new ethers.WebSocketProvider(walletConfig.BSC_RPC_URL);
+  const provider = new ethers.JsonRpcProvider(walletConfig.BSC_RPC_URL);
   const contract = new ethers.Contract(USDT_CONTRACT, erc20Abi, provider);
 
   contract.on(
     "Transfer",
-    async (from: string, to: string, value: bigint, event: ethers.EventPayload) => {
+    async (from: string, to: string, value: bigint, event: any) => {
       const amount = parseFloat(ethers.formatUnits(value, 18));
       const txHash = event.log.transactionHash;
       const blockNumber = Number(event.log.blockNumber);
 
-      const addr = await db.query.depositAddresses.findFirst({
-        where: eq(depositAddresses.bscAddress, to),
-      });
+      const addrRows = await db.select().from(depositAddresses).where(eq(depositAddresses.bscAddress, to)).limit(1);
+      const addr = addrRows[0];
       if (!addr) return;
 
-      const existing = await db.query.blockchainEvents.findFirst({
-        where: eq(blockchainEvents.txHash, txHash),
-      });
-      if (existing) return;
+      const existingRows = await db.select().from(blockchainEvents).where(eq(blockchainEvents.txHash, txHash)).limit(1);
+      if (existingRows[0]) return;
 
       await db.insert(blockchainEvents).values({
         id: crypto.randomUUID(),
@@ -47,12 +44,12 @@ export async function startMonitor(): Promise<void> {
   );
 
   setInterval(async () => {
-    const pending = await db.query.blockchainEvents.findMany({
-      where: and(
+    const pending = await db.select().from(blockchainEvents).where(
+      and(
         eq(blockchainEvents.status, "pending"),
         eq(blockchainEvents.tokenContract, USDT_CONTRACT)
-      ),
-    });
+      )
+    );
     const currentBlock = await provider.getBlockNumber();
     for (const event of pending) {
       const confs = currentBlock - event.blockNumber;

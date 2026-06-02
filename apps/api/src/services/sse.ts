@@ -16,12 +16,13 @@ export function broadcastToUser(userId: string, event: string, data: unknown): v
 export function setupSSE(app: Hono) {
   app.get("/events", async (c) => {
     // In real implementation, add authMiddleware here
-    const userId = c.get("user")?.id;
+    const user = c.get("user") as { id: string } | undefined;
+    const userId = user?.id;
     if (!userId) return c.json({ success: false, error: "Unauthorized" }, 401);
 
     return streamSSE(c, async (stream) => {
       subscribers.set(userId, stream as unknown as ReadableStreamDefaultController);
-      stream.onAbort(() => subscribers.delete(userId));
+      stream.onAbort(() => { subscribers.delete(userId); });
       // Keep alive
       while (true) {
         await stream.write(`:ping\n\n`);

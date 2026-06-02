@@ -2,7 +2,7 @@ import { Queue, Worker } from "bullmq";
 import { Redis } from "ioredis";
 import { config } from "../config";
 
-const redisConnection = new Redis(config.REDIS_URL, { maxRetriesPerRequest: null });
+const redisConnection = new Redis(config.REDIS_URL, { maxRetriesPerRequest: null }) as any;
 
 export const botQueue = new Queue("bot", { connection: redisConnection });
 

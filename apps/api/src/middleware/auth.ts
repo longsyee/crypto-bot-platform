@@ -12,7 +12,6 @@ export const authMiddleware = createMiddleware(async (c, next) => {
     const payload = verifyAccessToken(token);
     const user = await prisma.user.findUnique({
       where: { id: payload.userId },
-      select: { id: true, email: true, role: true },
     });
     if (!user) {
       return c.json({ success: false, error: "User not found", code: "USER_GONE" }, 401);

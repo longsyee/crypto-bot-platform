@@ -4,6 +4,8 @@ import { roleMiddleware } from "../middleware/role";
 import { ipAllowlistMiddleware } from "../middleware/ip-allowlist";
 import { prisma } from "@crypto-bot-platform/prisma";
 import { config } from "../config";
+import { z } from "zod";
+import { zValidator } from "@hono/zod-validator";
 
 const admin = new Hono();
 
@@ -52,7 +54,7 @@ admin.post("/bots/:id/kill", async (c) => {
       action: "kill_bot",
       targetType: "bot",
       targetId: id,
-      ipAddress: c.req.header("x-forwarded-for"),
+      ipAddress: c.req.header("x-forwarded-for") || "unknown",
     },
   });
   return c.json({ success: true, data: { status: "stopped" } });
@@ -71,38 +73,63 @@ admin.post("/referrals/:id/approve-kol", async (c) => {
       action: "approve_kol",
       targetType: "referral",
       targetId: id,
-      oldValue: { tier: "pending_kol" },
-      newValue: { tier: "kol", commissionRate: 0.35 },
-      ipAddress: c.req.header("x-forwarded-for"),
+      oldValueJson: { tier: "pending_kol" } as any,
+      newValueJson: { tier: "kol", commissionRate: 0.35 } as any,
+      ipAddress: c.req.header("x-forwarded-for") || "unknown",
     },
   });
   return c.json({ success: true, data: ref });
 });
 
-admin.post("/refund", async (c) => {
+const RefundSchema = z.object({
+  transactionId: z.string().uuid(),
+  amount: z.coerce.number().positive(),
+});
+
+admin.post("/refund", zValidator("json", RefundSchema), async (c) => {
   const adminUser = c.get("user");
-  const { transactionId, amount } = await c.req.json();
+  const { transactionId, amount } = c.req.valid("json");
   const tx = await prisma.transaction.findUnique({ where: { id: transactionId } });
   if (!tx) return c.json({ success: false, error: "Transaction not found" }, 404);
+  if (tx.type !== "trade_fee") return c.json({ success: false, error: "Transaction must be of type trade_fee" }, 400);
+  if (amount > tx.amount.toNumber()) return c.json({ success: false, error: `Refund amount cannot exceed transaction amount (${tx.amount.toNumber()})` }, 400);
+
+  const existingRefund = await prisma.transaction.findFirst({
+    where: {
+      walletId: tx.walletId,
+      type: "refund",
+      metadataJson: { path: ["originalTransactionId"], equals: transactionId },
+    },
+  });
+  if (existingRefund) return c.json({ success: false, error: "Transaction has already been refunded" }, 400);
+
+  const wallet = await prisma.wallet.findUnique({ where: { id: tx.walletId } });
+  const oldBalance = wallet?.tokenBalance.toNumber() ?? 0;
 
   await prisma.$transaction([
     prisma.wallet.update({ where: { id: tx.walletId }, data: { tokenBalance: { increment: amount } } }),
     prisma.transaction.create({
-      data: { walletId: tx.walletId, type: "refund", amount, currency: "TOKEN", status: "confirmed" },
+      data: {
+        walletId: tx.walletId,
+        type: "refund",
+        amount,
+        currency: "TOKEN",
+        status: "confirmed",
+        metadataJson: { originalTransactionId: transactionId },
+      },
+    }),
+    prisma.adminAuditLog.create({
+      data: {
+        adminUserId: adminUser.id,
+        action: "refund",
+        targetType: "transaction",
+        targetId: transactionId,
+        oldValueJson: { tokenBalance: oldBalance } as any,
+        newValueJson: { refunded: amount } as any,
+        ipAddress: c.req.header("x-forwarded-for") || "unknown",
+      },
     }),
   ]);
-
-  await prisma.adminAuditLog.create({
-    data: {
-      adminUserId: adminUser.id,
-      action: "refund",
-      targetType: "transaction",
-      targetId: transactionId,
-      oldValue: { tokenBalance: tx.amount },
-      newValue: { refunded: amount },
-      ipAddress: c.req.header("x-forwarded-for"),
-    },
-  });
 
   return c.json({ success: true });
 });

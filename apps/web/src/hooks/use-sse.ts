@@ -9,7 +9,7 @@ export function useSSE() {
   useEffect(() => {
     if (!token) return;
 
-    const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
+    const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3010";
     const es = new EventSource(`${API_BASE}/events`, {
       withCredentials: true,
     });

@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { authMiddleware } from "../middleware/auth";
 import { prisma } from "@crypto-bot-platform/prisma";
+import { config } from "../config";
 
 const wallets = new Hono();
 
@@ -51,6 +52,39 @@ wallets.post("/convert", authMiddleware, async (c) => {
   }
 
   const updated = await prisma.wallet.findUnique({ where: { userId: user.id } });
+  return c.json({ success: true, data: updated });
+});
+
+wallets.post("/generate-address", authMiddleware, async (c) => {
+  const user = c.get("user");
+
+  // Call wallet service to generate a real BSC deposit address
+  const walletServiceUrl = config.WALLET_SERVICE_URL;
+  const res = await fetch(`${walletServiceUrl}/internal/generate-address`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId: user.id }),
+  });
+
+  const json = await res.json();
+  if (!json.success) {
+    return c.json({ success: false, error: json.error || "Wallet service failed to generate address" }, 502);
+  }
+
+  const address: string = json.data.address;
+  const index: number = json.data.addressIndex ?? 0;
+
+  // Update API's Prisma wallet record with the new address
+  const wallet = await prisma.wallet.findUnique({ where: { userId: user.id } });
+  if (!wallet) {
+    return c.json({ success: false, error: "Wallet not found" }, 404);
+  }
+
+  const updated = await prisma.wallet.update({
+    where: { userId: user.id },
+    data: { bscAddress: address, bscAddressIndex: index },
+  });
+
   return c.json({ success: true, data: updated });
 });
 

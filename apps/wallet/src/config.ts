@@ -6,7 +6,7 @@ const envSchema = z.object({
   HOT_WALLET_PRIVATE_KEY: z.string().length(64),
   SWEEP_MIN_THRESHOLD: z.coerce.number().positive().default(2.0),
   API_CALLBACK_URL: z.string().url(),
-  WALLET_PORT: z.coerce.number().default(3001),
+  WALLET_PORT: z.coerce.number().default(3011),
 });
 
 export const walletConfig = envSchema.parse(process.env);

@@ -1,11 +1,10 @@
 import { CCXTConnector } from "./ccxt-connector";
-import { PaperConnector } from "./paper-connector";
 import type { ExchangeConnector } from "./connector";
 
 export function getConnector(
   exchangeId: string,
-  mode: "paper" | "live"
+  mode: "paper" | "live",
+  botId?: string
 ): ExchangeConnector {
-  if (mode === "paper") return new PaperConnector();
-  return new CCXTConnector(exchangeId);
+  return new CCXTConnector(exchangeId, mode, botId);
 }

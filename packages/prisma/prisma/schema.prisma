@@ -59,6 +59,24 @@ enum BotLogLevel {
   error
 }
 
+enum LogCategory {
+  order
+  signal
+  state
+  system
+  trade
+  fee
+  alert
+}
+
+enum LogSource {
+  worker
+  api
+  webhook
+  user
+  system
+}
+
 enum ReferralTier {
   bronze
   silver
@@ -97,12 +115,16 @@ model User {
   email               String   @unique
   passwordHash        String   @map("password_hash")
   role                UserRole
-  emailVerified       Boolean  @default(false) @map("email_verified")
-  referralCode        String   @unique @map("referral_code")
-  referredBy          String?  @db.Uuid @map("referred_by")
-  totpSecretEncrypted String?  @map("totp_secret_encrypted")
-  createdAt           DateTime @default(now()) @map("created_at")
-  updatedAt           DateTime @updatedAt @map("updated_at")
+  emailVerified         Boolean  @default(false) @map("email_verified")
+  emailOtp              String?  @map("email_otp")
+  emailOtpExpiresAt     DateTime? @map("email_otp_expires_at")
+  passwordResetToken    String?  @unique @map("password_reset_token")
+  passwordResetExpiresAt DateTime? @map("password_reset_expires_at")
+  referralCode          String   @unique @map("referral_code")
+  referredBy            String?  @db.Uuid @map("referred_by")
+  totpSecretEncrypted   String?  @map("totp_secret_encrypted")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
 
   wallet              Wallet?
   exchangeConnections ExchangeConnection[]
@@ -156,7 +178,7 @@ model Transaction {
   wallet            Wallet             @relation(fields: [walletId], references: [id], onDelete: Cascade)
   commissionLedgers CommissionLedger[]
 
-  @@index([walletId, type, createdAt(sort: desc)])
+  @@index([walletId, type, createdAt(sort: Desc)])
   @@index([txHash])
   @@map("transactions")
 }
@@ -187,8 +209,21 @@ model Bot {
   name         String
   type         BotType
   status       BotStatus
-  mode         BotMode
-  configJson   Json?    @db.JsonB @map("config_json")
+  mode              BotMode
+  tradingPair       String?  @map("trading_pair")
+  paperBalance      Json?    @default("{}") @db.JsonB @map("paper_balance")
+  paperInitialBalance Json?  @default("{\"USDT\":10000}") @db.JsonB @map("paper_initial_balance")
+  configJson        Json?    @db.JsonB @map("config_json")
+  stateJson         Json?    @db.JsonB @map("state_json")
+
+  // Futures / Leverage
+  leverage          Int      @default(1) @map("leverage")
+  leverageType      String   @default("cross") @map("leverage_type")
+
+  // DCA tracking
+  safetyOrdersPlaced Int     @default(0) @map("safety_orders_placed")
+  maxSafetyOrdersActive Int  @default(3) @map("max_safety_orders_active")
+
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
@@ -226,21 +261,26 @@ model BotOrder {
 
   bot Bot @relation(fields: [botId], references: [id], onDelete: Cascade)
 
-  @@index([botId, createdAt(sort: desc)])
+  @@index([botId, createdAt(sort: Desc)])
   @@map("bot_orders")
 }
 
 model BotLog {
   id           String      @id @default(uuid()) @db.Uuid
   botId        String      @db.Uuid @map("bot_id")
+  userId       String?     @db.Uuid @map("user_id")
   level        BotLogLevel
+  category     LogCategory @default(system)
+  source       LogSource   @default(system)
   message      String
   metadataJson Json?       @db.JsonB @map("metadata_json")
   createdAt    DateTime    @default(now()) @map("created_at")
 
   bot Bot @relation(fields: [botId], references: [id], onDelete: Cascade)
 
-  @@index([botId, createdAt(sort: desc)])
+  @@index([botId, createdAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([category, createdAt(sort: Desc)])
   @@map("bot_logs")
 }
 

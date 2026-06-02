@@ -45,9 +45,9 @@ export const TransactionList: React.FC<TransactionListProps> = ({ transactions }
         return (
           <div
             key={tx.id}
-            className="flex items-center justify-between rounded-lg border border-gray-700 bg-gray-800 p-4 transition-colors hover:bg-gray-750"
+            className="flex items-center justify-between gap-3 rounded-lg border border-gray-700 bg-gray-800 p-4 transition-colors hover:bg-gray-750"
           >
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 min-w-0">
               <div
                 className={[
                   'flex h-10 w-10 items-center justify-center rounded-full',

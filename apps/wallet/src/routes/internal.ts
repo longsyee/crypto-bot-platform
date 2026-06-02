@@ -8,9 +8,8 @@ const internal = new Hono();
 
 internal.post("/generate-address", async (c) => {
   const { userId } = await c.req.json();
-  const existing = await db.query.depositAddresses.findFirst({
-    where: eq(depositAddresses.userId, userId),
-  });
+  const existingRows = await db.select().from(depositAddresses).where(eq(depositAddresses.userId, userId)).limit(1);
+  const existing = existingRows[0];
   if (existing) return c.json({ success: true, data: { address: existing.bscAddress } });
 
   const countRes = await db.select({ count: depositAddresses.id }).from(depositAddresses);

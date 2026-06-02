@@ -10,7 +10,8 @@ export function rateLimitMiddleware(
   keyPrefix: string
 ) {
   return createMiddleware(async (c, next) => {
-    const ip = c.req.header("x-forwarded-for") || "unknown";
+    // x-forwarded-for should only be trusted when behind a verified proxy
+    const ip = c.req.header("x-real-ip") || c.env?.remoteAddress || "unknown";
     const key = `ratelimit:${keyPrefix}:${ip}`;
     const current = await redis.incr(key);
     if (current === 1) {

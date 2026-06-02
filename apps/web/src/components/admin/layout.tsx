@@ -172,7 +172,7 @@ export const AdminLayout: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h2 className="text-2xl font-bold text-gray-100">Admin Panel</h2>
         <button
           onClick={() => openConfirm('System restart')}
@@ -183,7 +183,7 @@ export const AdminLayout: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 rounded-lg bg-gray-800 p-1">
+      <div className="flex flex-wrap gap-1 rounded-lg bg-gray-800 p-1">
         {tabs.map((t) => (
           <button
             key={t.key}
