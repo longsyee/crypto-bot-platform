@@ -66,7 +66,10 @@ export const apiKeyAuthMiddleware = createMiddleware(async (c, next) => {
     data: { lastUsedAt: new Date() },
   }).catch(() => {});
 
+  const permissions = Array.isArray(matched.permissions) ? (matched.permissions as string[]) : [];
+
   c.set("user", matched.user);
   c.set("apiKey", matched);
+  c.set("apiKeyPermissions", permissions);
   await next();
 });

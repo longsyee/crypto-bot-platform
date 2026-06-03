@@ -22,3 +22,23 @@ export const requireAuth = createMiddleware(async (c, next) => {
 
   return c.json({ success: false, error: "Unauthorized", code: "NO_TOKEN_OR_KEY" }, 401);
 });
+
+/**
+ * Require a specific permission when authenticated via API key.
+ * JWT sessions bypass permission checks (they have full non-admin access).
+ */
+export function requirePermission(permission: string) {
+  return createMiddleware(async (c, next) => {
+    const apiKey = c.get("apiKey");
+    if (apiKey) {
+      const perms = c.get("apiKeyPermissions") || [];
+      if (!perms.includes(permission)) {
+        return c.json(
+          { success: false, error: `Permission denied: ${permission}`, code: "MISSING_PERMISSION" },
+          403
+        );
+      }
+    }
+    await next();
+  });
+}

@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { authMiddleware } from "../middleware/auth";
+import { rateLimitMiddleware } from "../middleware/rate-limit";
 import { prisma } from "@crypto-bot-platform/prisma";
 import { randomBytes, createHash } from "crypto";
 
@@ -34,11 +35,36 @@ apiKeys.get("/", authMiddleware, async (c) => {
 });
 
 // Create new API key (returns plaintext ONCE)
-apiKeys.post("/", authMiddleware, async (c) => {
+apiKeys.post("/", rateLimitMiddleware(5, 900, "api-key-create"), authMiddleware, async (c) => {
   const user = c.get("user");
   const body = await c.req.json();
-  const name = typeof body.name === "string" && body.name.trim() ? body.name.trim() : "Unnamed Key";
-  const permissions = body.permissions ?? ["bots:read", "bots:write", "wallet:read", "wallet:write", "connections:read"];
+
+  // Validate name
+  const rawName = typeof body.name === "string" ? body.name.trim() : "";
+  if (!rawName || rawName.length > 100) {
+    return c.json({ success: false, error: "Key name is required and must be ≤ 100 characters", code: "BAD_NAME" }, 400);
+  }
+  const name = rawName;
+
+  // Validate permissions
+  const defaultPerms = ["bots:read", "bots:write", "wallet:read", "wallet:write", "connections:read"];
+  let permissions = defaultPerms;
+  if (body.permissions !== undefined) {
+    if (!Array.isArray(body.permissions) || body.permissions.length > 20) {
+      return c.json({ success: false, error: "permissions must be an array with ≤ 20 items", code: "BAD_PERMISSIONS" }, 400);
+    }
+    const validPerms = new Set([
+      "bots:read", "bots:write", "bots:delete",
+      "wallet:read", "wallet:write",
+      "connections:read", "connections:write",
+      "signals:write", "logs:read", "referrals:read",
+    ]);
+    const invalid = body.permissions.filter((p: any) => typeof p !== "string" || !validPerms.has(p));
+    if (invalid.length > 0) {
+      return c.json({ success: false, error: `Invalid permissions: ${invalid.join(", ")}`, code: "BAD_PERMISSIONS" }, 400);
+    }
+    permissions = body.permissions;
+  }
 
   const expiresAt = body.expiresAt ? new Date(body.expiresAt) : null;
 
@@ -104,8 +130,32 @@ apiKeys.patch("/:id", authMiddleware, async (c) => {
   }
 
   const update: any = {};
-  if (body.name !== undefined) update.name = body.name.trim();
-  if (body.permissions !== undefined) update.permissions = body.permissions;
+
+  if (body.name !== undefined) {
+    const rawName = typeof body.name === "string" ? body.name.trim() : "";
+    if (!rawName || rawName.length > 100) {
+      return c.json({ success: false, error: "Key name must be 1–100 characters", code: "BAD_NAME" }, 400);
+    }
+    update.name = rawName;
+  }
+
+  if (body.permissions !== undefined) {
+    if (!Array.isArray(body.permissions) || body.permissions.length > 20) {
+      return c.json({ success: false, error: "permissions must be an array with ≤ 20 items", code: "BAD_PERMISSIONS" }, 400);
+    }
+    const validPerms = new Set([
+      "bots:read", "bots:write", "bots:delete",
+      "wallet:read", "wallet:write",
+      "connections:read", "connections:write",
+      "signals:write", "logs:read", "referrals:read",
+    ]);
+    const invalid = body.permissions.filter((p: any) => typeof p !== "string" || !validPerms.has(p));
+    if (invalid.length > 0) {
+      return c.json({ success: false, error: `Invalid permissions: ${invalid.join(", ")}`, code: "BAD_PERMISSIONS" }, 400);
+    }
+    update.permissions = body.permissions;
+  }
+
   if (body.expiresAt !== undefined) update.expiresAt = body.expiresAt ? new Date(body.expiresAt) : null;
 
   const updated = await prisma.apiKey.update({

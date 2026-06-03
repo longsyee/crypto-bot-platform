@@ -1,10 +1,10 @@
 import { Hono } from "hono";
-import { authMiddleware } from "../middleware/auth";
+import { requireAuth } from "../middleware/require-auth";
 import { prisma } from "@crypto-bot-platform/prisma";
 
 const referrals = new Hono();
 
-referrals.get("/me", authMiddleware, async (c) => {
+referrals.get("/me", requireAuth, async (c) => {
   const user = c.get("user");
   const ref = await prisma.referral.findUnique({
     where: { referredUserId: user.id },
@@ -39,7 +39,7 @@ referrals.get("/me", authMiddleware, async (c) => {
  * Request withdrawal of Reward Token (Token B) to USDT.
  * Deducts referralTokenBalance immediately and creates a pending request.
  */
-referrals.post("/withdraw", authMiddleware, async (c) => {
+referrals.post("/withdraw", requireAuth, async (c) => {
   const user = c.get("user");
   const { amount } = await c.req.json();
   const reqAmount = Number(amount);
@@ -89,7 +89,7 @@ referrals.post("/withdraw", authMiddleware, async (c) => {
  * GET /referrals/withdrawals
  * List the current user's withdrawal requests.
  */
-referrals.get("/withdrawals", authMiddleware, async (c) => {
+referrals.get("/withdrawals", requireAuth, async (c) => {
   const user = c.get("user");
   const requests = await prisma.referralWithdrawRequest.findMany({
     where: { userId: user.id },
