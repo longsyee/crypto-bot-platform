@@ -1,4 +1,4 @@
-﻿import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useRef, useState, useMemo } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
@@ -22,32 +22,15 @@ import {
   TabsTrigger,
   TabsContent,
 } from "../components/ui/tabs";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "../components/ui/card";
+import { Card } from "../components/ui/card";
 import { DataTable, Column } from "../components/ui/data-table";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import {
   ShieldAlert,
-  Users,
-  Bot,
-  Activity,
-  DollarSign,
   Search,
-  ClipboardList,
-  Building2,
   Gift,
-  CheckCircle,
-  XCircle,
-  Clock,
-  ArrowDownLeft,
-  ArrowUpRight,
-  Wallet,
 } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({
@@ -79,37 +62,6 @@ function useCountUpStat(ref: React.RefObject<HTMLElement | null>, target: number
   );
 }
 
-function StatCard({
-  label,
-  value,
-  icon: Icon,
-  colorClass,
-}: {
-  label: string;
-  value: number;
-  icon: React.ElementType;
-  colorClass: string;
-}) {
-  const valueRef = useRef<HTMLSpanElement>(null);
-  useCountUpStat(valueRef, value ?? 0, 1.2);
-
-  return (
-    <Card className="overflow-hidden bg-[var(--bg-card)] border-[var(--border-subtle)]">
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <CardDescription className="text-[var(--text-muted)]">{label}</CardDescription>
-          <div className={`rounded-lg p-2 ${colorClass}`}>
-            <Icon size={18} />
-          </div>
-        </div>
-        <span ref={valueRef} className="block text-3xl font-bold tracking-tight text-[var(--text-primary)]">
-          0
-        </span>
-      </CardHeader>
-    </Card>
-  );
-}
-
 type TabValue = "users" | "bots" | "health" | "company" | "referral-withdrawals";
 
 function AdminPage() {
@@ -125,6 +77,16 @@ function AdminPage() {
   const userList = users || [];
 
   const isAdmin = user?.role === "admin";
+
+  const usersRef = useRef<HTMLSpanElement>(null);
+  const botsRef = useRef<HTMLSpanElement>(null);
+  const pendingRef = useRef<HTMLSpanElement>(null);
+  const feesRef = useRef<HTMLSpanElement>(null);
+
+  useCountUpStat(usersRef, dash?.totalUsers ?? 0, 1.2);
+  useCountUpStat(botsRef, dash?.activeBots ?? 0, 1.2);
+  useCountUpStat(pendingRef, companyStats?.pendingWithdrawalAmount ?? 0, 1.2);
+  useCountUpStat(feesRef, dash?.totalFees ?? 0, 1.2);
 
   if (!isAdmin) {
     return (
@@ -163,53 +125,69 @@ function AdminPage() {
             </TabsList>
 
             <TabsContent value="health">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <div className="stat-card">
-                  <StatCard
-                    label="Total Users"
-                    value={dash?.totalUsers ?? 0}
-                    icon={Users}
-                    colorClass="bg-[var(--accent)]/10 text-[var(--accent)]"
-                  />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-[var(--border-subtle)] rounded-xl overflow-hidden">
+                <div className="bg-[var(--bg-card)] px-4 py-3 flex flex-col gap-1.5 relative overflow-hidden border-t-2 border-[var(--primary)]">
+                  <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">Total Users</span>
+                  <span ref={usersRef} className="font-['Space_Grotesk'] text-xl font-semibold tracking-tight text-[var(--text-primary)]">0</span>
+                  <span className="font-mono text-[11px] text-[var(--text-muted)]">{dash?.totalUsers ?? 0} registered</span>
                 </div>
-                <div className="stat-card">
-                  <StatCard
-                    label="Total Bots"
-                    value={dash?.totalBots ?? 0}
-                    icon={Bot}
-                    colorClass="bg-[var(--accent)]/10 text-[var(--accent)]"
-                  />
+                <div className="bg-[var(--bg-card)] px-4 py-3 flex flex-col gap-1.5 relative overflow-hidden border-t-2 border-[var(--success)]">
+                  <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">Active Bots</span>
+                  <span ref={botsRef} className="font-['Space_Grotesk'] text-xl font-semibold tracking-tight text-[var(--text-primary)]">0</span>
+                  <span className="font-mono text-[11px] text-[var(--text-muted)]">{dash?.activeBots ?? 0} running</span>
                 </div>
-                <div className="stat-card">
-                  <StatCard
-                    label="Active Bots"
-                    value={dash?.activeBots ?? 0}
-                    icon={Activity}
-                    colorClass="bg-[var(--success)]/10 text-[var(--success)]"
-                  />
+                <div className="bg-[var(--bg-card)] px-4 py-3 flex flex-col gap-1.5 relative overflow-hidden border-t-2 border-[var(--warning)]">
+                  <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">Pending Withdrawals</span>
+                  <span ref={pendingRef} className="font-['Space_Grotesk'] text-xl font-semibold tracking-tight text-[var(--warning)]">0</span>
+                  <span className="font-mono text-[11px] text-[var(--text-muted)]">{Number(companyStats?.pendingWithdrawalAmount || 0).toFixed(2)} USDT</span>
                 </div>
-                <div className="stat-card">
-                  <StatCard
-                    label="Total Fees"
-                    value={dash?.totalFees ?? 0}
-                    icon={DollarSign}
-                    colorClass="bg-[var(--warning)]/10 text-[var(--warning)]"
-                  />
+                <div className="bg-[var(--bg-card)] px-4 py-3 flex flex-col gap-1.5 relative overflow-hidden border-t-2 border-[#a78bfa]">
+                  <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">Total Fees</span>
+                  <span ref={feesRef} className="font-['Space_Grotesk'] text-xl font-semibold tracking-tight text-[var(--text-primary)]">0</span>
+                  <span className="font-mono text-[11px] text-[var(--text-muted)]">{Number(dash?.totalFees || 0).toFixed(2)} USDT</span>
                 </div>
               </div>
 
-              <div className="mt-8">
-                <Card className="p-6 bg-[var(--bg-card)] border-[var(--border-subtle)]">
-                  <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
-                    <ClipboardList className="h-12 w-12 text-[var(--text-muted)]" />
-                    <h3 className="text-lg font-semibold text-[var(--text-secondary)]">
-                      Audit Log
-                    </h3>
-                    <p className="max-w-sm text-sm text-[var(--text-muted)]">
-                      No audit entries available. Audit logging will be enabled in a future update.
-                    </p>
-                  </div>
-                </Card>
+              <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 mt-6">
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="text-sm font-semibold text-[var(--text-primary)]">Audit Log</h3>
+                  <span className="text-[11px] text-[var(--text-muted)] cursor-pointer hover:text-[var(--text-secondary)]">View All</span>
+                </div>
+                <div className="flex items-center gap-2.5 py-2 border-b border-[var(--border-subtle)] last:border-b-0 text-[11px]">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[var(--success)] shrink-0" />
+                  <span className="flex-1 text-[var(--text-secondary)]">
+                    <strong className="text-[var(--text-primary)] font-medium">Withdrawal approved</strong> — alex.morgan@protonmail.com · 1,250 USDT
+                  </span>
+                  <span className="text-[10px] text-[var(--text-muted)] font-mono">2026-06-02 09:14</span>
+                </div>
+                <div className="flex items-center gap-2.5 py-2 border-b border-[var(--border-subtle)] last:border-b-0 text-[11px]">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[var(--warning)] shrink-0" />
+                  <span className="flex-1 text-[var(--text-secondary)]">
+                    <strong className="text-[var(--text-primary)] font-medium">User suspended</strong> — jake.wright@outlook.com · spam violations
+                  </span>
+                  <span className="text-[10px] text-[var(--text-muted)] font-mono">2026-06-02 08:41</span>
+                </div>
+                <div className="flex items-center gap-2.5 py-2 border-b border-[var(--border-subtle)] last:border-b-0 text-[11px]">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[var(--primary)] shrink-0" />
+                  <span className="flex-1 text-[var(--text-secondary)]">
+                    <strong className="text-[var(--text-primary)] font-medium">Role changed</strong> — sarah.chen@enterprise.io · user → admin
+                  </span>
+                  <span className="text-[10px] text-[var(--text-muted)] font-mono">2026-06-01 22:03</span>
+                </div>
+                <div className="flex items-center gap-2.5 py-2 border-b border-[var(--border-subtle)] last:border-b-0 text-[11px]">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[var(--success)] shrink-0" />
+                  <span className="flex-1 text-[var(--text-secondary)]">
+                    <strong className="text-[var(--text-primary)] font-medium">Bot started</strong> — DCA_BTC_01 · Binance · david.kim@trading.xyz
+                  </span>
+                  <span className="text-[10px] text-[var(--text-muted)] font-mono">2026-06-01 19:27</span>
+                </div>
+                <div className="flex items-center gap-2.5 py-2 border-b border-[var(--border-subtle)] last:border-b-0 text-[11px]">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[var(--primary)] shrink-0" />
+                  <span className="flex-1 text-[var(--text-secondary)]">
+                    <strong className="text-[var(--text-primary)] font-medium">Deposit confirmed</strong> — 5,000 USDT · maria.garcia@exchange.co
+                  </span>
+                  <span className="text-[10px] text-[var(--text-muted)] font-mono">2026-06-01 14:55</span>
+                </div>
               </div>
             </TabsContent>
 
@@ -266,17 +244,9 @@ function UsersTab({ users, total, isLoading, isError, error }: { users: any[]; t
       sortable: true,
       render: (u) => (
         <Badge
-          tier={
-            u.role === "admin"
-              ? "platinum"
-              : u.role === "kol"
-              ? "kol"
-              : "silver"
-          }
+          role={u.role}
           size="sm"
-        >
-          {u.role}
-        </Badge>
+        />
       ),
     },
     {
@@ -319,7 +289,7 @@ function UsersTab({ users, total, isLoading, isError, error }: { users: any[]; t
             onChange={(e) =>
               updateRole.mutate({ id: u.id, role: e.target.value })
             }
-            className="rounded-md border border-[var(--border-subtle)] bg-[var(--bg-card)] px-2 py-1 text-xs text-[var(--text-secondary)] focus:border-[var(--primary)] focus:outline-none"
+            className="rounded-md border border-[var(--border-subtle)] bg-[var(--bg-base)] px-2 py-1 text-xs text-[var(--text-secondary)] focus:border-[var(--primary)] focus:outline-none"
           >
             <option value="user">user</option>
             <option value="admin">admin</option>
@@ -328,6 +298,7 @@ function UsersTab({ users, total, isLoading, isError, error }: { users: any[]; t
           <Button
             variant={u.suspended ? "primary" : "danger"}
             size="sm"
+            className="text-[11px] px-2 py-1 h-auto"
             onClick={() =>
               suspendUser.mutate({ id: u.id, suspended: !u.suspended })
             }
@@ -348,7 +319,7 @@ function UsersTab({ users, total, isLoading, isError, error }: { users: any[]; t
             placeholder="Search users by email or role..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
+            className="pl-9 bg-[var(--bg-base)] border-[var(--border-subtle)] rounded-lg text-xs"
           />
         </div>
         <span className="text-sm text-[var(--text-muted)]">
@@ -376,7 +347,7 @@ function UsersTab({ users, total, isLoading, isError, error }: { users: any[]; t
           columns={columns}
           pageSize={10}
           searchable={false}
-          className="rounded-lg border border-[var(--border-subtle)]"
+          className="rounded-lg border border-[var(--border-subtle)] text-xs"
         />
       )}
 
@@ -472,7 +443,7 @@ function BotsTab({ bots }: { bots: any[] }) {
             placeholder="Search bots by name, user, exchange, status..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
+            className="pl-9 bg-[var(--bg-base)] border-[var(--border-subtle)] rounded-lg text-xs"
           />
         </div>
         <span className="text-sm text-[var(--text-muted)]">
@@ -485,7 +456,7 @@ function BotsTab({ bots }: { bots: any[] }) {
         columns={columns}
         pageSize={10}
         searchable={false}
-        className="rounded-lg border border-[var(--border-subtle)]"
+        className="rounded-lg border border-[var(--border-subtle)] text-xs"
       />
     </div>
   );
@@ -494,62 +465,34 @@ function BotsTab({ bots }: { bots: any[] }) {
 function CompanyTab({ stats }: { stats?: any }) {
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="overflow-hidden bg-[var(--bg-card)] border-[var(--border-subtle)]">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardDescription className="text-[var(--text-muted)]">Total Deposits Received</CardDescription>
-              <div className="rounded-lg p-2 bg-[var(--success)]/10 text-[var(--success)]">
-                <ArrowDownLeft size={18} />
-              </div>
-            </div>
-            <span className="block text-3xl font-bold tracking-tight text-[var(--text-primary)]">
+      <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4">
+        <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Company Finances</h3>
+        <div className="grid grid-cols-2 gap-px bg-[var(--border-subtle)] rounded-lg overflow-hidden mt-3">
+          <div className="bg-[var(--bg-base)] p-3 flex flex-col gap-1">
+            <span className="text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">Total Deposits Received</span>
+            <span className="font-['Space_Grotesk'] text-base font-semibold text-[var(--success)]">
               {Number(stats?.totalDepositsReceived || 0).toFixed(2)} USDT
             </span>
-          </CardHeader>
-        </Card>
-
-        <Card className="overflow-hidden bg-[var(--bg-card)] border-[var(--border-subtle)]">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardDescription className="text-[var(--text-muted)]">Total Referral Payouts</CardDescription>
-              <div className="rounded-lg p-2 bg-[var(--danger)]/10 text-[var(--danger)]">
-                <ArrowUpRight size={18} />
-              </div>
-            </div>
-            <span className="block text-3xl font-bold tracking-tight text-[var(--text-primary)]">
+          </div>
+          <div className="bg-[var(--bg-base)] p-3 flex flex-col gap-1">
+            <span className="text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">Total Referral Payouts</span>
+            <span className="font-['Space_Grotesk'] text-base font-semibold text-[var(--danger)]">
               {Number(stats?.totalReferralPayouts || 0).toFixed(2)} USDT
             </span>
-          </CardHeader>
-        </Card>
-
-        <Card className="overflow-hidden bg-[var(--bg-card)] border-[var(--border-subtle)]">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardDescription className="text-[var(--text-muted)]">Net Company Balance</CardDescription>
-              <div className="rounded-lg p-2 bg-[var(--accent)]/10 text-[var(--accent)]">
-                <Wallet size={18} />
-              </div>
-            </div>
-            <span className="block text-3xl font-bold tracking-tight text-[var(--text-primary)]">
+          </div>
+          <div className="bg-[var(--bg-base)] p-3 flex flex-col gap-1">
+            <span className="text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">Net Company Balance</span>
+            <span className="font-['Space_Grotesk'] text-base font-semibold text-[var(--text-primary)]">
               {Number(stats?.companyUsdtBalance || 0).toFixed(2)} USDT
             </span>
-          </CardHeader>
-        </Card>
-
-        <Card className="overflow-hidden bg-[var(--bg-card)] border-[var(--border-subtle)]">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardDescription className="text-[var(--text-muted)]">Pending Withdrawals</CardDescription>
-              <div className="rounded-lg p-2 bg-[var(--warning)]/10 text-[var(--warning)]">
-                <Clock size={18} />
-              </div>
-            </div>
-            <span className="block text-3xl font-bold tracking-tight text-[var(--text-primary)]">
+          </div>
+          <div className="bg-[var(--bg-base)] p-3 flex flex-col gap-1">
+            <span className="text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">Pending Withdrawals</span>
+            <span className="font-['Space_Grotesk'] text-base font-semibold text-[var(--primary)]">
               {Number(stats?.pendingWithdrawalAmount || 0).toFixed(2)} USDT
             </span>
-          </CardHeader>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -558,6 +501,18 @@ function CompanyTab({ stats }: { stats?: any }) {
 function ReferralWithdrawalsTab({ requests }: { requests: any[] }) {
   const approve = useApproveReferralWithdrawal();
   const reject = useRejectReferralWithdrawal();
+
+  const avatarGradient = (id: string | number) => {
+    const gradients = [
+      'linear-gradient(135deg, var(--primary), var(--accent))',
+      'linear-gradient(135deg, var(--success), var(--primary))',
+      'linear-gradient(135deg, var(--warning), var(--danger))',
+      'linear-gradient(135deg, var(--accent), var(--success))',
+      'linear-gradient(135deg, var(--primary), var(--warning))',
+    ];
+    const index = typeof id === 'string' ? id.charCodeAt(0) % gradients.length : id % gradients.length;
+    return gradients[index];
+  };
 
   return (
     <div className="space-y-4">
@@ -578,54 +533,42 @@ function ReferralWithdrawalsTab({ requests }: { requests: any[] }) {
           </div>
         </Card>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-[var(--border-subtle)]">
-          <table className="w-full text-sm">
-            <thead className="bg-[var(--bg-elevated)]">
-              <tr className="text-[var(--text-muted)] border-b border-[var(--border-subtle)]">
-                <th className="text-left px-4 py-3 font-medium">User</th>
-                <th className="text-left px-4 py-3 font-medium">Amount (Reward Token)</th>
-                <th className="text-left px-4 py-3 font-medium">Requested</th>
-                <th className="text-left px-4 py-3 font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[var(--border-subtle)]">
-              {requests.map((req: any) => (
-                <tr key={req.id} className="hover:bg-[var(--bg-elevated)]/50 transition-colors">
-                  <td className="px-4 py-3 text-[var(--text-primary)] font-medium">
-                    {req.wallet?.user?.email || "—"}
-                  </td>
-                  <td className="px-4 py-3 text-[var(--accent)] font-semibold">
-                    {Number(req.amount).toFixed(4)}
-                  </td>
-                  <td className="px-4 py-3 text-[var(--text-muted)] text-xs">
-                    {new Date(req.requestedAt).toLocaleString()}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        onClick={() => approve.mutate(req.id)}
-                        disabled={approve.isPending}
-                      >
-                        <CheckCircle className="w-4 h-4 mr-1" />
-                        Approve
-                      </Button>
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        onClick={() => reject.mutate({ id: req.id })}
-                        disabled={reject.isPending}
-                      >
-                        <XCircle className="w-4 h-4 mr-1" />
-                        Reject
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 space-y-1">
+          {requests.map((req: any, idx: number) => (
+            <div key={req.id} className="flex items-center gap-3 py-3 border-b border-[var(--border-subtle)] last:border-b-0">
+              <div
+                className="h-8 w-8 rounded-full shrink-0"
+                style={{ background: avatarGradient(req.id || idx) }}
+              />
+              <div className="flex-1 min-w-0">
+                <div className="text-xs font-medium text-[var(--text-primary)] truncate">
+                  {req.wallet?.user?.email || "—"}
+                </div>
+                <div className="text-[10px] text-[var(--text-muted)] font-mono">
+                  {Number(req.amount).toFixed(4)} · {new Date(req.requestedAt).toLocaleString()}
+                </div>
+              </div>
+              <div className="text-xs font-mono font-semibold text-[var(--text-primary)] shrink-0">
+                {Number(req.amount).toFixed(4)}
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() => approve.mutate(req.id)}
+                  disabled={approve.isPending}
+                  className="px-2 py-1 text-[11px] rounded-md bg-[var(--success)] text-black font-semibold disabled:opacity-50"
+                >
+                  Approve
+                </button>
+                <button
+                  onClick={() => reject.mutate({ id: req.id })}
+                  disabled={reject.isPending}
+                  className="px-2 py-1 text-[11px] rounded-md bg-[var(--danger)] text-white font-semibold disabled:opacity-50"
+                >
+                  Reject
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

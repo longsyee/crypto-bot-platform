@@ -7,6 +7,7 @@ export type TierVariant = 'bronze' | 'silver' | 'gold' | 'platinum' | 'kol';
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   status?: BotStatus;
   tier?: TierVariant;
+  role?: 'admin' | 'kol' | 'user' | 'silver';
   size?: 'sm' | 'md' | 'lg';
   className?: string;
 }
@@ -54,12 +55,38 @@ const tierConfig: Record<TierVariant, { label: string; bg: string; text: string;
   kol: { label: 'KOL', bg: 'bg-[var(--warning)]/10', text: 'text-[var(--warning)]', border: 'border-[var(--warning)]/30' },
 };
 
-export const Badge: React.FC<BadgeProps> = ({ status, tier, size = 'md', className, children, ...props }) => {
+const roleConfig = {
+  admin:  { label: 'Admin', bg: 'bg-[#a78bfa]/10', text: 'text-[#a78bfa]', border: 'border-[#a78bfa]/20' },
+  kol:    { label: 'KOL',   bg: 'bg-[var(--warning)]/10', text: 'text-[var(--warning)]', border: 'border-[var(--warning)]/20' },
+  user:   { label: 'User',  bg: 'bg-[var(--primary)]/10', text: 'text-[var(--primary)]', border: 'border-[var(--primary)]/20' },
+  silver: { label: 'Silver',bg: 'bg-[var(--bg-elevated)]', text: 'text-[var(--text-secondary)]', border: 'border-[var(--border-subtle)]' },
+};
+
+export const Badge: React.FC<BadgeProps> = ({ status, tier, role, size = 'md', className, children, ...props }) => {
   const sizeClasses = {
     sm: 'px-2 py-0.5 text-[10px]',
     md: 'px-2.5 py-0.5 text-xs',
     lg: 'px-3 py-1 text-sm',
   };
+
+  if (role) {
+    const config = roleConfig[role];
+    return (
+      <span
+        className={cn(
+          'inline-flex items-center gap-1.5 rounded-full border font-semibold uppercase tracking-wide',
+          config.bg,
+          config.text,
+          config.border,
+          sizeClasses[size],
+          className
+        )}
+        {...props}
+      >
+        {children || config.label}
+      </span>
+    );
+  }
 
   if (tier) {
     const config = tierConfig[tier];
