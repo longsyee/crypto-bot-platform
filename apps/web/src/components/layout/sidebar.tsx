@@ -113,6 +113,9 @@ export function Sidebar() {
   useGSAP(
     () => {
       if (!sidebarRef.current) return;
+      // Only animate on desktop — on mobile the sidebar starts hidden (-translate-x-full)
+      // and GSAP's inline transform would override the CSS class, breaking the hamburger toggle
+      if (window.innerWidth < 1024) return;
       gsap.fromTo(
         sidebarRef.current,
         { x: -40, opacity: 0 },
@@ -202,7 +205,7 @@ export function Sidebar() {
           border-r border-[var(--border-subtle)]
           transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
           ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-          will-change-transform
+          will-change-transform overflow-hidden
         `}
       >
         {/* Logo */}

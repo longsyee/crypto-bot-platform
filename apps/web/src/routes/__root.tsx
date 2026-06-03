@@ -33,9 +33,9 @@ function RootComponent() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[var(--bg-base)] text-[var(--text-primary)]">
+    <div className="flex h-screen overflow-hidden bg-[var(--bg-base)] text-[var(--text-primary)]">
       <Sidebar />
-      <div className="flex-1 flex flex-col min-w-0 lg:ml-0">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <Header />
         <main className="flex-1 p-4 sm:p-5 lg:p-6 overflow-x-hidden overflow-y-auto bg-[var(--bg-base)] text-[var(--text-primary)]">
           <Outlet />
