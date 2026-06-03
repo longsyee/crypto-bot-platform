@@ -14,6 +14,7 @@ import webhookRoutes from "./routes/webhooks";
 import logRoutes from "./routes/logs";
 import internalRoutes from "./routes/internal";
 import rankingsRoutes from "./routes/rankings";
+import apiKeyRoutes from "./routes/api-keys";
 import { setupSSE } from "./services/sse";
 import { config } from "./config";
 
@@ -41,6 +42,7 @@ app.route("/webhooks", webhookRoutes);
 app.route("/logs", logRoutes);
 app.route("/internal", internalRoutes);
 app.route("/rankings", rankingsRoutes);
+app.route("/api-keys", apiKeyRoutes);
 
 setupSSE(app);
 

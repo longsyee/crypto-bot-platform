@@ -140,6 +140,7 @@ model User {
   adminAuditLogs      AdminAuditLog[]
   securityEvents      SecurityEvent[]
   commissionLedgers   CommissionLedger[] @relation("SourceUserRelation")
+  apiKeys             ApiKey[]
 
   referrer      User?   @relation("UserReferralTree", fields: [referredBy], references: [id], onDelete: SetNull)
   referredUsers User[]  @relation("UserReferralTree")
@@ -417,4 +418,23 @@ model SecurityEvent {
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@map("security_events")
+}
+
+model ApiKey {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @db.Uuid @map("user_id")
+  name        String
+  keyHash     String    @map("key_hash")
+  keyPrefix   String    @map("key_prefix")
+  permissions Json?     @map("permissions")
+  lastUsedAt  DateTime? @map("last_used_at")
+  expiresAt   DateTime? @map("expires_at")
+  revoked     Boolean   @default(false)
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([keyHash])
+  @@map("api_keys")
 }

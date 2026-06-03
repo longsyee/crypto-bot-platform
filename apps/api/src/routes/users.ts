@@ -1,11 +1,12 @@
 import { Hono } from "hono";
 import { authMiddleware } from "../middleware/auth";
+import { requireAuth } from "../middleware/require-auth";
 import { roleMiddleware } from "../middleware/role";
 import { prisma } from "@crypto-bot-platform/prisma";
 
 const users = new Hono();
 
-users.get("/me", authMiddleware, async (c) => {
+users.get("/me", requireAuth, async (c) => {
   const user = c.get("user");
   const fullUser = await prisma.user.findUnique({
     where: { id: user.id },

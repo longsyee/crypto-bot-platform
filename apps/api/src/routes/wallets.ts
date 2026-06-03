@@ -1,17 +1,18 @@
 import { Hono } from "hono";
 import { authMiddleware } from "../middleware/auth";
+import { requireAuth } from "../middleware/require-auth";
 import { prisma } from "@crypto-bot-platform/prisma";
 import { config } from "../config";
 
 const wallets = new Hono();
 
-wallets.get("/me", authMiddleware, async (c) => {
+wallets.get("/me", requireAuth, async (c) => {
   const user = c.get("user");
   const wallet = await prisma.wallet.findUnique({ where: { userId: user.id } });
   return c.json({ success: true, data: wallet });
 });
 
-wallets.post("/convert", authMiddleware, async (c) => {
+wallets.post("/convert", requireAuth, async (c) => {
   const user = c.get("user");
   const { amount } = await c.req.json();
   const wallet = await prisma.wallet.findUnique({ where: { userId: user.id } });
@@ -38,7 +39,7 @@ wallets.post("/convert", authMiddleware, async (c) => {
   return c.json({ success: true, data: updated });
 });
 
-wallets.post("/generate-address", authMiddleware, async (c) => {
+wallets.post("/generate-address", requireAuth, async (c) => {
   const user = c.get("user");
 
   // Call wallet service to generate a real BSC deposit address
@@ -71,7 +72,7 @@ wallets.post("/generate-address", authMiddleware, async (c) => {
   return c.json({ success: true, data: updated });
 });
 
-wallets.get("/transactions", authMiddleware, async (c) => {
+wallets.get("/transactions", requireAuth, async (c) => {
   const user = c.get("user");
   const page = parseInt(c.req.query("page") || "1");
   const limit = Math.min(parseInt(c.req.query("limit") || "20"), 100);

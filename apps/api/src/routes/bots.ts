@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { authMiddleware } from "../middleware/auth";
+import { requireAuth } from "../middleware/require-auth";
 import { roleMiddleware } from "../middleware/role";
 import { prisma } from "@crypto-bot-platform/prisma";
 import { CreateBotSchema, DcaBotConfigSchema, logState, logOrder } from "@crypto-bot-platform/shared";
@@ -12,7 +13,7 @@ const botQueue = new Queue("bot", { connection: { url: config.REDIS_URL } });
 
 const bots = new Hono();
 
-bots.get("/", authMiddleware, async (c) => {
+bots.get("/", requireAuth, async (c) => {
   const user = c.get("user");
   const status = c.req.query("status");
   const where: any = { userId: user.id };
@@ -25,7 +26,7 @@ bots.get("/", authMiddleware, async (c) => {
   return c.json({ success: true, data });
 });
 
-bots.post("/", authMiddleware, zValidator("json", CreateBotSchema), async (c) => {
+bots.post("/", requireAuth, zValidator("json", CreateBotSchema), async (c) => {
   const user = c.get("user");
   const body = c.req.valid("json");
 
@@ -57,7 +58,7 @@ bots.post("/", authMiddleware, zValidator("json", CreateBotSchema), async (c) =>
   return c.json({ success: true, data: bot }, 201);
 });
 
-bots.get("/:id", authMiddleware, async (c) => {
+bots.get("/:id", requireAuth, async (c) => {
   const user = c.get("user");
   const id = c.req.param("id");
   const bot = await prisma.bot.findFirst({
@@ -68,7 +69,7 @@ bots.get("/:id", authMiddleware, async (c) => {
   return c.json({ success: true, data: bot });
 });
 
-bots.get("/:id/orders", authMiddleware, async (c) => {
+bots.get("/:id/orders", requireAuth, async (c) => {
   const user = c.get("user");
   const id = c.req.param("id");
   const bot = await prisma.bot.findFirst({ where: { id, userId: user.id } });
@@ -80,7 +81,7 @@ bots.get("/:id/orders", authMiddleware, async (c) => {
   return c.json({ success: true, data });
 });
 
-bots.get("/:id/logs", authMiddleware, async (c) => {
+bots.get("/:id/logs", requireAuth, async (c) => {
   const user = c.get("user");
   const id = c.req.param("id");
   const bot = await prisma.bot.findFirst({ where: { id, userId: user.id } });
@@ -102,7 +103,7 @@ bots.get("/:id/logs", authMiddleware, async (c) => {
   return c.json({ success: true, data });
 });
 
-bots.patch("/:id", authMiddleware, async (c) => {
+bots.patch("/:id", requireAuth, async (c) => {
   const user = c.get("user");
   const id = c.req.param("id");
   const body = await c.req.json();
@@ -126,7 +127,7 @@ bots.patch("/:id", authMiddleware, async (c) => {
   return c.json({ success: true, data: updated });
 });
 
-bots.post("/:id/start", authMiddleware, async (c) => {
+bots.post("/:id/start", requireAuth, async (c) => {
   const user = c.get("user");
   const id = c.req.param("id");
   const bot = await prisma.bot.findFirst({ where: { id, userId: user.id } });
@@ -152,7 +153,7 @@ bots.post("/:id/start", authMiddleware, async (c) => {
   return c.json({ success: true, data: { status: "running" } });
 });
 
-bots.post("/:id/stop", authMiddleware, async (c) => {
+bots.post("/:id/stop", requireAuth, async (c) => {
   const user = c.get("user");
   const id = c.req.param("id");
   const bot = await prisma.bot.findFirst({ where: { id, userId: user.id } });
@@ -170,7 +171,7 @@ bots.post("/:id/stop", authMiddleware, async (c) => {
   return c.json({ success: true, data: { status: "stopped" } });
 });
 
-bots.post("/:id/exit", authMiddleware, async (c) => {
+bots.post("/:id/exit", requireAuth, async (c) => {
   const user = c.get("user");
   const id = c.req.param("id");
   const bot = await prisma.bot.findFirst({ where: { id, userId: user.id } });
@@ -188,7 +189,7 @@ bots.post("/:id/exit", authMiddleware, async (c) => {
   return c.json({ success: true, data: { message: "Emergency exit command sent to worker" } });
 });
 
-bots.post("/:id/sync", authMiddleware, async (c) => {
+bots.post("/:id/sync", requireAuth, async (c) => {
   const user = c.get("user");
   const id = c.req.param("id");
   const bot = await prisma.bot.findFirst({ where: { id, userId: user.id } });
@@ -209,7 +210,7 @@ bots.post("/:id/sync", authMiddleware, async (c) => {
   return c.json({ success: true, data: { message: "Sync command sent to worker" } });
 });
 
-bots.patch("/:id/mode", authMiddleware, async (c) => {
+bots.patch("/:id/mode", requireAuth, async (c) => {
   const user = c.get("user");
   const id = c.req.param("id");
   const { mode } = await c.req.json();
@@ -243,7 +244,7 @@ bots.get("/admin/all", authMiddleware, roleMiddleware("admin"), async (c) => {
   return c.json({ success: true, data });
 });
 
-bots.delete("/:id", authMiddleware, async (c) => {
+bots.delete("/:id", requireAuth, async (c) => {
   const user = c.get("user");
   const id = c.req.param("id");
   const bot = await prisma.bot.findFirst({ where: { id, userId: user.id } });
@@ -252,7 +253,7 @@ bots.delete("/:id", authMiddleware, async (c) => {
   return c.json({ success: true });
 });
 
-bots.get("/:id/paper-trades", authMiddleware, async (c) => {
+bots.get("/:id/paper-trades", requireAuth, async (c) => {
   const user = c.get("user");
   const id = c.req.param("id");
   const bot = await prisma.bot.findFirst({ where: { id, userId: user.id } });
@@ -264,7 +265,7 @@ bots.get("/:id/paper-trades", authMiddleware, async (c) => {
   return c.json({ success: true, data });
 });
 
-bots.get("/:id/price", authMiddleware, async (c) => {
+bots.get("/:id/price", requireAuth, async (c) => {
   const user = c.get("user");
   const id = c.req.param("id");
   const bot = await prisma.bot.findFirst({
