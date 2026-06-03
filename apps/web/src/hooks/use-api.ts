@@ -408,3 +408,46 @@ export function useGenerateAddress() {
     },
   });
 }
+
+// ------------------------------------------------------------------
+// API Keys
+// ------------------------------------------------------------------
+
+export function useApiKeys() {
+  return useQuery({
+    queryKey: ["api-keys"],
+    queryFn: () => api<any[]>("/api-keys"),
+  });
+}
+
+export function useCreateApiKey() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: { name: string; permissions?: string[]; expiresAt?: string }) =>
+      api<any>("/api-keys", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["api-keys"] }),
+  });
+}
+
+export function useRevokeApiKey() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api<any>(`/api-keys/${id}`, { method: "DELETE" }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["api-keys"] }),
+  });
+}
+
+export function useUpdateApiKey() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: { name?: string; permissions?: string[]; expiresAt?: string | null } }) =>
+      api<any>(`/api-keys/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["api-keys"] }),
+  });
+}
