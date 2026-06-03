@@ -979,13 +979,13 @@ function BotDetailPage() {
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="text-[var(--text-muted)] border-b border-[var(--border-subtle)]">
-                          <th className="text-left px-4 py-2 font-medium">
+                          <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider font-semibold">
                             Symbol
                           </th>
-                          <th className="text-left px-4 py-2 font-medium">
+                          <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider font-semibold">
                             Side
                           </th>
-                          <th className="text-left px-4 py-2 font-medium">
+                          <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider font-semibold">
                             Amount
                           </th>
                           {isPaper && (
@@ -993,10 +993,10 @@ function BotDetailPage() {
                               Price
                             </th>
                           )}
-                          <th className="text-left px-4 py-2 font-medium">
+                          <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider font-semibold">
                             {isPaper ? "PnL" : "Status"}
                           </th>
-                          <th className="text-left px-4 py-2 font-medium">
+                          <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider font-semibold">
                             Date
                           </th>
                         </tr>
@@ -1030,10 +1030,10 @@ function BotDetailPage() {
                             key={o.id}
                             className="hover:bg-[var(--bg-hover)]/50 transition-colors"
                           >
-                            <td className="px-4 py-2.5 font-medium text-[var(--text-primary)]">
+                            <td className="px-3 py-2 text-xs font-medium text-[var(--text-primary)]">
                               {o.symbol}
                             </td>
-                            <td className="px-4 py-2.5">
+                            <td className="px-3 py-2 text-xs">
                               <span
                                 className={`inline-flex items-center text-xs font-semibold ${
                                   o.side === "buy"
@@ -1057,7 +1057,7 @@ function BotDetailPage() {
                                 {Number(o.price || 0).toFixed(4)}
                               </td>
                             )}
-                            <td className="px-4 py-2.5">
+                            <td className="px-3 py-2 text-xs">
                               {isPaper ? (
                                 <span
                                   className={`text-xs font-medium ${
@@ -1113,7 +1113,7 @@ function BotDetailPage() {
                     </CardHeader>
                     <CardContent className="space-y-6">
                       {/* Step 1: Webhook URL */}
-                      <div className="rounded-xl border border-[var(--success)]/20 bg-[var(--success-glow)] p-4 space-y-3">
+                      <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 space-y-2 border-t-2 border-[var(--success)]">
                         <div className="flex items-center gap-2 text-[var(--success)]">
                           <Webhook className="w-4 h-4" />
                           <span className="font-medium text-sm">Step 1 — Your Webhook URL</span>
@@ -1138,7 +1138,7 @@ function BotDetailPage() {
                       </div>
 
                       {/* Step 2: Alert Message */}
-                      <div className="rounded-xl border border-[var(--primary)]/20 bg-[var(--primary-glow)] p-4 space-y-3">
+                      <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 space-y-2 border-t-2 border-[var(--primary)]">
                         <div className="flex items-center gap-2 text-[var(--primary)]">
                           <FileJson className="w-4 h-4" />
                           <span className="font-medium text-sm">Step 2 — TradingView Alert Message (JSON)</span>
@@ -1205,7 +1205,7 @@ function BotDetailPage() {
                       </div>
 
                       {/* TradingView Placeholders Reference */}
-                      <div className="rounded-xl border border-[var(--warning)]/20 bg-[var(--warning-glow)] p-4 space-y-3">
+                      <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 space-y-2 border-t-2 border-[var(--warning)]">
                         <div className="flex items-center gap-2 text-[var(--warning)]">
                           <FileJson className="w-4 h-4" />
                           <span className="font-medium text-sm">TradingView Placeholders Reference</span>
@@ -1245,7 +1245,7 @@ function BotDetailPage() {
                       </div>
 
                       {/* Step 3: Pine Script */}
-                      <div className="rounded-xl border border-[var(--warning)]/20 bg-[var(--warning-glow)] p-4 space-y-3">
+                      <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 space-y-2 border-t-2 border-[var(--warning)]">
                         <div className="flex items-center gap-2 text-[var(--warning)]">
                           <Code2 className="w-4 h-4" />
                           <span className="font-medium text-sm">Step 3 — Pine Script Strategy (Advanced)</span>
