@@ -33,121 +33,135 @@ function DashboardPage() {
       label: "Token Balance",
       value: typeof wallet?.tokenBalance === "number" ? wallet.tokenBalance.toFixed(4) : "0.0000",
       icon: Wallet,
-      accent: "text-[var(--primary)]",
-      bg: "bg-[var(--primary-glow)]",
-      border: "border-[var(--primary)]/20",
+      accent: "border-t-[var(--primary)]",
+      text: "text-[var(--primary)]",
       suffix: "",
     },
     {
       label: "USDT Balance",
       value: typeof wallet?.usdtBalance === "number" ? wallet.usdtBalance.toFixed(4) : "0.0000",
       icon: ArrowRightLeft,
-      accent: "text-[var(--success)]",
-      bg: "bg-[var(--success-glow)]",
-      border: "border-[var(--success)]/20",
+      accent: "border-t-[var(--success)]",
+      text: "text-[var(--success)]",
       suffix: " USDT",
     },
     {
       label: "Active Bots",
       value: `${activeBots} / ${totalBots}`,
       icon: Bot,
-      accent: "text-[var(--primary)]",
-      bg: "bg-[var(--primary-glow)]",
-      border: "border-[var(--primary)]/20",
+      accent: "border-t-[var(--primary)]",
+      text: "text-[var(--primary)]",
       suffix: "",
     },
     {
       label: "Total Deposited",
       value: typeof wallet?.totalDeposited === "number" ? wallet.totalDeposited.toFixed(4) : "0.0000",
       icon: TrendingUp,
-      accent: "text-[var(--accent)]",
-      bg: "bg-[var(--accent)]/10",
-      border: "border-[var(--accent)]/20",
+      accent: "border-t-[var(--accent)]",
+      text: "text-[var(--accent)]",
       suffix: "",
     },
   ];
 
   return (
     <PageWrapper>
-      <div className="space-y-6 max-w-6xl">
+      <div className="space-y-4 max-w-6xl">
         {/* Header */}
         <div className="gsap-section">
-          <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--text-primary)] font-['Space_Grotesk'] tracking-tight">
+          <h1 className="text-xl font-semibold text-[var(--text-primary)] font-['Space_Grotesk'] tracking-tight">
             Dashboard
           </h1>
-          <p className="text-sm text-[var(--text-muted)] mt-1">
+          <p className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold mt-1">
             Overview of your trading activity
           </p>
         </div>
 
         {/* Stats Grid */}
-        <div className="gsap-section grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div className="gsap-section grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-px bg-[var(--border-subtle)]">
           {stats.map((stat) => (
             <div
               key={stat.label}
-              className="relative rounded-2xl bg-[var(--bg-card)] border border-[var(--border-subtle)] backdrop-blur-xl p-5 shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] hover:-translate-y-[1px] transition-all duration-300"
+              className={`relative bg-[var(--bg-card)] border-t-2 ${stat.accent} p-3`}
             >
-              <div className="flex items-center gap-3 mb-3">
-                <div
-                  className={`w-10 h-10 rounded-xl ${stat.bg} border ${stat.border} flex items-center justify-center shrink-0`}
-                >
-                  <stat.icon className={`w-5 h-5 ${stat.accent}`} />
-                </div>
-                <p className="text-xs text-[var(--text-muted)] font-medium">{stat.label}</p>
+              <div className="flex items-center gap-2 mb-2">
+                <stat.icon className={`w-4 h-4 ${stat.text}`} />
+                <p className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">
+                  {stat.label}
+                </p>
               </div>
-              <p className="text-2xl font-semibold text-[var(--text-primary)]">
+              <p className="font-['Space_Grotesk'] text-xl font-semibold tracking-tight text-[var(--text-primary)] font-mono">
                 {stat.value}
-                <span className="text-sm text-[var(--text-muted)] font-normal ml-1">{stat.suffix}</span>
+                <span className="text-xs text-[var(--text-muted)] font-normal ml-1 font-mono">
+                  {stat.suffix}
+                </span>
               </p>
             </div>
           ))}
         </div>
 
         {/* Recent Transactions */}
-        <div className="gsap-section relative rounded-2xl bg-[var(--bg-card)] border border-[var(--border-subtle)] backdrop-blur-xl overflow-hidden shadow-[var(--shadow-sm)]">
-          <div className="px-5 py-4 border-b border-[var(--border-subtle)] flex items-center justify-between">
+        <div className="gsap-section bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl overflow-hidden">
+          <div className="px-4 py-3 border-b border-[var(--border-subtle)] flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Activity className="w-4 h-4 text-[var(--text-muted)]" />
-              <h2 className="text-sm font-medium text-[var(--text-secondary)]">Recent Transactions</h2>
+              <h2 className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">
+                Recent Transactions
+              </h2>
             </div>
-            <span className="text-xs text-[var(--text-muted)]">{recentTx.length} shown</span>
+            <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">
+              {recentTx.length} shown
+            </span>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-sm min-w-[500px]">
+            <table className="w-full min-w-[500px]">
               <thead>
-                <tr className="text-[var(--text-muted)] border-b border-[var(--border-subtle)]">
-                  <th className="text-left px-5 py-3 font-medium text-xs uppercase tracking-wider">Type</th>
-                  <th className="text-left px-5 py-3 font-medium text-xs uppercase tracking-wider">Amount</th>
-                  <th className="text-left px-5 py-3 font-medium text-xs uppercase tracking-wider">Currency</th>
-                  <th className="text-left px-5 py-3 font-medium text-xs uppercase tracking-wider">Status</th>
-                  <th className="text-left px-5 py-3 font-medium text-xs uppercase tracking-wider hidden sm:table-cell">Date</th>
+                <tr className="border-b border-[var(--border-subtle)]">
+                  <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
+                    Type
+                  </th>
+                  <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
+                    Amount
+                  </th>
+                  <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
+                    Currency
+                  </th>
+                  <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
+                    Status
+                  </th>
+                  <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold hidden sm:table-cell">
+                    Date
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--border-subtle)]">
                 {recentTx.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="px-5 py-8 text-center">
+                    <td colSpan={5} className="px-3 py-6 text-center">
                       <div className="flex flex-col items-center gap-2">
-                        <AlertCircle className="w-6 h-6 text-[var(--text-muted)]" />
-                        <p className="text-sm text-[var(--text-muted)]">No transactions yet.</p>
+                        <AlertCircle className="w-5 h-5 text-[var(--text-muted)]" />
+                        <p className="text-xs text-[var(--text-muted)]">No transactions yet.</p>
                       </div>
                     </td>
                   </tr>
                 )}
                 {recentTx.map((tx: any) => (
                   <tr key={tx.id} className="hover:bg-[var(--bg-hover)]/50 transition-colors">
-                    <td className="px-5 py-3">
+                    <td className="px-3 py-2 text-xs">
                       <span className="capitalize text-[var(--text-secondary)] font-medium">{tx.type}</span>
                     </td>
-                    <td className="px-5 py-3 text-[var(--text-primary)] font-medium">{tx.amount}</td>
-                    <td className="px-5 py-3">
-                      <span className="text-xs px-2 py-0.5 rounded-md bg-[var(--bg-hover)] text-[var(--text-muted)] border border-[var(--border-subtle)]">{tx.currency}</span>
+                    <td className="px-3 py-2 text-xs text-[var(--text-primary)] font-medium font-mono">
+                      {tx.amount}
                     </td>
-                    <td className="px-5 py-3">
+                    <td className="px-3 py-2 text-xs">
+                      <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-[var(--bg-hover)] text-[var(--text-muted)] border border-[var(--border-subtle)] font-mono">
+                        {tx.currency}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2 text-xs">
                       <TxBadge status={tx.status} />
                     </td>
-                    <td className="px-5 py-3 text-[var(--text-muted)] text-xs hidden sm:table-cell">
+                    <td className="px-3 py-2 text-[var(--text-muted)] text-xs hidden sm:table-cell font-mono">
                       {new Date(tx.createdAt).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
@@ -163,11 +177,13 @@ function DashboardPage() {
         </div>
 
         {/* Activity Feed */}
-        <div className="gsap-section relative rounded-2xl bg-[var(--bg-card)] border border-[var(--border-subtle)] backdrop-blur-xl overflow-hidden shadow-[var(--shadow-sm)]">
-          <div className="px-5 py-4 border-b border-[var(--border-subtle)] flex items-center justify-between">
+        <div className="gsap-section bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl overflow-hidden">
+          <div className="px-4 py-3 border-b border-[var(--border-subtle)] flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Radio className="w-4 h-4 text-[var(--text-muted)]" />
-              <h2 className="text-sm font-medium text-[var(--text-secondary)]">Live Activity</h2>
+              <h2 className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">
+                Live Activity
+              </h2>
             </div>
           </div>
           <div className="p-4">
@@ -180,14 +196,15 @@ function DashboardPage() {
         </div>
 
         {/* Quick Actions */}
-        <div className="gsap-section grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="gsap-section grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-[var(--border-subtle)]">
           <QuickActionCard
             title="Create Trading Bot"
             description="Set up a new DCA or signal bot"
             icon={Bot}
             to="/bots/create"
             accent="text-[var(--primary)]"
-            hover="hover:border-[var(--primary)]/30 hover:bg-[var(--primary-glow)]"
+            hover="hover:bg-[var(--primary-glow)]"
+            border="border-t-[var(--primary)]"
           />
           <QuickActionCard
             title="Connect Exchange"
@@ -195,7 +212,8 @@ function DashboardPage() {
             icon={ArrowRightLeft}
             to="/exchange-connections"
             accent="text-[var(--success)]"
-            hover="hover:border-[var(--success)]/30 hover:bg-[var(--success-glow)]"
+            hover="hover:bg-[var(--success-glow)]"
+            border="border-t-[var(--success)]"
           />
           <QuickActionCard
             title="DCA Simulator"
@@ -203,7 +221,8 @@ function DashboardPage() {
             icon={TrendingUp}
             to="/calculator"
             accent="text-[var(--accent)]"
-            hover="hover:border-[var(--accent)]/30 hover:bg-[var(--accent)]/[0.03]"
+            hover="hover:bg-[var(--accent)]/[0.03]"
+            border="border-t-[var(--accent)]"
           />
         </div>
       </div>
@@ -249,9 +268,9 @@ function TxBadge({ status }: { status: string }) {
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs font-medium ${c.bg} ${c.text} ${c.border}`}
+      className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[11px] font-medium ${c.bg} ${c.text} ${c.border}`}
     >
-      <span className={`h-1.5 w-1.5 rounded-full ${c.dot}`} />
+      <span className={`h-1 w-1 rounded-full ${c.dot}`} />
       {c.label}
     </span>
   );
@@ -264,6 +283,7 @@ function QuickActionCard({
   to,
   accent,
   hover,
+  border,
 }: {
   title: string;
   description: string;
@@ -271,21 +291,24 @@ function QuickActionCard({
   to: string;
   accent: string;
   hover: string;
+  border: string;
 }) {
   return (
     <a
       href={to}
-      className={`group relative rounded-2xl bg-[var(--bg-card)] border border-[var(--border-subtle)] backdrop-blur-xl p-5 transition-all duration-200 shadow-[var(--shadow-sm)] ${hover} hover:-translate-y-[1px]`}
+      className={`group relative bg-[var(--bg-card)] border-t-2 ${border} p-3 transition-colors ${hover}`}
     >
-      <div className="flex items-start gap-3">
-        <div className="w-10 h-10 rounded-xl bg-[var(--bg-hover)] border border-[var(--border-subtle)] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-          <Icon className={`w-5 h-5 ${accent}`} />
+      <div className="flex items-start gap-2">
+        <div className="w-8 h-8 rounded-md bg-[var(--bg-hover)] border border-[var(--border-subtle)] flex items-center justify-center shrink-0">
+          <Icon className={`w-4 h-4 ${accent}`} />
         </div>
         <div className="min-w-0">
-          <h3 className="text-sm font-medium text-[var(--text-primary)] group-hover:text-[var(--text-secondary)] transition-colors">
+          <h3 className="text-xs font-medium text-[var(--text-primary)] group-hover:text-[var(--text-secondary)] transition-colors font-['Space_Grotesk']">
             {title}
           </h3>
-          <p className="text-xs text-[var(--text-muted)] mt-0.5">{description}</p>
+          <p className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold mt-0.5">
+            {description}
+          </p>
         </div>
       </div>
     </a>

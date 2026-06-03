@@ -76,43 +76,30 @@ function TierCard({
     <div
       ref={cardRef}
       className={cn(
-        "relative flex flex-col items-center text-center rounded-xl border px-3 py-4 transition-colors duration-300",
+        "relative flex flex-col items-center text-center border border-[var(--border-subtle)] px-3 py-3 transition-colors duration-300 bg-[var(--bg-card)]",
         isActive
-          ? "bg-[var(--bg-hover)] border-[var(--border-default)] shadow-[0_0_20px_var(--primary-glow)]"
+          ? "border-t-2 border-t-[var(--primary)]"
           : isReached
-          ? "bg-[var(--bg-card)] border-[var(--border-subtle)] opacity-80"
+          ? "border-t-2 border-t-[var(--border-subtle)] opacity-80"
           : isNext
-          ? "bg-[var(--bg-card)] border-[var(--border-subtle)] opacity-60"
-          : "bg-[var(--bg-card)] border-[var(--border-subtle)] opacity-40"
+          ? "border-t-2 border-t-[var(--border-subtle)] opacity-60"
+          : "border-t-2 border-t-[var(--border-subtle)] opacity-40"
       )}
     >
-      {/* Glow ring for active */}
-      {isActive && (
-        <div
-          className={cn(
-            "absolute inset-0 rounded-xl ring-1",
-            tier.ring,
-            "pointer-events-none"
-          )}
-        />
-      )}
-
       <div
         className={cn(
-          "w-10 h-10 rounded-full flex items-center justify-center mb-2",
-          isActive ? tier.bg : "bg-[var(--bg-hover)]",
-          isActive ? tier.shadow : "",
-          isActive ? "shadow-lg" : ""
+          "w-8 h-8 rounded-full flex items-center justify-center mb-1.5",
+          isActive ? tier.bg : "bg-[var(--bg-hover)]"
         )}
       >
         <Icon
-          className={cn("w-5 h-5", isActive ? "text-[var(--text-invert)]" : "text-[var(--text-muted)]")}
+          className={cn("w-4 h-4", isActive ? "text-[var(--text-invert)]" : "text-[var(--text-muted)]")}
         />
       </div>
 
       <p
         className={cn(
-          "text-xs font-semibold uppercase tracking-wider",
+          "text-[10px] uppercase tracking-widest font-semibold",
           isActive ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"
         )}
       >
@@ -120,14 +107,13 @@ function TierCard({
       </p>
       <p
         className={cn(
-          "text-lg font-bold mt-0.5",
+          "font-['Space_Grotesk'] text-lg font-semibold tracking-tight mt-0.5",
           isActive ? tier.color : "text-[var(--text-muted)]"
         )}
       >
         {tier.rate}%
       </p>
 
-      {/* Connector line */}
       {index < TIERS.length - 1 && (
         <div className="hidden md:block absolute top-1/2 -right-3 w-6 h-[2px]">
           <div
@@ -184,22 +170,22 @@ function ReferralsPage() {
 
   return (
     <PageWrapper>
-      <div className="space-y-6 max-w-7xl mx-auto">
+      <div className="space-y-4 max-w-7xl mx-auto">
         {/* Header */}
         <div className="gsap-section flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-[var(--text-primary)] font-['Space_Grotesk']">
+          <h1 className="font-['Space_Grotesk'] text-xl font-semibold tracking-tight text-[var(--text-primary)]">
             Referrals
           </h1>
-          <span className="text-xs md:text-sm text-[var(--text-muted)] bg-[var(--bg-card)] border border-[var(--border-subtle)] px-3 py-1.5 rounded-lg self-start sm:self-auto">
+          <span className="text-[10px] uppercase tracking-widest font-semibold text-[var(--text-muted)] bg-[var(--bg-card)] border border-[var(--border-subtle)] px-2 py-1 rounded-md self-start sm:self-auto">
             Current Tier:{" "}
-            <span className={cn("font-semibold", TIERS[safeCurrentIndex].color)}>
+            <span className={cn("font-['Space_Grotesk'] text-sm font-semibold tracking-tight", TIERS[safeCurrentIndex].color)}>
               {TIERS[safeCurrentIndex].label}
             </span>
           </span>
         </div>
 
         {/* Tier Progression */}
-        <div className="gsap-section grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 md:gap-4">
+        <div className="gsap-section grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-px bg-[var(--border-subtle)]">
           {TIERS.map((tier, index) => (
             <TierCard
               key={tier.id}
@@ -212,29 +198,29 @@ function ReferralsPage() {
         </div>
 
         {/* Stats + Code Row */}
-        <div className="gsap-section grid grid-cols-1 md:grid-cols-4 gap-4">
-          {/* Referral Code Card */}
-          <div className="md:col-span-2 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-5 flex flex-col justify-between shadow-[var(--shadow-sm)]">
-            <p className="text-[var(--text-muted)] text-sm font-medium mb-3">Your Referral Code</p>
+        <div className="gsap-section grid grid-cols-1 md:grid-cols-4 gap-px bg-[var(--border-subtle)]">
+          {/* Referral Code Cell */}
+          <div className="md:col-span-2 bg-[var(--bg-card)] border-t-2 border-t-[var(--primary)] p-4 flex flex-col justify-between">
+            <p className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold mb-2">Your Referral Code</p>
             <div className="flex flex-col sm:flex-row items-stretch gap-2">
-              <div className="flex-1 min-w-0 bg-[var(--bg-hover)] border border-[var(--border-subtle)] rounded-lg px-4 py-3 text-lg md:text-xl font-mono font-bold tracking-wide text-[var(--text-primary)] flex items-center justify-center truncate">
+              <div className="flex-1 min-w-0 bg-[var(--bg-hover)] border border-[var(--border-subtle)] rounded-md px-3 py-2 text-sm font-mono font-bold tracking-wide text-[var(--text-primary)] flex items-center justify-center truncate">
                 {referralCode}
               </div>
               <button
                 ref={copyBtnRef}
                 onClick={handleCopy}
                 className={cn(
-                  "relative px-4 py-3 rounded-lg text-sm font-semibold flex items-center gap-2 transition-colors",
+                  "relative px-2 py-1 rounded-md text-[11px] font-semibold flex items-center gap-1.5 transition-colors",
                   copied
                     ? "bg-[var(--success-glow)] text-[var(--success)] border border-[var(--success)]/20"
                     : "bg-[var(--bg-hover)] hover:bg-[var(--bg-pressed)] text-[var(--text-secondary)] border border-[var(--border-subtle)]"
                 )}
               >
-                <span className="copy-feedback flex items-center gap-2">
+                <span className="copy-feedback flex items-center gap-1.5">
                   {copied ? (
-                    <Check className="w-4 h-4" />
+                    <Check className="w-3.5 h-3.5" />
                   ) : (
-                    <Copy className="w-4 h-4" />
+                    <Copy className="w-3.5 h-3.5" />
                   )}
                   {copied ? "Copied" : "Copy"}
                 </span>
@@ -242,55 +228,55 @@ function ReferralsPage() {
             </div>
           </div>
 
-          {/* Total Referred Users */}
-          <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-5 flex flex-col justify-between shadow-[var(--shadow-sm)]">
-            <div className="flex items-center gap-2 text-[var(--text-muted)] text-sm font-medium mb-2">
-              <Users className="w-4 h-4" />
+          {/* Total Referred Users Cell */}
+          <div className="bg-[var(--bg-card)] border-t-2 border-t-[var(--primary)] p-4 flex flex-col justify-between">
+            <div className="flex items-center gap-1.5 text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-semibold mb-1">
+              <Users className="w-3.5 h-3.5" />
               Total Referred Users
             </div>
-            <p className="text-3xl font-bold text-[var(--text-primary)] tracking-tight">
+            <p className="font-['Space_Grotesk'] text-xl font-semibold tracking-tight text-[var(--text-primary)] font-mono">
               {referrals.length}
             </p>
           </div>
 
-          {/* Reward Token Balance */}
-          <div className="bg-[var(--bg-card)] border border-[var(--primary)]/20 rounded-xl p-5 flex flex-col justify-between shadow-[var(--shadow-sm)]">
-            <div className="flex items-center gap-2 text-[var(--primary)] text-sm font-medium mb-2">
-              <Gift className="w-4 h-4" />
+          {/* Reward Token Balance Cell */}
+          <div className="bg-[var(--bg-card)] border-t-2 border-t-[var(--primary)] p-4 flex flex-col justify-between">
+            <div className="flex items-center gap-1.5 text-[var(--primary)] text-[10px] uppercase tracking-widest font-semibold mb-1">
+              <Gift className="w-3.5 h-3.5" />
               Reward Token
             </div>
-            <p className="text-3xl font-bold text-[var(--primary)] tracking-tight">
+            <p className="font-['Space_Grotesk'] text-xl font-semibold tracking-tight text-[var(--primary)] font-mono">
               {Number(referralTokenBalance).toFixed(4)}
             </p>
-            <div className="flex items-center gap-2 mt-3 text-xs text-[var(--text-muted)]">
-              <Coins className="w-3.5 h-3.5" />
-              <span className="font-medium text-[var(--text-secondary)]">{Number(earnings).toFixed(4)}</span> total earned
+            <div className="flex items-center gap-1.5 mt-2 text-[10px] text-[var(--text-muted)]">
+              <Coins className="w-3 h-3" />
+              <span className="font-medium text-[var(--text-secondary)] font-mono">{Number(earnings).toFixed(4)}</span> total earned
             </div>
           </div>
         </div>
 
         {/* Reward Token Withdrawal History */}
-        <div className="gsap-section bg-[var(--bg-card)] border border-[var(--primary)]/20 rounded-xl overflow-hidden shadow-[var(--shadow-sm)]">
-          <div className="px-5 py-3.5 border-b border-[var(--primary)]/20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-            <h3 className="font-semibold text-sm text-[var(--primary)]">Reward Token Withdrawals</h3>
-            <span className="text-xs text-[var(--text-muted)] bg-[var(--bg-hover)] px-2 py-1 rounded-md border border-[var(--border-subtle)]">
+        <div className="gsap-section bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl overflow-hidden">
+          <div className="px-4 py-2 border-b border-[var(--border-subtle)] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+            <h3 className="font-['Space_Grotesk'] text-sm font-semibold text-[var(--primary)]">Reward Token Withdrawals</h3>
+            <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold bg-[var(--bg-hover)] px-2 py-0.5 rounded border border-[var(--border-subtle)]">
               {(withdrawals?.length || 0)} requests
             </span>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-xs">
               <thead>
                 <tr className="text-[var(--text-muted)] border-b border-[var(--border-subtle)] bg-[var(--bg-hover)]/50">
-                  <th className="text-left px-5 py-3 font-medium text-xs uppercase tracking-wider">Amount</th>
-                  <th className="text-left px-5 py-3 font-medium text-xs uppercase tracking-wider">Status</th>
-                  <th className="text-left px-5 py-3 font-medium text-xs uppercase tracking-wider">Requested</th>
-                  <th className="text-left px-5 py-3 font-medium text-xs uppercase tracking-wider">Processed</th>
+                  <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">Amount</th>
+                  <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">Status</th>
+                  <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">Requested</th>
+                  <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">Processed</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--border-subtle)]">
                 {!withdrawals || withdrawals.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-5 py-8 text-center text-[var(--text-muted)]">
+                    <td colSpan={4} className="px-3 py-6 text-center text-[var(--text-muted)] text-xs">
                       No withdrawal requests yet. Go to Wallet to request a withdrawal.
                     </td>
                   </tr>
@@ -308,16 +294,16 @@ function ReferralsPage() {
                     const Icon = cfg.icon;
                     return (
                       <tr key={req.id} className="hover:bg-[var(--bg-hover)]/50 transition-colors">
-                        <td className="px-5 py-3 text-[var(--primary)] font-medium">{Number(req.amount).toFixed(4)}</td>
-                        <td className="px-5 py-3">
-                          <span className={cn("inline-flex items-center gap-1.5 text-xs font-medium", cfg.color)}>
-                            <Icon className="w-3.5 h-3.5" /> {cfg.label}
+                        <td className="px-3 py-2 text-[var(--primary)] font-medium font-mono">{Number(req.amount).toFixed(4)}</td>
+                        <td className="px-3 py-2">
+                          <span className={cn("inline-flex items-center gap-1 text-[10px] font-medium", cfg.color)}>
+                            <Icon className="w-3 h-3" /> {cfg.label}
                           </span>
                         </td>
-                        <td className="px-5 py-3 text-[var(--text-muted)] text-xs">
+                        <td className="px-3 py-2 text-[var(--text-muted)] font-mono">
                           {new Date(req.requestedAt).toLocaleString()}
                         </td>
-                        <td className="px-5 py-3 text-[var(--text-muted)] text-xs">
+                        <td className="px-3 py-2 text-[var(--text-muted)] font-mono">
                           {req.processedAt
                             ? new Date(req.processedAt).toLocaleString()
                             : "—"}
@@ -332,28 +318,28 @@ function ReferralsPage() {
         </div>
 
         {/* Referred Users Table */}
-        <div className="gsap-section bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl overflow-hidden shadow-[var(--shadow-sm)]">
-          <div className="px-5 py-3.5 border-b border-[var(--border-subtle)] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-            <h3 className="font-semibold text-sm text-[var(--text-primary)]">Referred Users</h3>
-            <span className="text-xs text-[var(--text-muted)] bg-[var(--bg-hover)] px-2 py-1 rounded-md border border-[var(--border-subtle)]">
+        <div className="gsap-section bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl overflow-hidden">
+          <div className="px-4 py-2 border-b border-[var(--border-subtle)] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+            <h3 className="font-['Space_Grotesk'] text-sm font-semibold text-[var(--text-primary)]">Referred Users</h3>
+            <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold bg-[var(--bg-hover)] px-2 py-0.5 rounded border border-[var(--border-subtle)]">
               {referrals.length} total
             </span>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-xs">
               <thead>
                 <tr className="text-[var(--text-muted)] border-b border-[var(--border-subtle)] bg-[var(--bg-hover)]/50">
-                  <th className="text-left px-5 py-3 font-medium text-xs uppercase tracking-wider">
+                  <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
                     Email
                   </th>
-                  <th className="text-left px-5 py-3 font-medium text-xs uppercase tracking-wider">
+                  <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
                     Tier
                   </th>
-                  <th className="text-left px-5 py-3 font-medium text-xs uppercase tracking-wider">
+                  <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
                     Commission Rate
                   </th>
-                  <th className="text-left px-5 py-3 font-medium text-xs uppercase tracking-wider">
+                  <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
                     Joined Date
                   </th>
                 </tr>
@@ -361,21 +347,21 @@ function ReferralsPage() {
               <tbody className="divide-y divide-[var(--border-subtle)]">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={4} className="px-5 py-8 text-center text-[var(--text-muted)]">
+                    <td colSpan={4} className="px-3 py-6 text-center text-[var(--text-muted)] text-xs">
                       Loading...
                     </td>
                   </tr>
                 ) : referrals.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-5 py-10">
+                    <td colSpan={4} className="px-3 py-8">
                       <div className="flex flex-col items-center justify-center text-center">
-                        <div className="w-12 h-12 rounded-full bg-[var(--bg-hover)] border border-[var(--border-subtle)] flex items-center justify-center mb-3">
-                          <Users className="w-5 h-5 text-[var(--text-muted)]" />
+                        <div className="w-10 h-10 rounded-full bg-[var(--bg-hover)] border border-[var(--border-subtle)] flex items-center justify-center mb-2">
+                          <Users className="w-4 h-4 text-[var(--text-muted)]" />
                         </div>
-                        <p className="text-[var(--text-secondary)] font-medium text-sm mb-1">
+                        <p className="text-[var(--text-secondary)] font-medium text-xs mb-0.5">
                           No referred users yet
                         </p>
-                        <p className="text-[var(--text-muted)] text-xs max-w-xs">
+                        <p className="text-[var(--text-muted)] text-[10px] max-w-xs">
                           Share your referral code to start earning commissions when new users join.
                         </p>
                       </div>
@@ -393,30 +379,30 @@ function ReferralsPage() {
                         key={ref.id}
                         className="hover:bg-[var(--bg-hover)]/50 transition-colors"
                       >
-                        <td className="px-5 py-3 text-[var(--text-secondary)] font-medium">
+                        <td className="px-3 py-2 text-[var(--text-secondary)] font-medium">
                           {ref.referredUser?.email || "—"}
                         </td>
-                        <td className="px-5 py-3">
-                          <div className="flex items-center gap-2">
+                        <td className="px-3 py-2">
+                          <div className="flex items-center gap-1.5">
                             <div
                               className={cn(
-                                "w-6 h-6 rounded-full flex items-center justify-center",
+                                "w-5 h-5 rounded-full flex items-center justify-center",
                                 refTier.bg
                               )}
                             >
-                              <RefIcon className="w-3 h-3 text-[var(--text-invert)]" />
+                              <RefIcon className="w-2.5 h-2.5 text-[var(--text-invert)]" />
                             </div>
-                            <span className="capitalize text-[var(--text-secondary)] text-sm">
+                            <span className="capitalize text-[var(--text-secondary)] text-xs">
                               {ref.tier || "bronze"}
                             </span>
                           </div>
                         </td>
-                        <td className="px-5 py-3">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-[var(--bg-hover)] border border-[var(--border-subtle)] text-xs font-semibold text-[var(--text-secondary)]">
+                        <td className="px-3 py-2">
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-[var(--bg-hover)] border border-[var(--border-subtle)] text-[10px] font-semibold text-[var(--text-secondary)] font-mono">
                             {(ref.commissionRate * 100).toFixed(0)}%
                           </span>
                         </td>
-                        <td className="px-5 py-3 text-[var(--text-muted)] text-xs">
+                        <td className="px-3 py-2 text-[var(--text-muted)] font-mono">
                           {ref.createdAt
                             ? new Date(ref.createdAt).toLocaleDateString("en-US", {
                                 year: "numeric",

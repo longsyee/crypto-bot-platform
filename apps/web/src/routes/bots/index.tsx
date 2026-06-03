@@ -54,14 +54,16 @@ function BotsPage() {
 
   return (
     <PageWrapper>
-      <div className="space-y-5">
-        <div className="gsap-section flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <h1 className="text-3xl font-bold text-[var(--text-primary)] font-['Space_Grotesk']">Bots</h1>
+      <div className="flex flex-col gap-4">
+        <div className="gsap-section flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <h1 className="font-['Space_Grotesk'] text-2xl font-bold tracking-tight text-[var(--text-primary)]">
+            Bots
+          </h1>
           <Link
             to="/bots/create"
-            className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-[var(--primary)] text-[var(--text-invert)] hover:brightness-110 shadow-[0_0_20px_var(--primary-glow)] transition-all hover:-translate-y-[1px]"
+            className="inline-flex items-center gap-1.5 px-2 py-1 text-[11px] font-semibold rounded-md bg-[var(--primary)] text-[var(--text-invert)] hover:brightness-110 transition-all"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-3.5 h-3.5" />
             Create Bot
           </Link>
         </div>
@@ -72,7 +74,7 @@ function BotsPage() {
               <button
                 key={tab.value}
                 onClick={() => setActiveTab(tab.value)}
-                className={`relative px-4 py-2.5 text-sm font-medium transition-colors ${
+                className={`relative px-3 py-2 text-xs font-medium transition-colors ${
                   activeTab === tab.value
                     ? "text-[var(--primary)]"
                     : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
@@ -80,50 +82,62 @@ function BotsPage() {
               >
                 {tab.label}
                 {activeTab === tab.value && (
-                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--primary)] rounded-full shadow-[0_0_6px_var(--primary-glow)]" />
+                  <span className="absolute bottom-0 left-0 right-0 h-px bg-[var(--primary)]" />
                 )}
               </button>
             ))}
           </div>
 
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)]" />
             <input
               type="text"
               placeholder="Search bots..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full sm:w-64 pl-9 pr-3 py-2 rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)] text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all"
+              className="w-full sm:w-56 pl-8 pr-3 py-2 rounded-md bg-[var(--bg-card)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)] focus:border-transparent"
             />
           </div>
         </div>
 
         {isLoading ? (
-          <div className="gsap-section bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-2xl p-8 text-center text-[var(--text-muted)]">
+          <div className="gsap-section bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 text-xs text-[var(--text-muted)]">
             Loading bots...
           </div>
         ) : (
-          <div className="gsap-section bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-2xl overflow-hidden shadow-[var(--shadow-sm)]">
+          <div className="gsap-section bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full">
                 <thead>
-                  <tr className="text-[var(--text-muted)] border-b border-[var(--border-subtle)]">
-                    <th className="text-left px-4 py-3 font-medium">Name</th>
-                    <th className="text-left px-4 py-3 font-medium">Type</th>
-                    <th className="text-left px-4 py-3 font-medium">Mode</th>
-                    <th className="text-left px-4 py-3 font-medium">Status</th>
-                    <th className="text-left px-4 py-3 font-medium">Exchange</th>
-                    <th className="text-left px-4 py-3 font-medium">Actions</th>
+                  <tr className="border-b border-[var(--border-subtle)]">
+                    <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
+                      Name
+                    </th>
+                    <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
+                      Type
+                    </th>
+                    <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
+                      Mode
+                    </th>
+                    <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
+                      Status
+                    </th>
+                    <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
+                      Exchange
+                    </th>
+                    <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--border-subtle)]">
                   {filteredBots.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="px-4 py-12 text-center">
+                      <td colSpan={6} className="px-3 py-8 text-center">
                         <div className="flex flex-col items-center justify-center text-[var(--text-muted)]">
-                          <Bot className="w-10 h-10 mb-3 opacity-50" />
-                          <p className="text-sm font-medium">No bots found</p>
-                          <p className="text-xs mt-1 text-[var(--text-muted)]/60">
+                          <Bot className="w-8 h-8 mb-2 opacity-50" />
+                          <p className="text-xs font-medium">No bots found</p>
+                          <p className="text-[10px] mt-1 text-[var(--text-muted)]/60">
                             {searchQuery || activeTab !== "all"
                               ? "Try adjusting your search or filters."
                               : "Get started by creating your first bot."}
@@ -131,7 +145,7 @@ function BotsPage() {
                           {!searchQuery && activeTab === "all" && (
                             <Link
                               to="/bots/create"
-                              className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--primary)] hover:brightness-110 text-[var(--text-invert)] transition-all"
+                              className="mt-3 inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-semibold bg-[var(--primary)] hover:brightness-110 text-[var(--text-invert)] transition-all"
                             >
                               <Plus className="w-3 h-3" />
                               Create Bot
@@ -142,8 +156,11 @@ function BotsPage() {
                     </tr>
                   )}
                   {filteredBots.map((bot: any) => (
-                    <tr key={bot.id} className="bot-row hover:bg-[var(--bg-hover)]/50 transition-colors">
-                      <td className="px-4 py-3">
+                    <tr
+                      key={bot.id}
+                      className="bot-row hover:bg-[var(--bg-hover)]/50 transition-colors"
+                    >
+                      <td className="text-xs py-2 px-3">
                         <Link
                           to={`/bots/${bot.id}` as any}
                           className="text-[var(--primary)] hover:underline font-medium"
@@ -151,49 +168,53 @@ function BotsPage() {
                           {bot.name}
                         </Link>
                       </td>
-                      <td className="px-4 py-3 capitalize text-[var(--text-secondary)]">{bot.type}</td>
-                      <td className="px-4 py-3 capitalize text-[var(--text-secondary)]">{bot.mode}</td>
-                      <td className="px-4 py-3">
+                      <td className="text-xs py-2 px-3 capitalize text-[var(--text-secondary)]">
+                        {bot.type}
+                      </td>
+                      <td className="text-xs py-2 px-3 capitalize text-[var(--text-secondary)]">
+                        {bot.mode}
+                      </td>
+                      <td className="text-xs py-2 px-3">
                         <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${statusClass(
+                          className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${statusClass(
                             bot.status
                           )}`}
                         >
                           {bot.status}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-[var(--text-secondary)]">
+                      <td className="text-xs py-2 px-3 text-[var(--text-secondary)]">
                         {bot.connection?.exchangeId || "—"}
                       </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
+                      <td className="text-xs py-2 px-3">
+                        <div className="flex items-center gap-1.5">
                           {bot.status !== "running" && (
                             <button
                               onClick={() => startBot.mutate(bot.id)}
                               disabled={startBot.isPending}
-                              className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-[var(--success)] hover:brightness-110 text-[var(--text-invert)] transition-all disabled:opacity-50"
+                              className="inline-flex items-center justify-center px-2 py-1 rounded-md bg-[var(--success)] hover:brightness-110 text-[var(--text-invert)] transition-all disabled:opacity-50"
                               title="Start"
                             >
-                              <Play className="w-4 h-4" />
+                              <Play className="w-3 h-3" />
                             </button>
                           )}
                           {bot.status === "running" && (
                             <button
                               onClick={() => stopBot.mutate(bot.id)}
                               disabled={stopBot.isPending}
-                              className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-[var(--danger)] hover:brightness-110 text-[var(--text-invert)] transition-all disabled:opacity-50"
+                              className="inline-flex items-center justify-center px-2 py-1 rounded-md bg-[var(--danger)] hover:brightness-110 text-[var(--text-invert)] transition-all disabled:opacity-50"
                               title="Stop"
                             >
-                              <Square className="w-4 h-4" />
+                              <Square className="w-3 h-3" />
                             </button>
                           )}
                           <button
                             onClick={() => setBotToDelete(bot)}
                             disabled={bot.status === "running" || deleteBot.isPending}
-                            className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-[var(--bg-hover)] hover:bg-[var(--danger-glow)] text-[var(--text-muted)] hover:text-[var(--danger)] transition-colors disabled:opacity-50 disabled:hover:bg-[var(--bg-hover)]"
+                            className="inline-flex items-center justify-center px-2 py-1 rounded-md bg-[var(--bg-hover)] hover:bg-[var(--danger-glow)] text-[var(--text-muted)] hover:text-[var(--danger)] transition-colors disabled:opacity-50 disabled:hover:bg-[var(--bg-hover)]"
                             title={bot.status === "running" ? "Stop bot before deleting" : "Delete"}
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-3 h-3" />
                           </button>
                         </div>
                       </td>

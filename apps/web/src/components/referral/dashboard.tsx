@@ -32,7 +32,7 @@ const earningsColumns: Column<EarningsRow>[] = [
     header: 'Amount (USDT)',
     sortable: true,
     render: (row) => (
-      <span className="font-medium text-[var(--success)]">+{row.amount.toFixed(2)}</span>
+      <span className="font-mono font-medium text-[var(--success)]">+{row.amount.toFixed(2)}</span>
     ),
   },
   {
@@ -40,7 +40,7 @@ const earningsColumns: Column<EarningsRow>[] = [
     header: 'Tier',
     sortable: true,
     render: (row) => (
-      <span className="text-xs font-semibold text-[var(--text-secondary)]">{row.tier}</span>
+      <span className="font-mono text-xs font-semibold text-[var(--text-secondary)]">{row.tier}</span>
     ),
   },
 ];
@@ -51,35 +51,50 @@ export const ReferralDashboard: React.FC = () => {
   const nextTier = tiers[currentIdx + 1];
 
   return (
-    <div className="space-y-8">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+    <div className="space-y-6">
+      {/* Tier grid — gap-px creates 1px dividers */}
+      <div className="grid gap-px bg-[var(--border-subtle)] rounded-xl overflow-hidden border border-[var(--border-subtle)] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {tiers.map((tier) => (
           <TierCard key={tier.name} tier={tier} />
         ))}
       </div>
 
       {currentTier && nextTier && !nextTier.isLocked && (
-        <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] p-4">
-          <p className="text-sm text-[var(--text-secondary)]">
-            <span className="font-semibold text-[var(--accent)]">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4">
+          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+            <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">
+              Next Tier
+            </span>
+            <span className="font-mono text-xl font-semibold tracking-tight text-[var(--accent)]">
               {Math.max(0, nextTier.requiredForNext - currentTier.activeReferrals)}
-            </span>{' '}
-            more active referrals to reach{' '}
-            <span className="font-semibold" style={{ color: tokens.colors.gold }}>
+            </span>
+            <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">
+              more active referrals to reach
+            </span>
+            <span
+              className="font-['Space_Grotesk'] text-xl font-semibold tracking-tight"
+              style={{ color: tokens.colors.gold }}
+            >
               {nextTier.name}
             </span>
-          </p>
+          </div>
         </div>
       )}
 
-      <div className="space-y-3">
-        <h3 className="text-lg font-semibold text-[var(--text-primary)]">Earnings History</h3>
-        <DataTable
-          data={earningsData}
-          columns={earningsColumns}
-          pageSize={5}
-          searchable={false}
-        />
+      <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl overflow-hidden">
+        <div className="p-4 border-b border-[var(--border-subtle)]">
+          <h3 className="font-['Space_Grotesk'] text-lg font-semibold tracking-tight text-[var(--text-primary)]">
+            Earnings History
+          </h3>
+        </div>
+        <div className="p-4">
+          <DataTable
+            data={earningsData}
+            columns={earningsColumns}
+            pageSize={5}
+            searchable={false}
+          />
+        </div>
       </div>
     </div>
   );
