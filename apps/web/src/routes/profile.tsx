@@ -15,6 +15,8 @@ import {
   Wallet,
   ArrowLeft,
   AlertCircle,
+  Terminal,
+  ChevronRight,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
@@ -197,6 +199,24 @@ function ProfilePage() {
               </div>
             </div>
           )}
+
+          <Link
+            to="/ai-integration"
+            className="relative rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)] overflow-hidden block hover:border-[var(--primary)]/30 transition-colors"
+          >
+            <div className="p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-[var(--primary)]/10 border border-[var(--primary)]/20 flex items-center justify-center text-[var(--primary)]">
+                  <Terminal className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-[var(--text-primary)] font-['Space_Grotesk'] tracking-tight">AI Agent Integration</h3>
+                  <p className="text-[11px] text-[var(--text-muted)] mt-0.5">Connect Claude, Cursor, or Cline to trade via MCP</p>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-[var(--text-muted)]" />
+            </div>
+          </Link>
 
           <div className="relative rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)] overflow-hidden">
             <div className="p-4">

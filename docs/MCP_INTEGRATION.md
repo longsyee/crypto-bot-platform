@@ -37,15 +37,22 @@ The AI agent uses **your** NexusBot account as a secure bridge to crypto exchang
 
 ## Quick Start (3 minutes)
 
-### Step 1: Generate an API Key
+### Step 1: Open the AI Integration Page
 
 1. Log in to your NexusBot dashboard
-2. Go to **Settings → API Keys**
-3. Click **New Key**, give it a name (e.g., "Claude Desktop")
-4. **Copy the key immediately** — it is shown only once
-5. Format: `nb_xxxxxxxx_xxxxxxxx...`
+2. Go to **Profile → AI Agent Integration**
+3. Review the **Default Trading Mode** banner at the top
+   - **Paper Trading** (recommended for beginners) — simulated orders, no real funds
+   - **Live Trading** — real orders on real exchanges
 
-### Step 2: Configure Your AI Client
+### Step 2: Generate an API Key
+
+1. In the AI Integration page, go to the **API Keys** tab
+2. Click **New Key**, give it a name (e.g., "Claude Desktop")
+3. **Copy the key immediately** — it is shown only once
+4. Format: `nb_xxxxxxxx_xxxxxxxx...`
+
+### Step 3: Configure Your AI Client
 
 #### Claude Desktop
 
@@ -109,6 +116,27 @@ Then use `"env": {}` or omit it entirely in the client config.
 
 ---
 
+## Paper Trading vs Live Trading
+
+When you ask an AI agent to create a bot, it will use the **default trading mode** you set in the AI Integration page.
+
+| Mode | What Happens | Requirements |
+|------|--------------|--------------|
+| **Paper** | Simulated orders, fake balance, no real funds | None |
+| **Live** | Real orders on the connected exchange | Active exchange connection + token balance |
+
+### How to Control It
+- **Set the default** in Profile → AI Agent Integration. We strongly recommend keeping it on **Paper** until your strategy is proven.
+- **Override per bot** by explicitly telling the AI: *"Create a LIVE DCA bot for BTC/USDT"* or *"Create a PAPER signal bot"*.
+- **Switch after creation**: The AI can call `update_bot` to change the mode, but the bot must be stopped first.
+
+### Safety Gates
+- Live bots require an active exchange connection with valid API keys.
+- Starting a live bot checks your token balance. If zero, the start is blocked.
+- All bots are created in **stopped** state. The AI must explicitly call `start_bot` to begin trading.
+
+---
+
 ## Available Tools
 
 | Tool | What It Does | Example Prompt |
@@ -134,15 +162,21 @@ Then use `"env": {}` or omit it entirely in the client config.
 
 ## Example Conversations
 
-### Create and Start a DCA Bot
+### Create and Start a Paper DCA Bot (Safe Testing)
 
-> **You**: Create a DCA bot called "BTC Accumulator" on my Binance connection for BTC/USDT with 10x cross leverage. Base order 100 USDT, safety order 50 USDT, take profit 3%.
+> **You**: Create a paper DCA bot called "BTC Accumulator" on my Binance connection for BTC/USDT with 10x cross leverage. Base order 100 USDT, safety order 50 USDT, take profit 3%.
 
-> **AI**: *(calls `create_bot` with DCA config)* Done. Bot "BTC Accumulator" created with ID `abc-123`.
+> **AI**: *(calls `create_bot` with mode: "paper")* Done. Paper bot "BTC Accumulator" created with ID `abc-123`.
 
 > **You**: Start it.
 
-> **AI**: *(calls `start_bot`)* Bot started successfully.
+> **AI**: *(calls `start_bot`)* Bot started in paper mode. No real funds are being used.
+
+### Switch to Live After Paper Success
+
+> **You**: My paper bot performed well. Create the same bot but in live mode.
+
+> **AI**: *(calls `create_bot` with mode: "live")* Live bot "BTC Accumulator LIVE" created. Remember to start it only when ready.
 
 ### Send a Trading Signal
 
