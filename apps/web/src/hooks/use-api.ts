@@ -26,7 +26,7 @@ export function useWallet() {
 export function useTransactions() {
   return useQuery({
     queryKey: ["transactions"],
-    queryFn: () => api<{ data: any[]; meta: any }>("/wallets/transactions"),
+    queryFn: () => api<any[]>("/wallets/transactions"),
   });
 }
 
@@ -114,7 +114,7 @@ export function useExitBot() {
 export function useConvert() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (payload: { amount: number; direction: string }) =>
+    mutationFn: (payload: { amount: number }) =>
       api<any>("/wallets/convert", {
         method: "POST",
         body: JSON.stringify(payload),
@@ -123,6 +123,29 @@ export function useConvert() {
       qc.invalidateQueries({ queryKey: ["wallet"] });
       qc.invalidateQueries({ queryKey: ["transactions"] });
     },
+  });
+}
+
+export function useWithdrawReferral() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: { amount: number }) =>
+      api<any>("/referrals/withdraw", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["wallet"] });
+      qc.invalidateQueries({ queryKey: ["referrals"] });
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+    },
+  });
+}
+
+export function useReferralWithdrawals() {
+  return useQuery({
+    queryKey: ["referral-withdrawals"],
+    queryFn: () => api<any[]>("/referrals/withdrawals"),
   });
 }
 
@@ -143,7 +166,7 @@ export function useAdminDashboard() {
 export function useAdminUsers() {
   return useQuery({
     queryKey: ["admin-users"],
-    queryFn: () => api<{ data: any[]; meta: any }>("/users"),
+    queryFn: () => api<any[]>("/users"),
   });
 }
 
@@ -159,7 +182,7 @@ export function useAdminAuditLog(page = 1, limit = 20, action?: string) {
   if (action) params.append("action", action);
   return useQuery({
     queryKey: ["admin-audit-log", page, limit, action],
-    queryFn: () => api<{ data: any[]; meta: any }>(`/admin/audit-log?${params.toString()}`),
+    queryFn: () => api<any[]>(`/admin/audit-log?${params.toString()}`),
   });
 }
 
@@ -168,7 +191,7 @@ export function useAdminSecurityEvents(page = 1, limit = 20, eventType?: string)
   if (eventType) params.append("eventType", eventType);
   return useQuery({
     queryKey: ["admin-security-events", page, limit, eventType],
-    queryFn: () => api<{ data: any[]; meta: any }>(`/admin/security-events?${params.toString()}`),
+    queryFn: () => api<any[]>(`/admin/security-events?${params.toString()}`),
   });
 }
 
@@ -216,6 +239,69 @@ export function useApproveKol() {
   return useMutation({
     mutationFn: (id: string) => api<any>(`/admin/referrals/${id}/approve-kol`, { method: "POST" }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-referrals"] }),
+  });
+}
+
+export function useCompanyStats() {
+  return useQuery({
+    queryKey: ["company-stats"],
+    queryFn: () => api<any>("/admin/company-stats"),
+  });
+}
+
+export function useAdminReferralWithdrawals(status = "pending", page = 1, limit = 20) {
+  const params = new URLSearchParams({ status, page: String(page), limit: String(limit) });
+  return useQuery({
+    queryKey: ["admin-referral-withdrawals", status, page, limit],
+    queryFn: () => api<any[]>(`/admin/referral-withdrawals?${params.toString()}`),
+  });
+}
+
+export function useApproveReferralWithdrawal() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api<any>(`/admin/referral-withdrawals/${id}/approve`, { method: "POST" }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-referral-withdrawals"] });
+      qc.invalidateQueries({ queryKey: ["company-stats"] });
+    },
+  });
+}
+
+export function useRejectReferralWithdrawal() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, notes }: { id: string; notes?: string }) =>
+      api<any>(`/admin/referral-withdrawals/${id}/reject`, {
+        method: "POST",
+        body: JSON.stringify({ notes }),
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-referral-withdrawals"] });
+      qc.invalidateQueries({ queryKey: ["company-stats"] });
+    },
+  });
+}
+
+export function useRankings(period = "overall") {
+  return useQuery({
+    queryKey: ["rankings", period],
+    queryFn: () => api<{ data: any[]; meta: any }>(`/rankings?period=${period}`),
+  });
+}
+
+export function useToggleShowcasePaperTrades() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, showcasePaperTrades }: { id: string; showcasePaperTrades: boolean }) =>
+      api<any>(`/users/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ showcasePaperTrades }),
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+      qc.invalidateQueries({ queryKey: ["rankings"] });
+    },
   });
 }
 

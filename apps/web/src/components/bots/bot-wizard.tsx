@@ -552,16 +552,16 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
         {showConfetti && (
           <ConfettiBurst onComplete={() => setShowConfetti(false)} />
         )}
-        <div className="relative z-10 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10 border border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.2)]">
-          <Sparkles className="h-8 w-8 text-emerald-400" />
+        <div className="relative z-10 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--success)]/10 border border-[var(--success)]/20 shadow-[0_0_20px_rgba(var(--success-rgb),0.2)]">
+          <Sparkles className="h-8 w-8 text-[var(--success)]" />
         </div>
-        <h3 className="relative z-10 text-xl font-semibold text-white">Bot Created Successfully</h3>
-        <p className="relative z-10 mt-2 text-sm text-gray-400">
+        <h3 className="relative z-10 text-xl font-semibold text-[var(--text-primary)]">Bot Created Successfully</h3>
+        <p className="relative z-10 mt-2 text-sm text-[var(--text-muted)]">
           Your {botType?.toUpperCase()} bot is ready. Redirecting you to the bot list...
         </p>
         <button
           onClick={() => onSuccess?.()}
-          className="relative z-10 mt-6 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-blue-900/30 transition-all hover:bg-blue-500 active:scale-[0.98]"
+          className="relative z-10 mt-6 inline-flex items-center gap-2 rounded-lg bg-[var(--primary)] px-5 py-2.5 text-sm font-medium text-[var(--text-primary)] shadow-lg shadow-[var(--shadow-lg)] transition-all hover:bg-[var(--primary)] active:scale-[0.98]"
         >
           Go to My Bots
           <ChevronRight className="h-4 w-4" />
@@ -586,10 +586,10 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
                   className={[
                     "flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold transition-all",
                     isActive
-                      ? "bg-blue-600 text-white shadow-[0_0_12px_rgba(59,130,246,0.4)]"
+                      ? "bg-[var(--primary)] text-[var(--text-primary)] shadow-[0_0_12px_rgba(59,130,246,0.4)]"
                       : isDone
-                      ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                      : "bg-gray-700/50 text-gray-500 border border-gray-600/30",
+                      ? "bg-[var(--success)]/20 text-[var(--success)] border border-[var(--success)]/30"
+                      : "bg-[var(--bg-surface)] text-[var(--text-muted)] border border-[var(--border-subtle)]/30",
                   ].join(" ")}
                 >
                   {isDone ? <Check className="h-4 w-4" /> : idx + 1}
@@ -598,12 +598,12 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
                   <span
                     className={[
                       "text-xs font-medium",
-                      isActive ? "text-blue-400" : isDone ? "text-emerald-400" : "text-gray-500",
+                      isActive ? "text-[var(--accent)]" : isDone ? "text-[var(--success)]" : "text-[var(--text-muted)]",
                     ].join(" ")}
                   >
                     {s.label}
                   </span>
-                  <p className="text-[10px] text-gray-500 hidden lg:block">{s.desc}</p>
+                  <p className="text-[10px] text-[var(--text-muted)] hidden lg:block">{s.desc}</p>
                 </div>
               </div>
             );
@@ -618,7 +618,7 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
           {/* Step 1: Choose Bot Type */}
           {step === 1 && (
             <div className="space-y-4">
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-[var(--text-muted)]">
                 Select the trading strategy you want to automate.
               </p>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -647,7 +647,7 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
                         "relative rounded-xl border p-6 text-left transition-all duration-200",
                         selected
                           ? `border-${opt.color}-500 bg-${opt.color}-500/10 shadow-[0_0_20px_rgba(59,130,246,0.15)]`
-                          : "border-gray-700/50 bg-gray-800/40 hover:border-gray-600 hover:bg-gray-700/20",
+                          : "border-[var(--border-subtle)]/50 bg-[var(--bg-card)] hover:border-[var(--border-subtle)] hover:bg-[var(--bg-surface)]/20",
                       ].join(" ")}
                       style={
                         selected
@@ -669,18 +669,18 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
                           "mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg",
                           selected
                             ? opt.color === "cyan"
-                              ? "bg-cyan-500/20 text-cyan-400"
-                              : "bg-purple-500/20 text-purple-400"
-                            : "bg-gray-700/50 text-gray-400",
+                              ? "bg-[var(--accent)]/20 text-[var(--accent)]"
+                              : "bg-[var(--accent)]/20 text-[var(--accent)]"
+                            : "bg-[var(--bg-surface)] text-[var(--text-muted)]",
                         ].join(" ")}
                       >
                         {opt.icon}
                       </div>
-                      <p className="text-base font-semibold text-white">{opt.label}</p>
-                      <p className="mt-1.5 text-sm leading-relaxed text-gray-400">{opt.desc}</p>
+                      <p className="text-base font-semibold text-[var(--text-primary)]">{opt.label}</p>
+                      <p className="mt-1.5 text-sm leading-relaxed text-[var(--text-muted)]">{opt.desc}</p>
                       {selected && (
                         <div className="absolute top-4 right-4">
-                          <Check className="h-5 w-5 text-blue-400" />
+                          <Check className="h-5 w-5 text-[var(--accent)]" />
                         </div>
                       )}
                     </button>
@@ -688,7 +688,7 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
                 })}
               </div>
               {errors.botType && (
-                <p className="text-xs text-red-400">{errors.botType}</p>
+                <p className="text-xs text-[var(--danger)]">{errors.botType}</p>
               )}
             </div>
           )}
@@ -696,7 +696,7 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
           {/* Step 2: Select Exchange */}
           {step === 2 && (
             <div className="space-y-5">
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-[var(--text-muted)]">
                 {botType === "signal"
                   ? "Choose an exchange connection. Signal bots use the trading pair sent dynamically from your webhook (Telegram / TradingView)."
                   : "Choose one of your saved exchange connections and select a trading pair."}
@@ -706,28 +706,28 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
                 <div className="space-y-2">
                   <button
                     onClick={() => setShowSignalDocs((s) => !s)}
-                    className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-500/10 text-xs font-medium text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-colors"
+                    className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-[var(--primary)]/20 bg-[var(--primary)]/10 text-xs font-medium text-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors"
                   >
                     <BookOpen className="w-3.5 h-3.5" />
                     📖 TradingView Setup Guide
-                    <span className="text-blue-400/60">{showSignalDocs ? "(hide)" : "(show)"}</span>
+                    <span className="text-[var(--primary)]/60">{showSignalDocs ? "(hide)" : "(show)"}</span>
                   </button>
 
                   {showSignalDocs && (
-                    <div className="rounded-xl border border-blue-500/20 bg-blue-500/[0.03] p-4 space-y-3">
-                      <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
+                    <div className="rounded-xl border border-[var(--primary)]/20 bg-[var(--primary)]/[0.03] p-4 space-y-3">
+                      <div className="flex items-center gap-2 text-[var(--primary)]">
                         <Signal className="w-4 h-4" />
                         <span className="font-medium text-sm">How to connect TradingView alerts</span>
                       </div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+                      <p className="text-xs text-[var(--text-muted)] leading-relaxed">
                         After creating this bot, copy your unique webhook URL from the bot detail page
                         and paste it into the{" "}
-                        <strong className="text-gray-700 dark:text-gray-300">Webhook URL</strong>{" "}
+                        <strong className="text-[var(--text-secondary)]">Webhook URL</strong>{" "}
                         field in your TradingView alert.
                       </p>
                       <div className="space-y-2">
-                        <p className="text-xs font-medium text-gray-700 dark:text-gray-300">Alert Message JSON (copy into TradingView)</p>
-                        <pre className="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-3 text-xs font-mono text-gray-600 dark:text-gray-300 overflow-x-auto">
+                        <p className="text-xs font-medium text-[var(--text-secondary)]">Alert Message JSON (copy into TradingView)</p>
+                        <pre className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-elevated)] p-3 text-xs font-mono text-[var(--text-secondary)] dark:text-[var(--text-secondary)] overflow-x-auto">
 {`{
   "side": "buy",
   "symbol": "BTC/USDT",
@@ -735,7 +735,7 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
   "order_type": "market"
 }`}
                         </pre>
-                        <p className="text-xs text-gray-500 dark:text-gray-500">
+                        <p className="text-xs text-[var(--text-muted)] dark:text-[var(--text-muted)]">
                           Use {"{{"}close{"}}"}, {"{{"}volume{"}}"}, {"{{"}ticker{"}}"} placeholders for dynamic values.
                         </p>
                       </div>
@@ -748,14 +748,14 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
                           { name: "{{high}}", desc: "High price" },
                           { name: "{{low}}", desc: "Low price" },
                         ].map((p) => (
-                          <div key={p.name} className="rounded border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 p-2">
-                            <code className="text-[11px] font-mono text-blue-600 dark:text-blue-300">{p.name}</code>
-                            <p className="text-[10px] text-gray-500 mt-0.5">{p.desc}</p>
+                          <div key={p.name} className="rounded border border-[var(--border-subtle)] bg-[var(--bg-elevated)] p-2">
+                            <code className="text-[11px] font-mono text-[var(--accent)]">{p.name}</code>
+                            <p className="text-[10px] text-[var(--text-muted)] mt-0.5">{p.desc}</p>
                           </div>
                         ))}
                       </div>
-                      <p className="text-xs text-gray-500 dark:text-gray-500">
-                        <strong className="text-gray-700 dark:text-gray-300">Tip:</strong>{" "}
+                      <p className="text-xs text-[var(--text-muted)] dark:text-[var(--text-muted)]">
+                        <strong className="text-[var(--text-secondary)]">Tip:</strong>{" "}
                         You can also add a webhook secret below for HMAC-SHA256 signature verification.
                       </p>
                     </div>
@@ -764,15 +764,15 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
               )}
 
               {connLoading ? (
-                <div className="rounded-lg border border-gray-700/50 bg-gray-800/40 p-8 text-center text-sm text-gray-400">
+                <div className="rounded-lg border border-[var(--border-subtle)]/50 bg-[var(--bg-card)] p-8 text-center text-sm text-[var(--text-muted)]">
                   Loading connections...
                 </div>
               ) : connectionOptions.length === 0 ? (
                 <div className="space-y-4">
-                  <div className="rounded-lg border border-gray-700/50 bg-gray-800/40 p-4 text-center">
-                    <Zap className="mx-auto mb-2 h-6 w-6 text-gray-500" />
-                    <p className="text-sm text-gray-400">No exchange connections found.</p>
-                    <p className="mt-1 text-xs text-gray-500">
+                  <div className="rounded-lg border border-[var(--border-subtle)]/50 bg-[var(--bg-card)] p-4 text-center">
+                    <Zap className="mx-auto mb-2 h-6 w-6 text-[var(--text-muted)]" />
+                    <p className="text-sm text-[var(--text-muted)]">No exchange connections found.</p>
+                    <p className="mt-1 text-xs text-[var(--text-muted)]">
                       Add an exchange connection below to continue.
                     </p>
                   </div>
@@ -795,16 +795,16 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
 
               {connectionId && botType === "dca" && (
                 <div className="space-y-3">
-                  <label className="text-sm font-medium text-gray-300">Trading Pair</label>
+                  <label className="text-sm font-medium text-[var(--text-secondary)]">Trading Pair</label>
                   {marketsLoading ? (
                     <div className="space-y-2">
                       <Skeleton height={40} />
                       <Skeleton height={120} />
                     </div>
                   ) : !markets || markets.length === 0 ? (
-                    <p className="text-xs text-gray-500">No markets available for this connection.</p>
+                    <p className="text-xs text-[var(--text-muted)]">No markets available for this connection.</p>
                   ) : (
-                    <div className="rounded-lg border border-gray-700/50 bg-gray-800/40 space-y-2">
+                    <div className="rounded-lg border border-[var(--border-subtle)]/50 bg-[var(--bg-card)] space-y-2">
                       <div className="px-2 pt-2">
                         <Tabs value={activeQuoteTab} onValueChange={setActiveQuoteTab}>
                           <TabsList className="border-b-0">
@@ -817,20 +817,20 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
                         </Tabs>
                       </div>
                       <div className="px-3">
-                        <div className="flex items-center gap-2 rounded-md border border-gray-700 bg-gray-900/50 px-2 py-1.5">
-                          <Search className="h-4 w-4 text-gray-500" />
+                        <div className="flex items-center gap-2 rounded-md border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-2 py-1.5">
+                          <Search className="h-4 w-4 text-[var(--text-muted)]" />
                           <input
                             type="text"
                             value={pairSearch}
                             onChange={(e) => setPairSearch(e.target.value)}
                             placeholder="Search pair..."
-                            className="w-full bg-transparent text-sm text-gray-100 placeholder:text-gray-500 focus:outline-none"
+                            className="w-full bg-transparent text-sm text-gray-100 placeholder:text-[var(--text-muted)] focus:outline-none"
                           />
                         </div>
                       </div>
                       <div className="max-h-48 overflow-y-auto px-1 pb-2">
                         {filteredMarkets.length === 0 && (
-                          <div className="px-3 py-2 text-sm text-gray-500">No pairs found</div>
+                          <div className="px-3 py-2 text-sm text-[var(--text-muted)]">No pairs found</div>
                         )}
                         {filteredMarkets.map((m: any) => {
                           const base = m.base || m.symbol?.split("/")[0];
@@ -843,17 +843,17 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
                               className={[
                                 "flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors",
                                 selected
-                                  ? "bg-blue-500/10 text-blue-400"
-                                  : "hover:bg-gray-700/50 text-gray-200",
+                                  ? "bg-[var(--primary)]/10 text-[var(--accent)]"
+                                  : "hover:bg-[var(--bg-surface)] text-[var(--text-secondary)]",
                               ].join(" ")}
                             >
                               <div className="flex flex-col">
                                 <span className="font-medium">{m.symbol}</span>
-                                <span className="text-xs text-gray-500">
+                                <span className="text-xs text-[var(--text-muted)]">
                                   {base} / {quote}
                                 </span>
                               </div>
-                              <span className="text-xs text-gray-500">
+                              <span className="text-xs text-[var(--text-muted)]">
                                 min {m.minAmount ?? m.minCost ?? m.limits?.amount?.min ?? "-"}
                               </span>
                             </button>
@@ -863,42 +863,42 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
                     </div>
                   )}
                   {errors.tradingPair && (
-                    <p className="text-xs text-red-400">{errors.tradingPair}</p>
+                    <p className="text-xs text-[var(--danger)]">{errors.tradingPair}</p>
                   )}
                 </div>
               )}
 
               {connectionId && botType === "signal" && (
-                <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/[0.03] p-4">
-                  <div className="flex items-center gap-2 text-emerald-400 mb-2">
+                <div className="rounded-lg border border-[var(--success)]/20 bg-[var(--success)]/[0.03] p-4">
+                  <div className="flex items-center gap-2 text-[var(--success)] mb-2">
                     <Signal className="w-4 h-4" />
                     <span className="text-sm font-medium">Dynamic Pair Selection</span>
                   </div>
-                  <p className="text-xs text-gray-400 leading-relaxed">
+                  <p className="text-xs text-[var(--text-muted)] leading-relaxed">
                     Signal bots do not require a fixed trading pair. The symbol is sent dynamically
                     from your TradingView webhook (or Telegram) payload via the{" "}
-                    <code className="text-emerald-300 bg-emerald-500/10 px-1 rounded">symbol</code>{" "}
+                    <code className="text-[var(--success)] bg-[var(--success)]/10 px-1 rounded">symbol</code>{" "}
                     field in the JSON. You can trade any pair the exchange supports.
                   </p>
                   {signalForm.default_symbol && (
-                    <p className="text-xs text-gray-500 mt-2">
+                    <p className="text-xs text-[var(--text-muted)] mt-2">
                       Fallback default:{" "}
-                      <span className="text-gray-300 font-medium">{signalForm.default_symbol}</span>
+                      <span className="text-[var(--text-secondary)] font-medium">{signalForm.default_symbol}</span>
                     </p>
                   )}
                 </div>
               )}
 
               <div className="space-y-3">
-                <label className="text-sm font-medium text-gray-300">Trading Mode</label>
+                <label className="text-sm font-medium text-[var(--text-secondary)]">Trading Mode</label>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <button
                     onClick={() => setMode("paper")}
                     className={[
                       "relative rounded-xl border p-5 text-left transition-all duration-200",
                       mode === "paper"
-                        ? "border-blue-500/50 bg-blue-500/10 shadow-[0_0_20px_rgba(59,130,246,0.15)]"
-                        : "border-gray-700/50 bg-gray-800/40 hover:border-gray-600 hover:bg-gray-700/20",
+                        ? "border-blue-500/50 bg-[var(--primary)]/10 shadow-[0_0_20px_rgba(59,130,246,0.15)]"
+                        : "border-[var(--border-subtle)]/50 bg-[var(--bg-card)] hover:border-[var(--border-subtle)] hover:bg-[var(--bg-surface)]/20",
                     ].join(" ")}
                     style={
                       mode === "paper"
@@ -906,16 +906,16 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
                         : undefined
                     }
                   >
-                    <div className="mb-2 inline-flex h-9 w-9 items-center justify-center rounded-lg bg-blue-500/20 text-blue-400">
+                    <div className="mb-2 inline-flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--primary)]/20 text-[var(--accent)]">
                       <BookOpen className="h-5 w-5" />
                     </div>
-                    <p className="text-sm font-semibold text-white">Paper Trading</p>
-                    <p className="mt-1 text-xs leading-relaxed text-gray-400">
+                    <p className="text-sm font-semibold text-[var(--text-primary)]">Paper Trading</p>
+                    <p className="mt-1 text-xs leading-relaxed text-[var(--text-muted)]">
                       Practice with virtual funds using real market data
                     </p>
                     {mode === "paper" && (
                       <div className="absolute top-3 right-3">
-                        <Check className="h-5 w-5 text-blue-400" />
+                        <Check className="h-5 w-5 text-[var(--accent)]" />
                       </div>
                     )}
                   </button>
@@ -925,8 +925,8 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
                     className={[
                       "relative rounded-xl border p-5 text-left transition-all duration-200",
                       mode === "live"
-                        ? "border-red-500/50 bg-red-500/10 shadow-[0_0_20px_rgba(239,68,68,0.15)]"
-                        : "border-gray-700/50 bg-gray-800/40 hover:border-gray-600 hover:bg-gray-700/20",
+                        ? "border-[var(--danger)]/50 bg-[var(--danger)]/10 shadow-[0_0_20px_rgba(var(--danger-rgb),0.15)]"
+                        : "border-[var(--border-subtle)]/50 bg-[var(--bg-card)] hover:border-[var(--border-subtle)] hover:bg-[var(--bg-surface)]/20",
                     ].join(" ")}
                     style={
                       mode === "live"
@@ -934,24 +934,24 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
                         : undefined
                     }
                   >
-                    <div className="mb-2 inline-flex h-9 w-9 items-center justify-center rounded-lg bg-red-500/20 text-red-400">
+                    <div className="mb-2 inline-flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--danger)]/20 text-[var(--danger)]">
                       <Wallet className="h-5 w-5" />
                     </div>
-                    <p className="text-sm font-semibold text-white">Live Trading</p>
-                    <p className="mt-1 text-xs leading-relaxed text-gray-400">
+                    <p className="text-sm font-semibold text-[var(--text-primary)]">Live Trading</p>
+                    <p className="mt-1 text-xs leading-relaxed text-[var(--text-muted)]">
                       Trade with real funds from your exchange account
                     </p>
                     {mode === "live" && (
                       <div className="absolute top-3 right-3">
-                        <Check className="h-5 w-5 text-red-400" />
+                        <Check className="h-5 w-5 text-[var(--danger)]" />
                       </div>
                     )}
                   </button>
                 </div>
 
                 {mode === "paper" && (
-                  <div className="rounded-lg border border-gray-700/30 bg-gray-800/30 p-4 space-y-3">
-                    <p className="text-sm font-medium text-gray-300">Initial Paper Balance</p>
+                  <div className="rounded-lg border border-[var(--border-subtle)]/30 bg-[var(--bg-card)]/30 p-4 space-y-3">
+                    <p className="text-sm font-medium text-[var(--text-secondary)]">Initial Paper Balance</p>
                     <div className="grid gap-4 sm:grid-cols-2">
                       {Object.entries(paperInitialBalance).map(([currency, amount]) => (
                         <Input
@@ -969,14 +969,14 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
                       ))}
                     </div>
                     {errors.paperInitialBalance && (
-                      <p className="text-xs text-red-400">{errors.paperInitialBalance}</p>
+                      <p className="text-xs text-[var(--danger)]">{errors.paperInitialBalance}</p>
                     )}
                   </div>
                 )}
 
                 {mode === "live" && connectionId && (
-                  <div className="rounded-lg border border-gray-700/30 bg-gray-800/30 p-4 space-y-3">
-                    <p className="text-sm font-medium text-gray-300">Exchange Balance</p>
+                  <div className="rounded-lg border border-[var(--border-subtle)]/30 bg-[var(--bg-card)]/30 p-4 space-y-3">
+                    <p className="text-sm font-medium text-[var(--text-secondary)]">Exchange Balance</p>
                     {balanceLoading ? (
                       <div className="grid gap-2 sm:grid-cols-2">
                         <Skeleton height={60} />
@@ -987,17 +987,17 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
                         {Object.entries(balance as Record<string, any>).map(([currency, bal]) => (
                           <div
                             key={currency}
-                            className="rounded-md border border-gray-700/50 bg-gray-900/50 p-3"
+                            className="rounded-md border border-[var(--border-subtle)]/50 bg-[var(--bg-elevated)] p-3"
                           >
-                            <span className="text-xs text-gray-500">{currency}</span>
-                            <span className="block text-sm font-semibold text-white">
+                            <span className="text-xs text-[var(--text-muted)]">{currency}</span>
+                            <span className="block text-sm font-semibold text-[var(--text-primary)]">
                               {typeof bal === "object" ? (bal.free ?? 0) : bal} available
                             </span>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <p className="text-xs text-gray-500">Unable to fetch balance</p>
+                      <p className="text-xs text-[var(--text-muted)]">Unable to fetch balance</p>
                     )}
                   </div>
                 )}
@@ -1089,8 +1089,8 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
               />
 
               {/* Preset Templates */}
-              <div className="rounded-xl border border-gray-200/50 dark:border-gray-700/50 bg-white/40 dark:bg-gray-800/40 p-4 space-y-3">
-                <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">Quick Presets</p>
+              <div className="rounded-xl border border-[var(--border-subtle)]/50 bg-[var(--bg-card)]/40 p-4 space-y-3">
+                <p className="text-sm font-semibold text-[var(--text-primary)]">Quick Presets</p>
                 <div className="flex flex-wrap gap-2">
                   {([
                     {
@@ -1167,53 +1167,53 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
                     <button
                       key={preset.key}
                       onClick={() => setDcaForm((prev) => ({ ...prev, ...preset.config }))}
-                      className="flex flex-col items-start rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 px-3 py-2 text-left hover:border-blue-500/30 hover:bg-blue-500/5 transition-all"
+                      className="flex flex-col items-start rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-3 py-2 text-left hover:border-blue-500/30 hover:bg-[var(--primary)]/5 transition-all"
                     >
-                      <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">{preset.label}</span>
-                      <span className="text-[10px] text-gray-500 dark:text-gray-400">{preset.desc}</span>
+                      <span className="text-xs font-semibold text-[var(--text-secondary)]">{preset.label}</span>
+                      <span className="text-[10px] text-[var(--text-muted)]">{preset.desc}</span>
                     </button>
                   ))}
                 </div>
               </div>
 
               {/* What is DCA / Safety Orders */}
-              <div className="rounded-xl border border-blue-500/20 bg-blue-500/[0.03] p-4 space-y-2">
-                <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
+              <div className="rounded-xl border border-[var(--primary)]/20 bg-[var(--primary)]/[0.03] p-4 space-y-2">
+                <div className="flex items-center gap-2 text-[var(--primary)]">
                   <TrendingUp className="h-4 w-4" />
                   <span className="text-sm font-medium">How Safety Orders Work</span>
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
-                  <strong className="text-gray-700 dark:text-gray-300">1. Base Order:</strong>{" "}
+                <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+                  <strong className="text-[var(--text-secondary)]">1. Base Order:</strong>{" "}
                   First buy to test the market. If price goes up, you hit take-profit and win.
                   If price drops, safety orders kick in. You can also wait for an RSI/MACD/EMA signal before this first buy.
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
-                  <strong className="text-gray-700 dark:text-gray-300">2. Safety Orders (Cover Up):</strong>{" "}
+                <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+                  <strong className="text-[var(--text-secondary)]">2. Safety Orders (Cover Up):</strong>{" "}
                   Automatic extra buys as price drops. Each buy lowers your average entry price,
                   so a smaller bounce-back gets you to profit.
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
-                  <strong className="text-gray-700 dark:text-gray-300">3. Take-Profit:</strong>{" "}
+                <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+                  <strong className="text-[var(--text-secondary)]">3. Take-Profit:</strong>{" "}
                   When price rises above your average entry by the target %, all orders close for profit.
                 </p>
               </div>
 
               {/* Entry Signal (Technical Indicator) */}
-              <div className="rounded-xl border border-gray-200/50 dark:border-gray-700/50 bg-white/40 dark:bg-gray-800/40 p-4 space-y-4">
+              <div className="rounded-xl border border-[var(--border-subtle)]/50 bg-[var(--bg-card)]/40 p-4 space-y-4">
                 <div className="flex items-center gap-2">
-                  <BrainCircuit className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                  <BrainCircuit className="h-4 w-4 text-[var(--accent)]" />
+                  <p className="text-sm font-semibold text-[var(--text-primary)]">
                     Entry Signal (Optional)
                   </p>
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+                <p className="text-xs text-[var(--text-muted)] leading-relaxed">
                   Instead of buying immediately when the bot starts, wait for a technical indicator
                   to confirm a good entry. This helps avoid buying into a falling knife.
                 </p>
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Indicator</label>
+                    <label className="text-xs font-medium text-[var(--text-muted)]">Indicator</label>
                     <div className="flex flex-wrap gap-1.5">
                       {([
                         { key: "none", label: "None" },
@@ -1229,8 +1229,8 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
                           className={[
                             "rounded-md px-2.5 py-1 text-xs font-medium transition-all",
                             dcaForm.indicator_type === opt.key
-                              ? "bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-500/30"
-                              : "bg-gray-100 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-300 border border-gray-200/50 dark:border-gray-700/50",
+                              ? "bg-[var(--accent)]/20 text-[var(--accent)] border border-[var(--accent)]/30"
+                              : "bg-[var(--bg-surface)] text-[var(--text-muted)] hover:bg-[var(--bg-surface)] hover:text-[var(--text-primary)] dark:hover:text-[var(--text-secondary)] border border-[var(--border-subtle)]/50",
                           ].join(" ")}
                         >
                           {opt.label}
@@ -1240,7 +1240,7 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Timeframe</label>
+                    <label className="text-xs font-medium text-[var(--text-muted)]">Timeframe</label>
                     <div className="flex flex-wrap gap-1.5">
                       {(["5m", "15m", "1h", "4h", "1d"] as const).map((tf) => (
                         <button
@@ -1251,8 +1251,8 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
                           className={[
                             "rounded-md px-2.5 py-1 text-xs font-medium transition-all",
                             dcaForm.indicator_timeframe === tf
-                              ? "bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-500/30"
-                              : "bg-gray-100 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-300 border border-gray-200/50 dark:border-gray-700/50",
+                              ? "bg-[var(--accent)]/20 text-[var(--accent)] border border-[var(--accent)]/30"
+                              : "bg-[var(--bg-surface)] text-[var(--text-muted)] hover:bg-[var(--bg-surface)] hover:text-[var(--text-primary)] dark:hover:text-[var(--text-secondary)] border border-[var(--border-subtle)]/50",
                           ].join(" ")}
                         >
                           {tf}
@@ -1309,8 +1309,8 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
                 )}
 
                 {dcaForm.indicator_type !== "none" && (
-                  <div className="flex items-start gap-2 rounded-md bg-purple-500/5 border border-purple-500/10 px-3 py-2">
-                    <Timer className="h-4 w-4 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5" />
+                  <div className="flex items-start gap-2 rounded-md bg-[var(--accent)]/5 border border-[var(--accent)]/10 px-3 py-2">
+                    <Timer className="h-4 w-4 text-[var(--accent)] shrink-0 mt-0.5" />
                     <p className="text-xs text-purple-700 dark:text-purple-300">
                       The bot will monitor {dcaForm.indicator_timeframe} candles and place the first order only when the signal fires. Safety orders and take-profit work normally after that.
                     </p>
@@ -1319,16 +1319,16 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
               </div>
 
               {/* Leverage Section */}
-              <div className="rounded-xl border border-gray-200/50 dark:border-gray-700/50 bg-white/40 dark:bg-gray-800/40 p-4 space-y-4">
+              <div className="rounded-xl border border-[var(--border-subtle)]/50 bg-[var(--bg-card)]/40 p-4 space-y-4">
                 <div className="flex items-center gap-2">
-                  <Zap className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">Leverage (Futures)</p>
+                  <Zap className="h-4 w-4 text-[var(--warning)]" />
+                  <p className="text-sm font-semibold text-[var(--text-primary)]">Leverage (Futures)</p>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Margin Type</label>
-                    <div className="flex rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 p-1">
+                    <label className="text-xs font-medium text-[var(--text-muted)]">Margin Type</label>
+                    <div className="flex rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-elevated)] p-1">
                       {(["cross", "isolated", "exchange"] as const).map((t) => (
                         <button
                           key={t}
@@ -1336,8 +1336,8 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
                           className={[
                             "flex-1 rounded-md px-2 py-1.5 text-xs font-medium capitalize transition-all",
                             dcaForm.leverage_type === t
-                              ? "bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30"
-                              : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300",
+                              ? "bg-[var(--primary)]/20 text-[var(--primary)] border border-blue-500/30"
+                              : "text-[var(--text-muted)] hover:text-[var(--text-primary)] dark:hover:text-[var(--text-secondary)]",
                           ].join(" ")}
                         >
                           {t}
@@ -1347,7 +1347,7 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Leverage</label>
+                    <label className="text-xs font-medium text-[var(--text-muted)]">Leverage</label>
                     <div className="flex flex-wrap gap-1.5">
                       {[1, 2, 3, 5, 10, 20, 50, 100, 125].map((x) => (
                         <button
@@ -1356,8 +1356,8 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
                           className={[
                             "rounded-md px-2.5 py-1 text-xs font-medium transition-all",
                             Number(dcaForm.leverage) === x
-                              ? "bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30"
-                              : "bg-gray-100 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-300 border border-gray-200/50 dark:border-gray-700/50",
+                              ? "bg-[var(--warning)]/20 text-[var(--warning)] border border-[var(--warning)]/30"
+                              : "bg-[var(--bg-surface)] text-[var(--text-muted)] hover:bg-[var(--bg-surface)] hover:text-[var(--text-primary)] dark:hover:text-[var(--text-secondary)] border border-[var(--border-subtle)]/50",
                           ].join(" ")}
                         >
                           {x}×
@@ -1369,16 +1369,16 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
                         max={125}
                         value={dcaForm.leverage}
                         onChange={(e) => setDcaForm((prev) => ({ ...prev, leverage: e.target.value }))}
-                        className="w-16 rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 px-2 py-1 text-xs text-gray-900 dark:text-gray-200 focus:border-blue-500 focus:outline-none"
+                        className="w-16 rounded-md border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-2 py-1 text-xs text-[var(--text-primary)] focus:border-[var(--primary)] focus:outline-none"
                       />
                     </div>
                   </div>
                 </div>
 
                 {calculator && (
-                  <div className="flex items-center gap-2 rounded-md bg-amber-500/5 border border-amber-500/10 px-3 py-2">
-                    <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
-                    <p className="text-xs text-amber-700 dark:text-amber-300">
+                  <div className="flex items-center gap-2 rounded-md bg-[var(--warning)]/5 border border-[var(--warning)]/10 px-3 py-2">
+                    <AlertCircle className="h-4 w-4 text-[var(--warning)] shrink-0" />
+                    <p className="text-xs text-[var(--warning)]">
                       Margin required: <span className="font-semibold">${calculator.totalMargin.toFixed(2)} USDT</span>
                       {" "}(Total {calculator.totalInvested.toFixed(2)} USDT ÷ {calculator.leverage}×)
                     </p>
@@ -1387,10 +1387,10 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
               </div>
 
               {/* Direction */}
-              <div className="rounded-xl border border-gray-200/50 dark:border-gray-700/50 bg-white/40 dark:bg-gray-800/40 p-4 space-y-4">
-                <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">Position Direction</p>
+              <div className="rounded-xl border border-[var(--border-subtle)]/50 bg-[var(--bg-card)]/40 p-4 space-y-4">
+                <p className="text-sm font-semibold text-[var(--text-primary)]">Position Direction</p>
                 <div className="space-y-2">
-                  <div className="flex rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 p-1">
+                  <div className="flex rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-elevated)] p-1">
                     {(["long", "short", "both"] as const).map((d) => (
                       <button
                         key={d}
@@ -1399,18 +1399,18 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
                           "flex-1 rounded-md px-2 py-1.5 text-xs font-medium capitalize transition-all",
                           dcaForm.direction === d
                             ? d === "long"
-                              ? "bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/30"
+                              ? "bg-[var(--success)]/20 text-[var(--success)] border border-[var(--success)]/30"
                               : d === "short"
-                              ? "bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30"
-                              : "bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-500/30"
-                            : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300",
+                              ? "bg-[var(--danger)]/20 text-[var(--danger)] border border-[var(--danger)]/30"
+                              : "bg-[var(--accent)]/20 text-[var(--accent)] border border-[var(--accent)]/30"
+                            : "text-[var(--text-muted)] hover:text-[var(--text-primary)] dark:hover:text-[var(--text-secondary)]",
                         ].join(" ")}
                       >
                         {d}
                       </button>
                     ))}
                   </div>
-                  <p className="text-[10px] text-gray-500 dark:text-gray-400">
+                  <p className="text-[10px] text-[var(--text-muted)]">
                     {dcaForm.direction === "both"
                       ? "Dual / Hedge mode opens independent long and short positions simultaneously. Each side has its own safety orders, VWAP, and exits."
                       : dcaForm.direction === "long"
@@ -1421,8 +1421,8 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
               </div>
 
               {/* Order Strategy */}
-              <div className="rounded-xl border border-gray-200/50 dark:border-gray-700/50 bg-white/40 dark:bg-gray-800/40 p-4 space-y-4">
-                <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">Order Strategy (Cover Up)</p>
+              <div className="rounded-xl border border-[var(--border-subtle)]/50 bg-[var(--bg-card)]/40 p-4 space-y-4">
+                <p className="text-sm font-semibold text-[var(--text-primary)]">Order Strategy (Cover Up)</p>
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Input
@@ -1489,8 +1489,8 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
                     helperText="Multiplier for each price gap. 1.5× means each trigger is 50% further apart."
                   />
                   <div className="space-y-2">
-                    <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Take-Profit Mode</label>
-                    <div className="flex rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 p-1">
+                    <label className="text-xs font-medium text-[var(--text-muted)]">Take-Profit Mode</label>
+                    <div className="flex rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-elevated)] p-1">
                       {(["fixed", "trailing"] as const).map((m) => (
                         <button
                           key={m}
@@ -1498,15 +1498,15 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
                           className={[
                             "flex-1 rounded-md px-2 py-1.5 text-xs font-medium capitalize transition-all",
                             dcaForm.take_profit_mode === m
-                              ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30"
-                              : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300",
+                              ? "bg-[var(--success)]/20 text-emerald-600 dark:text-[var(--success)] border border-[var(--success)]/30"
+                              : "text-[var(--text-muted)] hover:text-[var(--text-primary)] dark:hover:text-[var(--text-secondary)]",
                           ].join(" ")}
                         >
                           {m}
                         </button>
                       ))}
                     </div>
-                    <p className="text-[10px] text-gray-500 dark:text-gray-400">
+                    <p className="text-[10px] text-[var(--text-muted)]">
                       {dcaForm.take_profit_mode === "fixed"
                         ? "Close everything at a fixed profit % above entry."
                         : "Activate tiered trailing — exit if price retraces from a new peak."}
@@ -1567,44 +1567,44 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
               </div>
 
               {/* Risk Management */}
-              <div className="rounded-xl border border-gray-200/50 dark:border-gray-700/50 bg-white/40 dark:bg-gray-800/40 p-4 space-y-4">
-                <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">Risk Management</p>
+              <div className="rounded-xl border border-[var(--border-subtle)]/50 bg-[var(--bg-card)]/40 p-4 space-y-4">
+                <p className="text-sm font-semibold text-[var(--text-primary)]">Risk Management</p>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="flex items-center justify-between rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 px-3 py-2">
+                  <div className="flex items-center justify-between rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-3 py-2">
                     <div className="space-y-0.5">
-                      <p className="text-xs font-medium text-gray-700 dark:text-gray-300">Waterfall Prevention</p>
-                      <p className="text-[10px] text-gray-500 dark:text-gray-400">Pause safety orders during high volatility.</p>
+                      <p className="text-xs font-medium text-[var(--text-secondary)]">Waterfall Prevention</p>
+                      <p className="text-[10px] text-[var(--text-muted)]">Pause safety orders during high volatility.</p>
                     </div>
                     <button
                       onClick={() => setDcaForm((prev) => ({ ...prev, waterfall_prevention: !prev.waterfall_prevention }))}
                       className={[
                         "relative inline-flex h-5 w-9 items-center rounded-full transition-colors",
-                        dcaForm.waterfall_prevention ? "bg-blue-500" : "bg-gray-300 dark:bg-gray-600",
+                        dcaForm.waterfall_prevention ? "bg-[var(--primary)]" : "bg-[var(--bg-surface)]",
                       ].join(" ")}
                     >
                       <span
                         className={[
-                          "inline-block h-3 w-3 transform rounded-full bg-white transition-transform",
+                          "inline-block h-3 w-3 transform rounded-full bg-[var(--text-invert)] transition-transform",
                           dcaForm.waterfall_prevention ? "translate-x-5" : "translate-x-1",
                         ].join(" ")}
                       />
                     </button>
                   </div>
-                  <div className="flex items-center justify-between rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 px-3 py-2">
+                  <div className="flex items-center justify-between rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-3 py-2">
                     <div className="space-y-0.5">
-                      <p className="text-xs font-medium text-gray-700 dark:text-gray-300">Chop-Loss (Partial SL)</p>
-                      <p className="text-[10px] text-gray-500 dark:text-gray-400">Sell a portion when loss exceeds threshold.</p>
+                      <p className="text-xs font-medium text-[var(--text-secondary)]">Chop-Loss (Partial SL)</p>
+                      <p className="text-[10px] text-[var(--text-muted)]">Sell a portion when loss exceeds threshold.</p>
                     </div>
                     <button
                       onClick={() => setDcaForm((prev) => ({ ...prev, chop_loss_enabled: !prev.chop_loss_enabled }))}
                       className={[
                         "relative inline-flex h-5 w-9 items-center rounded-full transition-colors",
-                        dcaForm.chop_loss_enabled ? "bg-blue-500" : "bg-gray-300 dark:bg-gray-600",
+                        dcaForm.chop_loss_enabled ? "bg-[var(--primary)]" : "bg-[var(--bg-surface)]",
                       ].join(" ")}
                     >
                       <span
                         className={[
-                          "inline-block h-3 w-3 transform rounded-full bg-white transition-transform",
+                          "inline-block h-3 w-3 transform rounded-full bg-[var(--text-invert)] transition-transform",
                           dcaForm.chop_loss_enabled ? "translate-x-5" : "translate-x-1",
                         ].join(" ")}
                       />
@@ -1629,16 +1629,16 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
 
               {/* Order Preview Table */}
               {calculator && calculator.rows.length > 0 && (
-                <div className="rounded-xl border border-gray-200/50 dark:border-gray-700/50 bg-white/40 dark:bg-gray-800/40 p-4 space-y-3">
+                <div className="rounded-xl border border-[var(--border-subtle)]/50 bg-[var(--bg-card)]/40 p-4 space-y-3">
                   <div className="flex items-center gap-2">
-                    <Activity className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                    <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">Order Preview</p>
+                    <Activity className="h-4 w-4 text-[var(--primary)]" />
+                    <p className="text-sm font-semibold text-[var(--text-primary)]">Order Preview</p>
                   </div>
 
                   <div className="overflow-x-auto">
                     <table className="w-full text-xs">
                       <thead>
-                        <tr className="border-b border-gray-200/50 dark:border-gray-700/50 text-gray-500 dark:text-gray-400">
+                        <tr className="border-b border-[var(--border-subtle)]/50 text-[var(--text-muted)]">
                           <th className="py-2 text-left font-medium">#</th>
                           <th className="py-2 text-left font-medium">Type</th>
                           <th className="py-2 text-left font-medium">Trigger</th>
@@ -1647,26 +1647,26 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
                           <th className="py-2 text-right font-medium">Total (USDT)</th>
                         </tr>
                       </thead>
-                      <tbody className="text-gray-600 dark:text-gray-300">
+                      <tbody className="text-[var(--text-secondary)] dark:text-[var(--text-secondary)]">
                         {calculator.rows.map((row) => (
-                          <tr key={row.order} className="border-b border-gray-200/20 dark:border-gray-700/20 last:border-0">
+                          <tr key={row.order} className="border-b border-[var(--border-subtle)]/20 last:border-0">
                             <td className="py-1.5 text-left">{row.order}</td>
                             <td className="py-1.5 text-left">
                               <span
                                 className={[
                                   "rounded px-1.5 py-0.5 text-[10px] font-medium",
                                   row.type === "Base"
-                                    ? "bg-blue-500/10 text-blue-600 dark:text-blue-400"
-                                    : "bg-purple-500/10 text-purple-600 dark:text-purple-400",
+                                    ? "bg-[var(--primary)]/10 text-[var(--primary)]"
+                                    : "bg-[var(--accent)]/10 text-[var(--accent)]",
                                 ].join(" ")}
                               >
                                 {row.type}
                               </span>
                             </td>
-                            <td className="py-1.5 text-left text-gray-500 dark:text-gray-400">{row.priceDrop}</td>
+                            <td className="py-1.5 text-left text-[var(--text-muted)]">{row.priceDrop}</td>
                             <td className="py-1.5 text-right font-medium">${row.size.toFixed(2)}</td>
-                            <td className="py-1.5 text-right text-gray-500 dark:text-gray-400">${row.margin.toFixed(2)}</td>
-                            <td className="py-1.5 text-right font-semibold text-emerald-600 dark:text-emerald-400">
+                            <td className="py-1.5 text-right text-[var(--text-muted)]">${row.margin.toFixed(2)}</td>
+                            <td className="py-1.5 text-right font-semibold text-emerald-600 dark:text-[var(--success)]">
                               ${row.cumulative.toFixed(2)}
                             </td>
                           </tr>
@@ -1676,30 +1676,30 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
                   </div>
 
                   <div className="grid gap-2 sm:grid-cols-3">
-                    <div className="rounded-md bg-gray-50 dark:bg-gray-900/50 p-3 text-center">
-                      <span className="block text-[10px] text-gray-500">Total Invested</span>
-                      <span className="mt-0.5 block text-base font-bold text-blue-600 dark:text-blue-400">
+                    <div className="rounded-md bg-[var(--bg-elevated)] p-3 text-center">
+                      <span className="block text-[10px] text-[var(--text-muted)]">Total Invested</span>
+                      <span className="mt-0.5 block text-base font-bold text-[var(--primary)]">
                         ${calculator.totalInvested.toFixed(2)}
                       </span>
                     </div>
-                    <div className="rounded-md bg-gray-50 dark:bg-gray-900/50 p-3 text-center">
-                      <span className="block text-[10px] text-gray-500">Total Margin</span>
-                      <span className="mt-0.5 block text-base font-bold text-amber-600 dark:text-amber-400">
+                    <div className="rounded-md bg-[var(--bg-elevated)] p-3 text-center">
+                      <span className="block text-[10px] text-[var(--text-muted)]">Total Margin</span>
+                      <span className="mt-0.5 block text-base font-bold text-[var(--warning)]">
                         ${calculator.totalMargin.toFixed(2)}
                       </span>
                     </div>
-                    <div className="rounded-md bg-gray-50 dark:bg-gray-900/50 p-3 text-center">
-                      <span className="block text-[10px] text-gray-500">Breakeven Recovery</span>
-                      <span className="mt-0.5 block text-base font-bold text-emerald-600 dark:text-emerald-400">
+                    <div className="rounded-md bg-[var(--bg-elevated)] p-3 text-center">
+                      <span className="block text-[10px] text-[var(--text-muted)]">Breakeven Recovery</span>
+                      <span className="mt-0.5 block text-base font-bold text-emerald-600 dark:text-[var(--success)]">
                         +{calculator.breakevenPct.toFixed(2)}%
                       </span>
                     </div>
                   </div>
 
-                  <p className="text-[11px] text-gray-500 leading-relaxed">
-                    At max drawdown you hold <span className="text-gray-700 dark:text-gray-300">${calculator.totalInvested.toFixed(2)} USDT</span> total position.
+                  <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
+                    At max drawdown you hold <span className="text-[var(--text-secondary)]">${calculator.totalInvested.toFixed(2)} USDT</span> total position.
                     A +{dcaForm.take_profit}% bounce from average entry closes everything in profit.
-                    Margin locked: <span className="text-amber-600 dark:text-amber-400">${calculator.totalMargin.toFixed(2)} USDT</span>.
+                    Margin locked: <span className="text-[var(--warning)]">${calculator.totalMargin.toFixed(2)} USDT</span>.
                   </p>
                 </div>
               )}
@@ -1709,53 +1709,53 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
           {/* Step 4: Review */}
           {step === 4 && (
             <div className="space-y-4">
-              <div className="rounded-xl border border-gray-700/50 bg-gray-800/40 p-5 space-y-3">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-gray-700/30 pb-3">
-                  <span className="text-sm text-gray-400">Bot Type</span>
-                  <span className="text-sm font-semibold capitalize text-white">
+              <div className="rounded-xl border border-[var(--border-subtle)]/50 bg-[var(--bg-card)] p-5 space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-[var(--border-subtle)]/30 pb-3">
+                  <span className="text-sm text-[var(--text-muted)]">Bot Type</span>
+                  <span className="text-sm font-semibold capitalize text-[var(--text-primary)]">
                     {botType} Bot
                   </span>
                 </div>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-gray-700/30 pb-3">
-                  <span className="text-sm text-gray-400">Name</span>
-                  <span className="text-sm font-semibold text-white">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-[var(--border-subtle)]/30 pb-3">
+                  <span className="text-sm text-[var(--text-muted)]">Name</span>
+                  <span className="text-sm font-semibold text-[var(--text-primary)]">
                     {botType === "signal" ? signalForm.name : dcaForm.name}
                   </span>
                 </div>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-gray-700/30 pb-3">
-                  <span className="text-sm text-gray-400">Exchange</span>
-                  <span className="text-sm font-semibold text-white">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-[var(--border-subtle)]/30 pb-3">
+                  <span className="text-sm text-[var(--text-muted)]">Exchange</span>
+                  <span className="text-sm font-semibold text-[var(--text-primary)]">
                     {connectionOptions.find((c) => c.value === connectionId)?.label ||
                       connectionId}
                   </span>
                 </div>
                 {botType === "dca" && (
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-gray-700/30 pb-3">
-                    <span className="text-sm text-gray-400">Trading Pair</span>
-                    <span className="text-sm font-semibold text-white">{tradingPair}</span>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-[var(--border-subtle)]/30 pb-3">
+                    <span className="text-sm text-[var(--text-muted)]">Trading Pair</span>
+                    <span className="text-sm font-semibold text-[var(--text-primary)]">{tradingPair}</span>
                   </div>
                 )}
                 {botType === "signal" && signalForm.default_symbol && (
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-gray-700/30 pb-3">
-                    <span className="text-sm text-gray-400">Default Pair (Fallback)</span>
-                    <span className="text-sm font-semibold text-white">{signalForm.default_symbol}</span>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-[var(--border-subtle)]/30 pb-3">
+                    <span className="text-sm text-[var(--text-muted)]">Default Pair (Fallback)</span>
+                    <span className="text-sm font-semibold text-[var(--text-primary)]">{signalForm.default_symbol}</span>
                   </div>
                 )}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-gray-700/30 pb-3">
-                  <span className="text-sm text-gray-400">Mode</span>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-[var(--border-subtle)]/30 pb-3">
+                  <span className="text-sm text-[var(--text-muted)]">Mode</span>
                   <span
                     className={[
                       "text-sm font-semibold capitalize",
-                      mode === "live" ? "text-red-400" : "text-blue-400",
+                      mode === "live" ? "text-[var(--danger)]" : "text-[var(--accent)]",
                     ].join(" ")}
                   >
                     {mode}
                   </span>
                 </div>
                 {mode === "paper" && (
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-gray-700/30 pb-3">
-                    <span className="text-sm text-gray-400">Paper Initial Balance</span>
-                    <span className="text-sm font-semibold text-white">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-[var(--border-subtle)]/30 pb-3">
+                    <span className="text-sm text-[var(--text-muted)]">Paper Initial Balance</span>
+                    <span className="text-sm font-semibold text-[var(--text-primary)]">
                       {Object.entries(paperInitialBalance)
                         .filter(([_, v]) => v > 0)
                         .map(([k, v]) => `${v} ${k}`)
@@ -1766,59 +1766,59 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
                 {botType === "dca" && (
                   <>
                     {dcaForm.default_symbol && (
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-gray-700/30 pb-3">
-                        <span className="text-sm text-gray-400">Default Symbol</span>
-                        <span className="text-sm font-semibold text-white">{dcaForm.default_symbol}</span>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-[var(--border-subtle)]/30 pb-3">
+                        <span className="text-sm text-[var(--text-muted)]">Default Symbol</span>
+                        <span className="text-sm font-semibold text-[var(--text-primary)]">{dcaForm.default_symbol}</span>
                       </div>
                     )}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-gray-700/30 pb-3">
-                      <span className="text-sm text-gray-400">Leverage</span>
-                      <span className="text-sm font-semibold text-amber-400">{dcaForm.leverage}× {dcaForm.leverage_type}</span>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-[var(--border-subtle)]/30 pb-3">
+                      <span className="text-sm text-[var(--text-muted)]">Leverage</span>
+                      <span className="text-sm font-semibold text-[var(--warning)]">{dcaForm.leverage}× {dcaForm.leverage_type}</span>
                     </div>
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-gray-700/30 pb-3">
-                      <span className="text-sm text-gray-400">Base Order Size</span>
-                      <span className="text-sm font-semibold text-white">${dcaForm.base_order_size} USDT</span>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-[var(--border-subtle)]/30 pb-3">
+                      <span className="text-sm text-[var(--text-muted)]">Base Order Size</span>
+                      <span className="text-sm font-semibold text-[var(--text-primary)]">${dcaForm.base_order_size} USDT</span>
                     </div>
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-gray-700/30 pb-3">
-                      <span className="text-sm text-gray-400">Safety Order Size</span>
-                      <span className="text-sm font-semibold text-white">${dcaForm.safety_order_size} USDT</span>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-[var(--border-subtle)]/30 pb-3">
+                      <span className="text-sm text-[var(--text-muted)]">Safety Order Size</span>
+                      <span className="text-sm font-semibold text-[var(--text-primary)]">${dcaForm.safety_order_size} USDT</span>
                     </div>
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-gray-700/30 pb-3">
-                      <span className="text-sm text-gray-400">Price Deviation (Initial)</span>
-                      <span className="text-sm font-semibold text-white">{dcaForm.price_deviation_initial}%</span>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-[var(--border-subtle)]/30 pb-3">
+                      <span className="text-sm text-[var(--text-muted)]">Price Deviation (Initial)</span>
+                      <span className="text-sm font-semibold text-[var(--text-primary)]">{dcaForm.price_deviation_initial}%</span>
                     </div>
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-gray-700/30 pb-3">
-                      <span className="text-sm text-gray-400">Max Safety Orders</span>
-                      <span className="text-sm font-semibold text-white">{dcaForm.safety_order_max_count}</span>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-[var(--border-subtle)]/30 pb-3">
+                      <span className="text-sm text-[var(--text-muted)]">Max Safety Orders</span>
+                      <span className="text-sm font-semibold text-[var(--text-primary)]">{dcaForm.safety_order_max_count}</span>
                     </div>
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-gray-700/30 pb-3">
-                      <span className="text-sm text-gray-400">Volume Scale</span>
-                      <span className="text-sm font-semibold text-white">{dcaForm.safety_order_volume_scale}×</span>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-[var(--border-subtle)]/30 pb-3">
+                      <span className="text-sm text-[var(--text-muted)]">Volume Scale</span>
+                      <span className="text-sm font-semibold text-[var(--text-primary)]">{dcaForm.safety_order_volume_scale}×</span>
                     </div>
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-gray-700/30 pb-3">
-                      <span className="text-sm text-gray-400">Step Scale</span>
-                      <span className="text-sm font-semibold text-white">{dcaForm.safety_order_step_scale}×</span>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-[var(--border-subtle)]/30 pb-3">
+                      <span className="text-sm text-[var(--text-muted)]">Step Scale</span>
+                      <span className="text-sm font-semibold text-[var(--text-primary)]">{dcaForm.safety_order_step_scale}×</span>
                     </div>
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-gray-700/30 pb-3">
-                      <span className="text-sm text-gray-400">Take-Profit</span>
-                      <span className="text-sm font-semibold text-white">{dcaForm.take_profit}%</span>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-[var(--border-subtle)]/30 pb-3">
+                      <span className="text-sm text-[var(--text-muted)]">Take-Profit</span>
+                      <span className="text-sm font-semibold text-[var(--text-primary)]">{dcaForm.take_profit}%</span>
                     </div>
                     {dcaForm.stop_loss && (
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-gray-700/30 pb-3">
-                        <span className="text-sm text-gray-400">Stop Loss</span>
-                        <span className="text-sm font-semibold text-white">{dcaForm.stop_loss}%</span>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-[var(--border-subtle)]/30 pb-3">
+                        <span className="text-sm text-[var(--text-muted)]">Stop Loss</span>
+                        <span className="text-sm font-semibold text-[var(--text-primary)]">{dcaForm.stop_loss}%</span>
                       </div>
                     )}
                     {dcaForm.max_position_size && (
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-gray-700/30 pb-3">
-                        <span className="text-sm text-gray-400">Max Position Size</span>
-                        <span className="text-sm font-semibold text-white">${dcaForm.max_position_size} USDT</span>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-[var(--border-subtle)]/30 pb-3">
+                        <span className="text-sm text-[var(--text-muted)]">Max Position Size</span>
+                        <span className="text-sm font-semibold text-[var(--text-primary)]">${dcaForm.max_position_size} USDT</span>
                       </div>
                     )}
                     {dcaForm.indicator_type !== "none" && (
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                        <span className="text-sm text-gray-400">Entry Signal</span>
-                        <span className="text-sm font-semibold text-purple-400 capitalize">
+                        <span className="text-sm text-[var(--text-muted)]">Entry Signal</span>
+                        <span className="text-sm font-semibold text-[var(--accent)] capitalize">
                           {dcaForm.indicator_type.replace("_", " ")} ({dcaForm.indicator_timeframe})
                         </span>
                       </div>
@@ -1828,38 +1828,38 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
                 {botType === "signal" && (
                   <>
                     {signalForm.default_symbol && (
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-gray-700/30 pb-3">
-                        <span className="text-sm text-gray-400">Default Symbol</span>
-                        <span className="text-sm font-semibold text-white">{signalForm.default_symbol}</span>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-[var(--border-subtle)]/30 pb-3">
+                        <span className="text-sm text-[var(--text-muted)]">Default Symbol</span>
+                        <span className="text-sm font-semibold text-[var(--text-primary)]">{signalForm.default_symbol}</span>
                       </div>
                     )}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-gray-700/30 pb-3">
-                      <span className="text-sm text-gray-400">Webhook Secret</span>
-                      <span className="text-sm font-semibold text-white">{signalForm.webhook_secret ? "Configured" : "Not set"}</span>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-[var(--border-subtle)]/30 pb-3">
+                      <span className="text-sm text-[var(--text-muted)]">Webhook Secret</span>
+                      <span className="text-sm font-semibold text-[var(--text-primary)]">{signalForm.webhook_secret ? "Configured" : "Not set"}</span>
                     </div>
                     {signalForm.max_position_size && (
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-gray-700/30 pb-3">
-                        <span className="text-sm text-gray-400">Max Position Size</span>
-                        <span className="text-sm font-semibold text-white">${signalForm.max_position_size} USDT</span>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-[var(--border-subtle)]/30 pb-3">
+                        <span className="text-sm text-[var(--text-muted)]">Max Position Size</span>
+                        <span className="text-sm font-semibold text-[var(--text-primary)]">${signalForm.max_position_size} USDT</span>
                       </div>
                     )}
                     {signalForm.stop_loss_pct && (
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-gray-700/30 pb-3">
-                        <span className="text-sm text-gray-400">Stop Loss</span>
-                        <span className="text-sm font-semibold text-white">{signalForm.stop_loss_pct}%</span>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-[var(--border-subtle)]/30 pb-3">
+                        <span className="text-sm text-[var(--text-muted)]">Stop Loss</span>
+                        <span className="text-sm font-semibold text-[var(--text-primary)]">{signalForm.stop_loss_pct}%</span>
                       </div>
                     )}
                     {signalForm.take_profit_pct && (
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                        <span className="text-sm text-gray-400">Take Profit</span>
-                        <span className="text-sm font-semibold text-white">{signalForm.take_profit_pct}%</span>
+                        <span className="text-sm text-[var(--text-muted)]">Take Profit</span>
+                        <span className="text-sm font-semibold text-[var(--text-primary)]">{signalForm.take_profit_pct}%</span>
                       </div>
                     )}
                   </>
                 )}
               </div>
               {mode === "live" && (
-                <div className="flex items-start gap-2 rounded-lg border border-amber-500/20 bg-amber-500/10 p-3 text-xs text-amber-300">
+                <div className="flex items-start gap-2 rounded-lg border border-[var(--warning)]/20 bg-[var(--warning)]/10 p-3 text-xs text-[var(--warning)]">
                   <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
                   <span>
                     Live mode will use real funds. Make sure you have sufficient balance and understand the risks.
@@ -1876,7 +1876,7 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
         <button
           onClick={handleBack}
           disabled={step === 1 || createBot.isPending}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-gray-600 bg-gray-700/50 px-4 py-2 text-sm font-medium text-gray-200 transition-all hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.97]"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-4 py-2 text-sm font-medium text-[var(--text-secondary)] transition-all hover:bg-[var(--bg-elevated)] disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.97]"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
@@ -1884,7 +1884,7 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
 
         <div className="flex items-center gap-3">
           {nextDisabledReason && (
-            <span className="text-xs text-red-500 dark:text-red-400 flex items-center gap-1">
+            <span className="text-xs text-[var(--danger)] dark:text-[var(--danger)] flex items-center gap-1">
               <AlertCircle className="h-3.5 w-3.5" />
               {nextDisabledReason}
             </span>
@@ -1892,11 +1892,11 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
           <button
             onClick={handleNext}
             disabled={!canNext || createBot.isPending}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-5 py-2 text-sm font-medium text-white shadow-lg shadow-blue-900/30 transition-all hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.97]"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--primary)] px-5 py-2 text-sm font-medium text-[var(--text-primary)] shadow-lg shadow-[var(--shadow-lg)] transition-all hover:bg-[var(--primary)] disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.97]"
           >
             {createBot.isPending ? (
               <>
-                <span className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                <span className="h-4 w-4 rounded-full border-2 border-[var(--text-invert)]/30 border-t-[var(--text-invert)] animate-spin" />
                 Creating...
               </>
             ) : step === 4 ? (

@@ -68,8 +68,8 @@ export function DataTable<T extends Record<string, any>>({
   };
 
   const SortIcon = ({ active, dir }: { active: boolean; dir: SortDir }) => {
-    if (!active || !dir) return <span className="ml-1 text-gray-600">⇅</span>;
-    return <span className="ml-1 text-blue-400">{dir === 'asc' ? '▲' : '▼'}</span>;
+    if (!active || !dir) return <span className="ml-1 text-[var(--text-muted)]">⇅</span>;
+    return <span className="ml-1 text-[var(--primary)]">{dir === 'asc' ? '▲' : '▼'}</span>;
   };
 
   return (
@@ -81,15 +81,15 @@ export function DataTable<T extends Record<string, any>>({
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             placeholder="Search..."
-            className="w-full max-w-sm rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-gray-100 placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+            className="w-full max-w-sm rounded-md border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-[var(--primary)] focus:outline-none"
           />
-          <span className="text-xs text-gray-500">{filtered.length} results</span>
+          <span className="text-xs text-[var(--text-muted)]">{filtered.length} results</span>
         </div>
       )}
 
-      <div className="overflow-x-auto rounded-lg border border-gray-700">
+      <div className="overflow-x-auto rounded-lg border border-[var(--border-subtle)]">
         <table className="min-w-full text-sm text-left">
-          <thead className="bg-gray-800 text-xs uppercase text-gray-400">
+          <thead className="bg-[var(--bg-card)] text-xs uppercase text-[var(--text-muted)]">
             <tr>
               {columns.map((col) => (
                 <th
@@ -97,7 +97,7 @@ export function DataTable<T extends Record<string, any>>({
                   onClick={() => toggleSort(col.key, col.sortable)}
                   className={[
                     'px-4 py-3 select-none',
-                    col.sortable ? 'cursor-pointer hover:text-gray-200' : '',
+                    col.sortable ? 'cursor-pointer hover:text-[var(--text-secondary)]' : '',
                   ].join(' ')}
                 >
                   <div className="flex items-center">
@@ -108,11 +108,11 @@ export function DataTable<T extends Record<string, any>>({
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-700 bg-gray-900">
+          <tbody className="divide-y divide-[var(--border-subtle)] bg-[var(--bg-base)]">
             {pageData.map((row, idx) => (
-              <tr key={idx} className="hover:bg-gray-800/60 transition-colors">
+              <tr key={idx} className="hover:bg-[var(--bg-surface)] transition-colors">
                 {columns.map((col) => (
-                  <td key={col.key} className="px-4 py-3 text-gray-200">
+                  <td key={col.key} className="px-4 py-3 text-[var(--text-secondary)]">
                     {col.render ? col.render(row) : String(row[col.key] ?? '')}
                   </td>
                 ))}
@@ -120,7 +120,7 @@ export function DataTable<T extends Record<string, any>>({
             ))}
             {pageData.length === 0 && (
               <tr>
-                <td colSpan={columns.length} className="px-4 py-8 text-center text-gray-500">
+                <td colSpan={columns.length} className="px-4 py-8 text-center text-[var(--text-muted)]">
                   No data available.
                 </td>
               </tr>
@@ -134,17 +134,17 @@ export function DataTable<T extends Record<string, any>>({
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={currentPage === 1}
-            className="rounded-md bg-gray-800 px-3 py-1.5 text-sm text-gray-200 hover:bg-gray-700 disabled:opacity-40"
+            className="rounded-md bg-[var(--bg-card)] px-3 py-1.5 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-surface)] disabled:opacity-40"
           >
             Previous
           </button>
-          <span className="text-sm text-gray-400">
+          <span className="text-sm text-[var(--text-muted)]">
             Page {currentPage} of {totalPages}
           </span>
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
-            className="rounded-md bg-gray-800 px-3 py-1.5 text-sm text-gray-200 hover:bg-gray-700 disabled:opacity-40"
+            className="rounded-md bg-[var(--bg-card)] px-3 py-1.5 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-surface)] disabled:opacity-40"
           >
             Next
           </button>

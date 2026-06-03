@@ -12,6 +12,8 @@ import referralRoutes from "./routes/referrals";
 import adminRoutes from "./routes/admin";
 import webhookRoutes from "./routes/webhooks";
 import logRoutes from "./routes/logs";
+import internalRoutes from "./routes/internal";
+import rankingsRoutes from "./routes/rankings";
 import { setupSSE } from "./services/sse";
 import { config } from "./config";
 
@@ -37,6 +39,8 @@ app.route("/referrals", referralRoutes);
 app.route("/admin", adminRoutes);
 app.route("/webhooks", webhookRoutes);
 app.route("/logs", logRoutes);
+app.route("/internal", internalRoutes);
+app.route("/rankings", rankingsRoutes);
 
 setupSSE(app);
 

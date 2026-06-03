@@ -15,8 +15,8 @@ export const Route = createFileRoute("/login")({
 
 function FeatureItem({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
-    <div className="flex items-center gap-3 text-sm text-slate-400">
-      <span className="w-8 h-8 rounded-lg bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-teal-400">
+    <div className="flex items-center gap-3 text-sm text-[var(--text-muted)]">
+      <span className="w-8 h-8 rounded-lg bg-[var(--text-invert)]/[0.04] border border-[var(--text-invert)]/[0.08] flex items-center justify-center text-[var(--accent)]">
         {icon}
       </span>
       {label}
@@ -101,19 +101,19 @@ function LoginPage() {
         <div className="relative z-10 flex-1 flex flex-col justify-center items-center">
           <div className="auth-left-brand">
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center shadow-[0_0_20px_rgba(45,212,191,0.3)]">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--accent)] to-[var(--success)] flex items-center justify-center shadow-[0_0_20px_rgba(var(--accent-rgb),0.3)]">
               <Zap className="w-5 h-5 text-[#09090b]" />
             </div>
             <div>
-              <div className="text-[15px] font-semibold text-gray-900 dark:text-white font-['Space_Grotesk'] tracking-tight">NexusBot</div>
-              <div className="text-[10px] text-slate-500 uppercase tracking-wider">Trading Platform</div>
+              <div className="text-[15px] font-semibold text-[var(--text-primary)] font-['Space_Grotesk'] tracking-tight">NexusBot</div>
+              <div className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider">Trading Platform</div>
             </div>
           </div>
 
           <h2 className="auth-left-title">
             Trade smarter.
             <br />
-            <span className="text-teal-400">Automate everything.</span>
+            <span className="text-[var(--accent)]">Automate everything.</span>
           </h2>
           <p className="auth-left-subtitle">
             Build, backtest, and deploy automated trading bots across top crypto exchanges — all from one powerful dashboard.

@@ -19,14 +19,14 @@ export const DepositCard: React.FC<DepositCardProps> = ({ address }) => {
   };
 
   return (
-    <div className="rounded-xl border border-gray-700 bg-gray-800 p-6 shadow-lg space-y-5">
-      <h3 className="text-lg font-semibold text-gray-100">Deposit USDT</h3>
+    <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] p-6 shadow-lg space-y-5">
+      <h3 className="text-lg font-semibold text-[var(--text-primary)]">Deposit USDT</h3>
 
       {/* QR Placeholder */}
-      <div className="mx-auto flex h-48 w-48 items-center justify-center rounded-lg border-2 border-dashed border-gray-600 bg-gray-900">
+      <div className="mx-auto flex h-48 w-48 items-center justify-center rounded-lg border-2 border-dashed border-[var(--border-subtle)] bg-[var(--bg-elevated)]">
         <div className="text-center">
           <svg
-            className="mx-auto mb-2 text-gray-500"
+            className="mx-auto mb-2 text-[var(--text-muted)]"
             width="48"
             height="48"
             viewBox="0 0 24 24"
@@ -39,28 +39,28 @@ export const DepositCard: React.FC<DepositCardProps> = ({ address }) => {
             <rect x="3" y="14" width="7" height="7" rx="1" />
             <rect x="14" y="14" width="7" height="7" rx="1" />
           </svg>
-          <p className="text-xs text-gray-500">QR Code Placeholder</p>
+          <p className="text-xs text-[var(--text-muted)]">QR Code Placeholder</p>
         </div>
       </div>
 
       {/* Address */}
       <div className="space-y-2">
-        <label className="text-xs font-medium uppercase tracking-wide text-gray-400">
+        <label className="text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">
           BSC Address
         </label>
         <div className="flex items-center gap-2">
           <input
             readOnly
             value={address}
-            className="w-full min-w-0 rounded-md border border-gray-700 bg-gray-900 px-3 py-2 text-sm text-gray-300 focus:outline-none"
+            className="w-full min-w-0 rounded-md border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-3 py-2 text-sm text-[var(--text-secondary)] focus:outline-none"
           />
           <button
             onClick={handleCopy}
             className={[
               'rounded-md px-3 py-2 text-sm font-medium transition-colors',
               copied
-                ? 'bg-green-600/20 text-green-400 border border-green-600/40'
-                : 'bg-blue-600 text-white hover:bg-blue-500',
+                ? 'bg-[var(--success)]/20 text-[var(--success)] border border-[var(--success)]/40'
+                : 'bg-[var(--primary)] text-[var(--text-invert)] hover:bg-[var(--accent)]',
             ].join(' ')}
           >
             {copied ? 'Copied' : 'Copy'}
@@ -69,10 +69,10 @@ export const DepositCard: React.FC<DepositCardProps> = ({ address }) => {
       </div>
 
       {/* Network Warning */}
-      <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-4">
+      <div className="rounded-lg border border-[var(--warning)]/30 bg-[var(--warning)]/10 p-4">
         <div className="flex items-start gap-3">
           <svg
-            className="mt-0.5 flex-shrink-0 text-amber-400"
+            className="mt-0.5 flex-shrink-0 text-[var(--warning)]"
             width="18"
             height="18"
             viewBox="0 0 24 24"
@@ -85,8 +85,8 @@ export const DepositCard: React.FC<DepositCardProps> = ({ address }) => {
             <line x1="12" y1="17" x2="12.01" y2="17" />
           </svg>
           <div className="space-y-1">
-            <p className="text-sm font-semibold text-amber-400">Network Warning</p>
-            <p className="text-sm text-amber-200/80">
+            <p className="text-sm font-semibold text-[var(--warning)]">Network Warning</p>
+            <p className="text-sm text-[var(--warning)]/80">
               Only send USDT (BEP20) on the BSC network. Deposits on other networks may be lost permanently.
             </p>
           </div>

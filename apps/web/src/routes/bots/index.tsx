@@ -1,4 +1,4 @@
-﻿import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { useBots, useStartBot, useStopBot, useDeleteBot } from "../../hooks/use-api";
 import { PageWrapper } from "../../components/layout/page-wrapper";
@@ -42,13 +42,13 @@ function BotsPage() {
   const statusClass = (status: string) => {
     switch (status) {
       case "running":
-        return "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800";
+        return "bg-[var(--success-glow)] text-[var(--success)] border border-[var(--success)]/20";
       case "stopped":
-        return "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600";
+        return "bg-[var(--bg-hover)] text-[var(--text-muted)] border border-[var(--border-subtle)]";
       case "error":
-        return "bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-400 border border-yellow-200 dark:border-yellow-800";
+        return "bg-[var(--warning-glow)] text-[var(--warning)] border border-[var(--warning)]/20";
       default:
-        return "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600";
+        return "bg-[var(--bg-hover)] text-[var(--text-muted)] border border-[var(--border-subtle)]";
     }
   };
 
@@ -56,10 +56,10 @@ function BotsPage() {
     <PageWrapper>
       <div className="space-y-5">
         <div className="gsap-section flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <h1 className="text-3xl font-bold">Bots</h1>
+          <h1 className="text-3xl font-bold text-[var(--text-primary)] font-['Space_Grotesk']">Bots</h1>
           <Link
             to="/bots/create"
-            className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:from-blue-500 hover:to-blue-400 shadow-lg shadow-blue-500/20 dark:shadow-blue-900/30 transition-colors"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-[var(--primary)] text-[var(--text-invert)] hover:brightness-110 shadow-[0_0_20px_var(--primary-glow)] transition-all hover:-translate-y-[1px]"
           >
             <Plus className="w-4 h-4" />
             Create Bot
@@ -67,47 +67,47 @@ function BotsPage() {
         </div>
 
         <div className="gsap-section flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-1 border-b border-gray-200/50 dark:border-gray-700/50">
+          <div className="flex items-center gap-1 border-b border-[var(--border-subtle)]">
             {tabs.map((tab) => (
               <button
                 key={tab.value}
                 onClick={() => setActiveTab(tab.value)}
                 className={`relative px-4 py-2.5 text-sm font-medium transition-colors ${
                   activeTab === tab.value
-                    ? "text-blue-600 dark:text-blue-400"
-                    : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+                    ? "text-[var(--primary)]"
+                    : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                 }`}
               >
                 {tab.label}
                 {activeTab === tab.value && (
-                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 rounded-full" />
+                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--primary)] rounded-full shadow-[0_0_6px_var(--primary-glow)]" />
                 )}
               </button>
             ))}
           </div>
 
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
             <input
               type="text"
               placeholder="Search bots..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full sm:w-64 pl-9 pr-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full sm:w-64 pl-9 pr-3 py-2 rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)] text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all"
             />
           </div>
         </div>
 
         {isLoading ? (
-          <div className="gsap-section bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-8 text-center text-gray-500 dark:text-gray-400">
+          <div className="gsap-section bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-2xl p-8 text-center text-[var(--text-muted)]">
             Loading bots...
           </div>
         ) : (
-          <div className="gsap-section bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+          <div className="gsap-section bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-2xl overflow-hidden shadow-[var(--shadow-sm)]">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+                  <tr className="text-[var(--text-muted)] border-b border-[var(--border-subtle)]">
                     <th className="text-left px-4 py-3 font-medium">Name</th>
                     <th className="text-left px-4 py-3 font-medium">Type</th>
                     <th className="text-left px-4 py-3 font-medium">Mode</th>
@@ -116,14 +116,14 @@ function BotsPage() {
                     <th className="text-left px-4 py-3 font-medium">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                <tbody className="divide-y divide-[var(--border-subtle)]">
                   {filteredBots.length === 0 && (
                     <tr>
                       <td colSpan={6} className="px-4 py-12 text-center">
-                        <div className="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+                        <div className="flex flex-col items-center justify-center text-[var(--text-muted)]">
                           <Bot className="w-10 h-10 mb-3 opacity-50" />
                           <p className="text-sm font-medium">No bots found</p>
-                          <p className="text-xs mt-1 text-gray-400 dark:text-gray-500">
+                          <p className="text-xs mt-1 text-[var(--text-muted)]/60">
                             {searchQuery || activeTab !== "all"
                               ? "Try adjusting your search or filters."
                               : "Get started by creating your first bot."}
@@ -131,7 +131,7 @@ function BotsPage() {
                           {!searchQuery && activeTab === "all" && (
                             <Link
                               to="/bots/create"
-                              className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium bg-blue-600 hover:bg-blue-500 text-white transition-colors"
+                              className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--primary)] hover:brightness-110 text-[var(--text-invert)] transition-all"
                             >
                               <Plus className="w-3 h-3" />
                               Create Bot
@@ -142,17 +142,17 @@ function BotsPage() {
                     </tr>
                   )}
                   {filteredBots.map((bot: any) => (
-                    <tr key={bot.id} className="bot-row hover:bg-gray-50 dark:hover:bg-gray-700/20 transition-colors">
+                    <tr key={bot.id} className="bot-row hover:bg-[var(--bg-hover)]/50 transition-colors">
                       <td className="px-4 py-3">
                         <Link
                           to={`/bots/${bot.id}` as any}
-                          className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                          className="text-[var(--primary)] hover:underline font-medium"
                         >
                           {bot.name}
                         </Link>
                       </td>
-                      <td className="px-4 py-3 capitalize text-gray-700 dark:text-gray-300">{bot.type}</td>
-                      <td className="px-4 py-3 capitalize text-gray-700 dark:text-gray-300">{bot.mode}</td>
+                      <td className="px-4 py-3 capitalize text-[var(--text-secondary)]">{bot.type}</td>
+                      <td className="px-4 py-3 capitalize text-[var(--text-secondary)]">{bot.mode}</td>
                       <td className="px-4 py-3">
                         <span
                           className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${statusClass(
@@ -162,7 +162,7 @@ function BotsPage() {
                           {bot.status}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
+                      <td className="px-4 py-3 text-[var(--text-secondary)]">
                         {bot.connection?.exchangeId || "—"}
                       </td>
                       <td className="px-4 py-3">
@@ -171,7 +171,7 @@ function BotsPage() {
                             <button
                               onClick={() => startBot.mutate(bot.id)}
                               disabled={startBot.isPending}
-                              className="inline-flex items-center justify-center w-8 h-8 rounded-md bg-green-600 dark:bg-green-700 hover:bg-green-500 dark:hover:bg-green-600 text-white transition-colors disabled:opacity-50"
+                              className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-[var(--success)] hover:brightness-110 text-[var(--text-invert)] transition-all disabled:opacity-50"
                               title="Start"
                             >
                               <Play className="w-4 h-4" />
@@ -181,7 +181,7 @@ function BotsPage() {
                             <button
                               onClick={() => stopBot.mutate(bot.id)}
                               disabled={stopBot.isPending}
-                              className="inline-flex items-center justify-center w-8 h-8 rounded-md bg-red-600 dark:bg-red-700 hover:bg-red-500 dark:hover:bg-red-600 text-white transition-colors disabled:opacity-50"
+                              className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-[var(--danger)] hover:brightness-110 text-[var(--text-invert)] transition-all disabled:opacity-50"
                               title="Stop"
                             >
                               <Square className="w-4 h-4" />
@@ -190,7 +190,7 @@ function BotsPage() {
                           <button
                             onClick={() => setBotToDelete(bot)}
                             disabled={bot.status === "running" || deleteBot.isPending}
-                            className="inline-flex items-center justify-center w-8 h-8 rounded-md bg-gray-200 dark:bg-gray-700 hover:bg-red-500 dark:hover:bg-red-600 text-gray-700 dark:text-white transition-colors disabled:opacity-50 disabled:hover:bg-gray-200 dark:disabled:hover:bg-gray-700"
+                            className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-[var(--bg-hover)] hover:bg-[var(--danger-glow)] text-[var(--text-muted)] hover:text-[var(--danger)] transition-colors disabled:opacity-50 disabled:hover:bg-[var(--bg-hover)]"
                             title={bot.status === "running" ? "Stop bot before deleting" : "Delete"}
                           >
                             <Trash2 className="w-4 h-4" />

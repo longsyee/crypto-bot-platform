@@ -15,18 +15,18 @@ export interface Transaction {
 
 const statusBadgeMap: Record<TxStatus, { bg: string; text: string; label: string }> = {
   pending: {
-    bg: 'bg-amber-900/40',
-    text: 'text-amber-400',
+    bg: 'bg-[var(--warning)]/10',
+    text: 'text-[var(--warning)]',
     label: 'Pending',
   },
   confirmed: {
-    bg: 'bg-green-900/40',
-    text: 'text-green-400',
+    bg: 'bg-[var(--success)]/10',
+    text: 'text-[var(--success)]',
     label: 'Confirmed',
   },
   failed: {
-    bg: 'bg-red-900/40',
-    text: 'text-red-400',
+    bg: 'bg-[var(--danger)]/10',
+    text: 'text-[var(--danger)]',
     label: 'Failed',
   },
 };
@@ -45,13 +45,13 @@ export const TransactionList: React.FC<TransactionListProps> = ({ transactions }
         return (
           <div
             key={tx.id}
-            className="flex items-center justify-between gap-3 rounded-lg border border-gray-700 bg-gray-800 p-4 transition-colors hover:bg-gray-750"
+            className="flex items-center justify-between gap-3 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] p-4 transition-colors hover:bg-[var(--bg-surface)]"
           >
             <div className="flex items-center gap-4 min-w-0">
               <div
                 className={[
                   'flex h-10 w-10 items-center justify-center rounded-full',
-                  isPositive ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400',
+                  isPositive ? 'bg-[var(--success)]/10 text-[var(--success)]' : 'bg-[var(--danger)]/10 text-[var(--danger)]',
                 ].join(' ')}
               >
                 <svg
@@ -77,12 +77,12 @@ export const TransactionList: React.FC<TransactionListProps> = ({ transactions }
               </div>
 
               <div>
-                <p className="text-sm font-medium text-gray-200 capitalize">
+                <p className="text-sm font-medium text-[var(--text-secondary)] capitalize">
                   {tx.type}
                 </p>
-                <p className="text-xs text-gray-500">{tx.date}</p>
+                <p className="text-xs text-[var(--text-muted)]">{tx.date}</p>
                 {tx.txHash && (
-                  <p className="mt-0.5 text-xs text-gray-600 font-mono">
+                  <p className="mt-0.5 text-xs text-[var(--text-muted)] font-mono">
                     {tx.txHash.slice(0, 10)}...{tx.txHash.slice(-8)}
                   </p>
                 )}
@@ -93,7 +93,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ transactions }
               <p
                 className={[
                   'text-base font-bold',
-                  isPositive ? 'text-green-400' : 'text-red-400',
+                  isPositive ? 'text-[var(--success)]' : 'text-[var(--danger)]',
                 ].join(' ')}
               >
                 {isPositive ? '+' : '-'}${tx.amount.toFixed(2)}
@@ -113,7 +113,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ transactions }
       })}
 
       {transactions.length === 0 && (
-        <div className="rounded-lg border border-gray-700 bg-gray-800 p-8 text-center text-gray-500">
+        <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] p-8 text-center text-[var(--text-muted)]">
           No transactions yet.
         </div>
       )}

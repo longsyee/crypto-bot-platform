@@ -87,19 +87,19 @@ const securityData: SecurityRow[] = [
 
 function statusBadge(status: string) {
   const map: Record<string, string> = {
-    active: 'bg-green-900/40 text-green-400',
-    suspended: 'bg-red-900/40 text-red-400',
-    running: 'bg-green-900/40 text-green-400',
-    stopped: 'bg-gray-700 text-gray-400',
-    error: 'bg-red-900/40 text-red-400',
-    healthy: 'bg-green-900/40 text-green-400',
-    degraded: 'bg-amber-900/40 text-amber-400',
-    down: 'bg-red-900/40 text-red-400',
-    low: 'bg-blue-900/40 text-blue-400',
-    medium: 'bg-amber-900/40 text-amber-400',
-    high: 'bg-red-900/40 text-red-400',
+    active: 'bg-[var(--success)]/15 text-[var(--success)]',
+    suspended: 'bg-[var(--danger)]/15 text-[var(--danger)]',
+    running: 'bg-[var(--success)]/15 text-[var(--success)]',
+    stopped: 'bg-[var(--bg-surface)] text-[var(--text-muted)]',
+    error: 'bg-[var(--danger)]/15 text-[var(--danger)]',
+    healthy: 'bg-[var(--success)]/15 text-[var(--success)]',
+    degraded: 'bg-[var(--warning)]/15 text-[var(--warning)]',
+    down: 'bg-[var(--danger)]/15 text-[var(--danger)]',
+    low: 'bg-[var(--accent)]/15 text-[var(--accent)]',
+    medium: 'bg-[var(--warning)]/15 text-[var(--warning)]',
+    high: 'bg-[var(--danger)]/15 text-[var(--danger)]',
   };
-  const cls = map[status] || 'bg-gray-700 text-gray-400';
+  const cls = map[status] || 'bg-[var(--bg-surface)] text-[var(--text-muted)]';
   return (
     <span className={['rounded-full px-2.5 py-0.5 text-xs font-medium capitalize', cls].join(' ')}>
       {status}
@@ -125,7 +125,7 @@ const botCols: Column<BotRow>[] = [
     header: 'Profit (USDT)',
     sortable: true,
     render: (r) => (
-      <span className={r.profit >= 0 ? 'text-green-400' : 'text-red-400'}>
+      <span className={r.profit >= 0 ? 'text-[var(--success)]' : 'text-[var(--danger)]'}>
         {r.profit >= 0 ? '+' : ''}{r.profit.toFixed(2)}
       </span>
     ),
@@ -140,7 +140,7 @@ const refCols: Column<ReferralRow>[] = [
     key: 'commission',
     header: 'Commission %',
     sortable: true,
-    render: (r) => <span className="text-blue-400">{r.commission}%</span>,
+    render: (r) => <span className="text-[var(--accent)]">{r.commission}%</span>,
   },
   { key: 'date', header: 'Date', sortable: true },
 ];
@@ -173,17 +173,17 @@ export const AdminLayout: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <h2 className="text-2xl font-bold text-gray-100">Admin Panel</h2>
+        <h2 className="text-2xl font-bold text-[var(--text-primary)]">Admin Panel</h2>
         <button
           onClick={() => openConfirm('System restart')}
-          className="rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-500"
+          className="rounded-lg bg-[var(--danger)] px-3 py-1.5 text-sm font-medium text-[var(--text-invert)] hover:bg-red-700"
         >
           Restart Services
         </button>
       </div>
 
       {/* Tabs */}
-      <div className="flex flex-wrap gap-1 rounded-lg bg-gray-800 p-1">
+      <div className="flex flex-wrap gap-1 rounded-lg bg-[var(--bg-card)] p-1">
         {tabs.map((t) => (
           <button
             key={t.key}
@@ -191,8 +191,8 @@ export const AdminLayout: React.FC = () => {
             className={[
               'rounded-md px-4 py-2 text-sm font-medium transition-colors',
               tab === t.key
-                ? 'bg-blue-600 text-white shadow'
-                : 'text-gray-400 hover:text-gray-200',
+                ? 'bg-[var(--primary)] text-[var(--text-invert)] shadow'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]',
             ].join(' ')}
           >
             {t.label}
@@ -201,7 +201,7 @@ export const AdminLayout: React.FC = () => {
       </div>
 
       {/* Content */}
-      <div className="rounded-xl border border-gray-700 bg-gray-800 p-5 shadow-lg">
+      <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] p-5 shadow-lg">
         {tab === 'users' && (
           <DataTable data={usersData} columns={userCols} pageSize={8} searchable={true} />
         )}

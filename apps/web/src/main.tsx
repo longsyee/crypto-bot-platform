@@ -24,10 +24,10 @@ function ToastContainer() {
             : Info;
         const color =
           toast.type === "success"
-            ? "text-emerald-400 border-emerald-500/20 bg-emerald-500/10"
+            ? "text-[var(--success)] border-[var(--success)]/20 bg-[var(--success)]/10"
             : toast.type === "error"
-            ? "text-red-400 border-red-500/20 bg-red-500/10"
-            : "text-blue-400 border-blue-500/20 bg-blue-500/10";
+            ? "text-[var(--danger)] border-[var(--danger)]/20 bg-[var(--danger)]/10"
+            : "text-[var(--accent)] border-[var(--accent)]/20 bg-[var(--accent)]/10";
 
         return (
           <div

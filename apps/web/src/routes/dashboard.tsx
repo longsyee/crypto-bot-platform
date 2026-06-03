@@ -25,40 +25,44 @@ function DashboardPage() {
 
   const activeBots = bots?.filter((b: any) => b.status === "running").length || 0;
   const totalBots = bots?.length || 0;
-  const recentTx = txPage?.data?.slice(0, 5) || [];
+  const recentTx = txPage?.slice(0, 5) || [];
   const { logs: allActivity, connected: activityConnected, clear: clearActivity } = useActivityStream();
 
   const stats = [
     {
       label: "Token Balance",
       value: typeof wallet?.tokenBalance === "number" ? wallet.tokenBalance.toFixed(4) : "0.0000",
-      icon: <Wallet className="w-5 h-5 text-teal-600 dark:text-teal-400" />,
-      bg: "bg-teal-500/10",
-      border: "border-teal-500/20",
+      icon: Wallet,
+      accent: "text-[var(--primary)]",
+      bg: "bg-[var(--primary-glow)]",
+      border: "border-[var(--primary)]/20",
       suffix: "",
     },
     {
       label: "USDT Balance",
       value: typeof wallet?.usdtBalance === "number" ? wallet.usdtBalance.toFixed(4) : "0.0000",
-      icon: <ArrowRightLeft className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />,
-      bg: "bg-emerald-500/10",
-      border: "border-emerald-500/20",
+      icon: ArrowRightLeft,
+      accent: "text-[var(--success)]",
+      bg: "bg-[var(--success-glow)]",
+      border: "border-[var(--success)]/20",
       suffix: " USDT",
     },
     {
       label: "Active Bots",
       value: `${activeBots} / ${totalBots}`,
-      icon: <Bot className="w-5 h-5 text-blue-600 dark:text-blue-400" />,
-      bg: "bg-blue-500/10",
-      border: "border-blue-500/20",
+      icon: Bot,
+      accent: "text-[var(--primary)]",
+      bg: "bg-[var(--primary-glow)]",
+      border: "border-[var(--primary)]/20",
       suffix: "",
     },
     {
       label: "Total Deposited",
       value: typeof wallet?.totalDeposited === "number" ? wallet.totalDeposited.toFixed(4) : "0.0000",
-      icon: <TrendingUp className="w-5 h-5 text-purple-600 dark:text-purple-400" />,
-      bg: "bg-purple-500/10",
-      border: "border-purple-500/20",
+      icon: TrendingUp,
+      accent: "text-[var(--accent)]",
+      bg: "bg-[var(--accent)]/10",
+      border: "border-[var(--accent)]/20",
       suffix: "",
     },
   ];
@@ -68,10 +72,10 @@ function DashboardPage() {
       <div className="space-y-6 max-w-6xl">
         {/* Header */}
         <div className="gsap-section">
-          <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-white font-['Space_Grotesk'] tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--text-primary)] font-['Space_Grotesk'] tracking-tight">
             Dashboard
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-[var(--text-muted)] mt-1">
             Overview of your trading activity
           </p>
         </div>
@@ -81,38 +85,38 @@ function DashboardPage() {
           {stats.map((stat) => (
             <div
               key={stat.label}
-              className="relative rounded-2xl bg-white dark:bg-[#13161f]/80 border border-gray-200/50 dark:border-white/[0.06] backdrop-blur-xl p-5 shadow-sm"
+              className="relative rounded-2xl bg-[var(--bg-card)] border border-[var(--border-subtle)] backdrop-blur-xl p-5 shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] hover:-translate-y-[1px] transition-all duration-300"
             >
               <div className="flex items-center gap-3 mb-3">
                 <div
                   className={`w-10 h-10 rounded-xl ${stat.bg} border ${stat.border} flex items-center justify-center shrink-0`}
                 >
-                  {stat.icon}
+                  <stat.icon className={`w-5 h-5 ${stat.accent}`} />
                 </div>
-                <p className="text-xs text-slate-500 font-medium">{stat.label}</p>
+                <p className="text-xs text-[var(--text-muted)] font-medium">{stat.label}</p>
               </div>
-              <p className="text-2xl font-semibold text-gray-900 dark:text-white">
+              <p className="text-2xl font-semibold text-[var(--text-primary)]">
                 {stat.value}
-                <span className="text-sm text-slate-500 font-normal ml-1">{stat.suffix}</span>
+                <span className="text-sm text-[var(--text-muted)] font-normal ml-1">{stat.suffix}</span>
               </p>
             </div>
           ))}
         </div>
 
         {/* Recent Transactions */}
-        <div className="gsap-section relative rounded-2xl bg-white dark:bg-[#13161f]/80 border border-gray-200/50 dark:border-white/[0.06] backdrop-blur-xl overflow-hidden shadow-sm">
-          <div className="px-5 py-4 border-b border-gray-200/50 dark:border-white/[0.06] flex items-center justify-between">
+        <div className="gsap-section relative rounded-2xl bg-[var(--bg-card)] border border-[var(--border-subtle)] backdrop-blur-xl overflow-hidden shadow-[var(--shadow-sm)]">
+          <div className="px-5 py-4 border-b border-[var(--border-subtle)] flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Activity className="w-4 h-4 text-slate-500" />
-              <h2 className="text-sm font-medium text-slate-700 dark:text-slate-300">Recent Transactions</h2>
+              <Activity className="w-4 h-4 text-[var(--text-muted)]" />
+              <h2 className="text-sm font-medium text-[var(--text-secondary)]">Recent Transactions</h2>
             </div>
-            <span className="text-xs text-slate-500 dark:text-slate-600">{recentTx.length} shown</span>
+            <span className="text-xs text-[var(--text-muted)]">{recentTx.length} shown</span>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-[500px]">
               <thead>
-                <tr className="text-slate-500 border-b border-gray-200/50 dark:border-white/[0.06]">
+                <tr className="text-[var(--text-muted)] border-b border-[var(--border-subtle)]">
                   <th className="text-left px-5 py-3 font-medium text-xs uppercase tracking-wider">Type</th>
                   <th className="text-left px-5 py-3 font-medium text-xs uppercase tracking-wider">Amount</th>
                   <th className="text-left px-5 py-3 font-medium text-xs uppercase tracking-wider">Currency</th>
@@ -120,30 +124,30 @@ function DashboardPage() {
                   <th className="text-left px-5 py-3 font-medium text-xs uppercase tracking-wider hidden sm:table-cell">Date</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200/50 dark:divide-white/[0.04]">
+              <tbody className="divide-y divide-[var(--border-subtle)]">
                 {recentTx.length === 0 && (
                   <tr>
                     <td colSpan={5} className="px-5 py-8 text-center">
                       <div className="flex flex-col items-center gap-2">
-                        <AlertCircle className="w-6 h-6 text-slate-400 dark:text-slate-600" />
-                        <p className="text-sm text-slate-500">No transactions yet.</p>
+                        <AlertCircle className="w-6 h-6 text-[var(--text-muted)]" />
+                        <p className="text-sm text-[var(--text-muted)]">No transactions yet.</p>
                       </div>
                     </td>
                   </tr>
                 )}
                 {recentTx.map((tx: any) => (
-                  <tr key={tx.id} className="hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors">
+                  <tr key={tx.id} className="hover:bg-[var(--bg-hover)]/50 transition-colors">
                     <td className="px-5 py-3">
-                      <span className="capitalize text-slate-700 dark:text-slate-300 font-medium">{tx.type}</span>
+                      <span className="capitalize text-[var(--text-secondary)] font-medium">{tx.type}</span>
                     </td>
-                    <td className="px-5 py-3 text-gray-900 dark:text-white font-medium">{tx.amount}</td>
+                    <td className="px-5 py-3 text-[var(--text-primary)] font-medium">{tx.amount}</td>
                     <td className="px-5 py-3">
-                      <span className="text-xs px-2 py-0.5 rounded-md bg-gray-100 dark:bg-white/[0.04] text-slate-500 dark:text-slate-400 border border-gray-200/50 dark:border-white/[0.06]">{tx.currency}</span>
+                      <span className="text-xs px-2 py-0.5 rounded-md bg-[var(--bg-hover)] text-[var(--text-muted)] border border-[var(--border-subtle)]">{tx.currency}</span>
                     </td>
                     <td className="px-5 py-3">
                       <TxBadge status={tx.status} />
                     </td>
-                    <td className="px-5 py-3 text-slate-500 text-xs hidden sm:table-cell">
+                    <td className="px-5 py-3 text-[var(--text-muted)] text-xs hidden sm:table-cell">
                       {new Date(tx.createdAt).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
@@ -159,11 +163,11 @@ function DashboardPage() {
         </div>
 
         {/* Activity Feed */}
-        <div className="gsap-section relative rounded-2xl bg-white dark:bg-[#13161f]/80 border border-gray-200/50 dark:border-white/[0.06] backdrop-blur-xl overflow-hidden shadow-sm">
-          <div className="px-5 py-4 border-b border-gray-200/50 dark:border-white/[0.06] flex items-center justify-between">
+        <div className="gsap-section relative rounded-2xl bg-[var(--bg-card)] border border-[var(--border-subtle)] backdrop-blur-xl overflow-hidden shadow-[var(--shadow-sm)]">
+          <div className="px-5 py-4 border-b border-[var(--border-subtle)] flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Radio className="w-4 h-4 text-slate-500" />
-              <h2 className="text-sm font-medium text-slate-700 dark:text-slate-300">Live Activity</h2>
+              <Radio className="w-4 h-4 text-[var(--text-muted)]" />
+              <h2 className="text-sm font-medium text-[var(--text-secondary)]">Live Activity</h2>
             </div>
           </div>
           <div className="p-4">
@@ -180,23 +184,26 @@ function DashboardPage() {
           <QuickActionCard
             title="Create Trading Bot"
             description="Set up a new DCA or signal bot"
-            icon={<Bot className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
+            icon={Bot}
             to="/bots/create"
-            color="blue"
+            accent="text-[var(--primary)]"
+            hover="hover:border-[var(--primary)]/30 hover:bg-[var(--primary-glow)]"
           />
           <QuickActionCard
             title="Connect Exchange"
             description="Link a new exchange API"
-            icon={<ArrowRightLeft className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />}
+            icon={ArrowRightLeft}
             to="/exchange-connections"
-            color="emerald"
+            accent="text-[var(--success)]"
+            hover="hover:border-[var(--success)]/30 hover:bg-[var(--success-glow)]"
           />
           <QuickActionCard
             title="DCA Simulator"
             description="Calculate your DCA strategy"
-            icon={<TrendingUp className="w-5 h-5 text-purple-600 dark:text-purple-400" />}
+            icon={TrendingUp}
             to="/calculator"
-            color="purple"
+            accent="text-[var(--accent)]"
+            hover="hover:border-[var(--accent)]/30 hover:bg-[var(--accent)]/[0.03]"
           />
         </div>
       </div>
@@ -216,24 +223,24 @@ function TxBadge({ status }: { status: string }) {
 
   const map = {
     pending: {
-      bg: "bg-amber-500/10",
-      text: "text-amber-700 dark:text-amber-400",
-      border: "border-amber-500/20",
-      dot: "bg-amber-500 dark:bg-amber-400",
+      bg: "bg-[var(--warning-glow)]",
+      text: "text-[var(--warning)]",
+      border: "border-[var(--warning)]/20",
+      dot: "bg-[var(--warning)]",
       label: "Pending",
     },
     completed: {
-      bg: "bg-emerald-500/10",
-      text: "text-emerald-700 dark:text-emerald-400",
-      border: "border-emerald-500/20",
-      dot: "bg-emerald-500 dark:bg-emerald-400",
+      bg: "bg-[var(--success-glow)]",
+      text: "text-[var(--success)]",
+      border: "border-[var(--success)]/20",
+      dot: "bg-[var(--success)]",
       label: "Completed",
     },
     failed: {
-      bg: "bg-red-500/10",
-      text: "text-red-700 dark:text-red-400",
-      border: "border-red-500/20",
-      dot: "bg-red-500 dark:bg-red-400",
+      bg: "bg-[var(--danger-glow)]",
+      text: "text-[var(--danger)]",
+      border: "border-[var(--danger)]/20",
+      dot: "bg-[var(--danger)]",
       label: "Failed",
     },
   };
@@ -253,36 +260,32 @@ function TxBadge({ status }: { status: string }) {
 function QuickActionCard({
   title,
   description,
-  icon,
+  icon: Icon,
   to,
-  color,
+  accent,
+  hover,
 }: {
   title: string;
   description: string;
-  icon: React.ReactNode;
+  icon: React.ElementType;
   to: string;
-  color: "blue" | "emerald" | "purple";
+  accent: string;
+  hover: string;
 }) {
-  const colorMap = {
-    blue: "hover:border-blue-500/30 hover:bg-blue-500/[0.03]",
-    emerald: "hover:border-emerald-500/30 hover:bg-emerald-500/[0.03]",
-    purple: "hover:border-purple-500/30 hover:bg-purple-500/[0.03]",
-  };
-
   return (
     <a
       href={to}
-      className={`group relative rounded-2xl bg-white dark:bg-[#13161f]/80 border border-gray-200/50 dark:border-white/[0.06] backdrop-blur-xl p-5 transition-all duration-200 shadow-sm ${colorMap[color]}`}
+      className={`group relative rounded-2xl bg-[var(--bg-card)] border border-[var(--border-subtle)] backdrop-blur-xl p-5 transition-all duration-200 shadow-[var(--shadow-sm)] ${hover} hover:-translate-y-[1px]`}
     >
       <div className="flex items-start gap-3">
-        <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-white/[0.04] border border-gray-200/50 dark:border-white/[0.08] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-          {icon}
+        <div className="w-10 h-10 rounded-xl bg-[var(--bg-hover)] border border-[var(--border-subtle)] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+          <Icon className={`w-5 h-5 ${accent}`} />
         </div>
         <div className="min-w-0">
-          <h3 className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-gray-700 dark:group-hover:text-slate-200 transition-colors">
+          <h3 className="text-sm font-medium text-[var(--text-primary)] group-hover:text-[var(--text-secondary)] transition-colors">
             {title}
           </h3>
-          <p className="text-xs text-slate-500 mt-0.5">{description}</p>
+          <p className="text-xs text-[var(--text-muted)] mt-0.5">{description}</p>
         </div>
       </div>
     </a>

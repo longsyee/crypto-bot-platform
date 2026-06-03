@@ -39,4 +39,15 @@ users.patch("/:id/role", authMiddleware, roleMiddleware("admin"), async (c) => {
   return c.json({ success: true, data: user });
 });
 
+users.patch("/:id", authMiddleware, roleMiddleware("admin"), async (c) => {
+  const id = c.req.param("id");
+  const body = await c.req.json();
+  const data: any = {};
+  if (typeof body.showcasePaperTrades === "boolean") data.showcasePaperTrades = body.showcasePaperTrades;
+  if (typeof body.suspended === "boolean") data.suspended = body.suspended;
+
+  const user = await prisma.user.update({ where: { id }, data });
+  return c.json({ success: true, data: user });
+});
+
 export default users;

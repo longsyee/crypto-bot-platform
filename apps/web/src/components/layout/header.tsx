@@ -16,7 +16,6 @@ import {
   Check,
   Moon,
   Sun,
-  Monitor,
   X,
   Trash2,
   CheckCheck,
@@ -36,7 +35,7 @@ export function Header() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const toast = useToast();
-  const { theme, resolved, toggle } = useTheme();
+  const { resolved, toggle } = useTheme();
   const [copied, setCopied] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -130,17 +129,17 @@ export function Header() {
       ref={headerRef}
       className="
         h-16 px-4 sm:px-5 lg:px-6
-        bg-[#0f1117]/60 backdrop-blur-2xl
-        border-b border-white/[0.06]
+        bg-[var(--bg-elevated)]/60 backdrop-blur-2xl
+        border-b border-[var(--border-subtle)]
         flex items-center justify-between
         sticky top-0 z-[1200]
       "
     >
       {/* Left: Title */}
       <div className="flex items-center gap-3 min-w-0">
-        <span className="text-sm font-medium text-slate-400 hidden sm:inline-block truncate">
+        <span className="text-sm font-medium text-[var(--text-muted)] hidden sm:inline-block truncate">
           Welcome back,
-          <span className="text-slate-200 ml-1">{user?.email?.split("@")[0] || "Trader"}</span>
+          <span className="text-[var(--text-secondary)] ml-1">{user?.email?.split("@")[0] || "Trader"}</span>
         </span>
       </div>
 
@@ -151,18 +150,18 @@ export function Header() {
           className="
             hidden sm:flex items-center gap-2
             px-3 py-1.5 rounded-full
-            bg-emerald-500/10 border border-emerald-500/20
-            text-emerald-400 text-sm font-medium
-            shadow-[0_0_12px_rgba(16,185,129,0.08)]
-            transition-shadow duration-300 hover:shadow-[0_0_16px_rgba(16,185,129,0.15)]
+            bg-[var(--success-glow)] border border-[var(--success)]/20
+            text-[var(--success)] text-sm font-medium
+            shadow-[0_0_12px_var(--success-glow)]
+            transition-shadow duration-300 hover:shadow-[0_0_16px_var(--success-glow)]
           "
         >
           <Wallet className="w-3.5 h-3.5" />
           <span className="whitespace-nowrap">{balance} {currency}</span>
         </div>
 
-        {/* Mobile balance (smaller) */}
-        <div className="sm:hidden flex items-center gap-1.5 px-2 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium">
+        {/* Mobile balance */}
+        <div className="sm:hidden flex items-center gap-1.5 px-2 py-1 rounded-full bg-[var(--success-glow)] border border-[var(--success)]/20 text-[var(--success)] text-xs font-medium">
           <Wallet className="w-3 h-3" />
           <span>{balance}</span>
         </div>
@@ -170,7 +169,7 @@ export function Header() {
         {/* Theme Toggle */}
         <button
           onClick={toggle}
-          className="relative p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.05] transition-colors duration-200"
+          className="relative p-2 rounded-xl text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors duration-200"
           title={resolved === "dark" ? "Switch to light mode" : "Switch to dark mode"}
         >
           {resolved === "dark" ? (
@@ -187,15 +186,15 @@ export function Header() {
             onClick={() => setNotifOpen((v) => !v)}
             className="
               relative p-2 rounded-xl
-              text-slate-400 hover:text-white
-              hover:bg-white/[0.05]
+              text-[var(--text-muted)] hover:text-[var(--text-primary)]
+              hover:bg-[var(--bg-hover)]
               transition-colors duration-200
             "
             title="Notifications"
           >
             <Bell className="w-[18px] h-[18px]" />
             {unreadCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-blue-500 text-[9px] font-bold text-white shadow-[0_0_6px_rgba(59,130,246,0.5)]">
+              <span className="absolute top-1.5 right-1.5 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-[var(--primary)] text-[9px] font-bold text-[var(--text-invert)] shadow-[0_0_6px_var(--primary-glow)]">
                 {unreadCount > 9 ? "9+" : unreadCount}
               </span>
             )}
@@ -206,20 +205,20 @@ export function Header() {
               ref={notifRef}
               className="
                 absolute right-0 top-[calc(100%+10px)] w-[360px] max-w-[calc(100vw-1rem)]
-                bg-[#13161f]/95 backdrop-blur-2xl
-                border border-white/[0.08]
+                bg-[var(--bg-card)]/95 backdrop-blur-2xl
+                border border-[var(--border-subtle)]
                 rounded-xl
                 shadow-[0_0_40px_rgba(0,0,0,0.4)]
                 overflow-hidden z-[1400]
               "
             >
-              <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
-                <span className="text-sm font-medium text-white">Notifications</span>
+              <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-subtle)]">
+                <span className="text-sm font-medium text-[var(--text-primary)]">Notifications</span>
                 <div className="flex items-center gap-1">
                   {unreadCount > 0 && (
                     <button
                       onClick={markAllRead}
-                      className="p-1.5 rounded-lg text-xs text-slate-400 hover:text-white hover:bg-white/[0.05] transition-colors"
+                      className="p-1.5 rounded-lg text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors"
                       title="Mark all read"
                     >
                       <CheckCheck className="w-3.5 h-3.5" />
@@ -227,7 +226,7 @@ export function Header() {
                   )}
                   <button
                     onClick={clearAll}
-                    className="p-1.5 rounded-lg text-xs text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                    className="p-1.5 rounded-lg text-xs text-[var(--text-muted)] hover:text-[var(--danger)] hover:bg-[var(--danger-glow)] transition-colors"
                     title="Clear all"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -237,7 +236,7 @@ export function Header() {
 
               <div className="max-h-[320px] overflow-y-auto">
                 {notifications.length === 0 ? (
-                  <div className="px-4 py-8 text-center text-sm text-slate-500">
+                  <div className="px-4 py-8 text-center text-sm text-[var(--text-muted)]">
                     No notifications yet
                   </div>
                 ) : (
@@ -252,19 +251,19 @@ export function Header() {
                         : Info;
                     const color =
                       n.type === "success"
-                        ? "text-emerald-400"
+                        ? "text-[var(--success)]"
                         : n.type === "error"
-                        ? "text-red-400"
+                        ? "text-[var(--danger)]"
                         : n.type === "warning"
-                        ? "text-amber-400"
-                        : "text-blue-400";
+                        ? "text-[var(--warning)]"
+                        : "text-[var(--primary)]";
                     return (
                       <div
                         key={n.id}
                         onClick={() => markAsRead(n.id)}
                         className={`
-                          flex items-start gap-3 px-4 py-3 border-b border-white/[0.04]
-                          hover:bg-white/[0.03] cursor-pointer transition-colors
+                          flex items-start gap-3 px-4 py-3 border-b border-[var(--border-subtle)]
+                          hover:bg-[var(--bg-hover)]/50 cursor-pointer transition-colors
                           ${n.read ? "opacity-60" : ""}
                         `}
                       >
@@ -272,19 +271,19 @@ export function Header() {
                           <Icon className="w-4 h-4" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-slate-200 leading-snug">
+                          <p className="text-sm font-medium text-[var(--text-secondary)] leading-snug">
                             {n.title}
                           </p>
-                          <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
+                          <p className="text-xs text-[var(--text-muted)] mt-0.5 leading-relaxed">
                             {n.message}
                           </p>
-                          <p className="text-[10px] text-slate-600 mt-1">
+                          <p className="text-[10px] text-[var(--text-muted)]/60 mt-1">
                             {new Date(n.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                           </p>
                         </div>
                         <button
                           onClick={(e) => { e.stopPropagation(); removeNotification(n.id); }}
-                          className="p-1 rounded hover:bg-white/[0.05] text-slate-500 hover:text-slate-300 transition-colors shrink-0"
+                          className="p-1 rounded hover:bg-[var(--bg-hover)] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors shrink-0"
                         >
                           <X className="w-3 h-3" />
                         </button>
@@ -304,17 +303,17 @@ export function Header() {
             onClick={() => setDropdownOpen((v) => !v)}
             className="
               flex items-center gap-2 pl-1 pr-2 py-1 rounded-full
-              bg-white/[0.04] border border-white/[0.08]
-              hover:bg-white/[0.07] hover:border-white/[0.12]
+              bg-[var(--bg-hover)] border border-[var(--border-subtle)]
+              hover:bg-[var(--bg-pressed)] hover:border-[var(--border-default)]
               transition-all duration-200
             "
           >
-            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-[11px] font-bold text-[#09090b] shadow-[0_0_10px_rgba(45,212,191,0.25)]">
+            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[var(--accent)] to-[var(--success)] flex items-center justify-center text-[11px] font-bold text-white shadow-[0_0_10px_rgba(var(--accent-rgb),0.25)]">
               {user?.email?.charAt(0).toUpperCase() || "U"}
             </div>
             <ChevronDown
               className={`
-                w-3.5 h-3.5 text-slate-500 transition-transform duration-200 hidden sm:block
+                w-3.5 h-3.5 text-[var(--text-muted)] transition-transform duration-200 hidden sm:block
                 ${dropdownOpen ? "rotate-180" : ""}
               `}
             />
@@ -325,24 +324,23 @@ export function Header() {
               ref={dropdownRef}
               className="
                 absolute right-0 top-[calc(100%+10px)] w-64
-                bg-[#13161f]/95 backdrop-blur-2xl
-                border border-white/[0.08]
+                bg-[var(--bg-card)] border border-[var(--border-default)]
                 rounded-xl
-                shadow-[0_0_40px_rgba(0,0,0,0.4)]
+                shadow-[0_0_40px_rgba(0,0,0,0.5)]
                 overflow-hidden
               "
             >
               {/* User info */}
-              <div className="px-4 py-3 border-b border-white/[0.06]">
+              <div className="px-4 py-3 border-b border-[var(--border-subtle)]">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-xs font-bold text-[#09090b] shadow-[0_0_12px_rgba(45,212,191,0.25)]">
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[var(--accent)] to-[var(--success)] flex items-center justify-center text-xs font-bold text-white shadow-[0_0_12px_rgba(var(--accent-rgb),0.25)]">
                     {user?.email?.charAt(0).toUpperCase() || "U"}
                   </div>
                   <div className="flex flex-col min-w-0">
-                    <span className="text-sm font-medium text-white truncate">
+                    <span className="text-sm font-medium text-[var(--text-primary)] truncate">
                       {user?.email || "User"}
                     </span>
-                    <span className="text-xs text-slate-500 capitalize">
+                    <span className="text-xs text-[var(--text-muted)] capitalize">
                       {user?.role || "member"}
                     </span>
                   </div>
@@ -354,16 +352,16 @@ export function Header() {
                     className="
                       mt-2.5 w-full flex items-center justify-between gap-2
                       px-2.5 py-1.5 rounded-lg
-                      bg-white/[0.03] border border-white/[0.06]
-                      text-xs text-slate-400 hover:text-slate-200
+                      bg-[var(--bg-hover)] border border-[var(--border-subtle)]
+                      text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)]
                       transition-colors duration-150
                     "
                   >
                     <span className="font-mono truncate">{walletAddress}</span>
                     {copied ? (
-                      <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <Check className="w-3.5 h-3.5 text-[var(--success)] shrink-0" />
                     ) : (
-                      <Copy className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                      <Copy className="w-3.5 h-3.5 text-[var(--text-muted)] shrink-0" />
                     )}
                   </button>
                 )}
@@ -376,9 +374,9 @@ export function Header() {
                     setDropdownOpen(false);
                     navigate({ to: "/profile" });
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-slate-300 hover:text-white hover:bg-white/[0.05] transition-colors duration-150"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors duration-150"
                 >
-                  <User className="w-4 h-4 text-slate-500" />
+                  <User className="w-4 h-4 text-[var(--text-muted)]" />
                   Profile
                 </button>
                 <button
@@ -388,21 +386,21 @@ export function Header() {
                   }}
                   className="
                     w-full flex items-center gap-2.5 px-3 py-2 rounded-lg
-                    text-sm text-slate-300 hover:text-white
-                    hover:bg-white/[0.05]
+                    text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)]
+                    hover:bg-[var(--bg-hover)]
                     transition-colors duration-150
                   "
                 >
-                  <Settings className="w-4 h-4 text-slate-500" />
+                  <Settings className="w-4 h-4 text-[var(--text-muted)]" />
                   Settings
                 </button>
-                <div className="my-1 border-t border-white/[0.06]" />
+                <div className="my-1 border-t border-[var(--border-subtle)]" />
                 <button
                   onClick={handleLogout}
                   className="
                     w-full flex items-center gap-2.5 px-3 py-2 rounded-lg
-                    text-sm text-red-400 hover:text-red-300
-                    hover:bg-red-500/10
+                    text-sm text-[var(--danger)] hover:text-[var(--danger)]
+                    hover:bg-[var(--danger-glow)]
                     transition-colors duration-150
                   "
                 >

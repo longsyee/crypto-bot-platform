@@ -11,6 +11,7 @@ import {
   Zap,
   Calculator,
   Plug,
+  Trophy,
 } from "lucide-react";
 import { useAuth } from "../../hooks/use-auth";
 import { useGSAP } from "@gsap/react";
@@ -22,6 +23,7 @@ const nav = [
   { to: "/exchange-connections", label: "Exchanges", icon: Plug },
   { to: "/bots", label: "Bots", icon: Bot },
   { to: "/calculator", label: "DCA Simulator", icon: Calculator },
+  { to: "/rankings", label: "Rankings", icon: Trophy },
   { to: "/referrals", label: "Referrals", icon: Users },
 ];
 
@@ -80,26 +82,26 @@ function NavItem({
         transition-colors duration-200
         ${
           active
-            ? "bg-white/5 text-white border border-white/10 shadow-[0_0_12px_rgba(59,130,246,0.15)]"
-            : "text-slate-400 hover:text-white border border-transparent"
+            ? "bg-[var(--bg-hover)] text-[var(--text-primary)] border border-[var(--border-default)] shadow-[0_0_12px_var(--primary-glow)]"
+            : "text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-transparent"
         }
       `}
     >
       <span
         ref={glowRef}
-        className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/10 to-transparent opacity-0 pointer-events-none"
+        className="absolute inset-0 rounded-xl bg-gradient-to-r from-[var(--primary)]/10 to-transparent opacity-0 pointer-events-none"
       />
       <span
         className={`
           absolute left-0 top-1/2 -translate-y-1/2 h-6 w-[2px] rounded-r-full
           transition-opacity duration-200
-          ${active ? "opacity-100 bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]" : "opacity-0"}
+          ${active ? "opacity-100 bg-[var(--primary)] shadow-[0_0_8px_var(--primary-glow)]" : "opacity-0"}
         `}
       />
       <Icon className="w-[18px] h-[18px] relative z-10 shrink-0" />
       <span className="relative z-10 truncate">{item.label}</span>
       {active && (
-        <span className="absolute right-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-blue-400 shadow-[0_0_6px_rgba(96,165,250,0.6)]" />
+        <span className="absolute right-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-[var(--primary)] shadow-[0_0_6px_var(--primary-glow)]" />
       )}
     </Link>
   );
@@ -174,10 +176,10 @@ export function Sidebar() {
 
   return (
     <>
-      {/* Mobile hamburger — visible on mobile & tablet */}
+      {/* Mobile hamburger */}
       <button
         onClick={toggleMobile}
-        className="lg:hidden fixed top-3.5 left-4 z-[1700] p-2 rounded-xl bg-[#1a1d29]/90 backdrop-blur-xl border border-white/[0.08] text-white shadow-lg transition-colors hover:bg-[#1a1d29]"
+        className="lg:hidden fixed top-3.5 left-4 z-[1700] p-2 rounded-xl bg-[var(--bg-elevated)]/90 backdrop-blur-xl border border-[var(--border-subtle)] text-[var(--text-primary)] shadow-lg transition-colors hover:bg-[var(--bg-hover)]"
         aria-label="Toggle sidebar"
       >
         {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -192,7 +194,7 @@ export function Sidebar() {
             gsap.to(overlayRef.current, { opacity: 0, duration: 0.2, pointerEvents: "none" });
           }
         }}
-        className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[1300] opacity-0 pointer-events-none lg:hidden"
+        className="fixed inset-0 bg-[var(--bg-base)]/70 backdrop-blur-sm z-[1300] opacity-0 pointer-events-none lg:hidden"
       />
 
       {/* Sidebar */}
@@ -200,9 +202,9 @@ export function Sidebar() {
         ref={sidebarRef}
         className={`
           fixed lg:static inset-y-0 left-0 z-[1400] w-[260px] flex flex-col
-          bg-[#0f1117]/95 lg:bg-[#0f1117]/80
+          bg-[var(--bg-elevated)]/95 lg:bg-[var(--bg-elevated)]/80
           backdrop-blur-2xl
-          border-r border-white/[0.06]
+          border-r border-[var(--border-subtle)]
           shadow-[0_0_60px_rgba(0,0,0,0.4)]
           transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
           ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
@@ -210,15 +212,15 @@ export function Sidebar() {
         `}
       >
         {/* Logo */}
-        <div className="px-5 py-5 border-b border-white/[0.06] flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center shadow-[0_0_12px_rgba(45,212,191,0.3)]">
-            <Zap className="w-4 h-4 text-[#09090b]" />
+        <div className="px-5 py-5 border-b border-[var(--border-subtle)] flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--accent)] to-[var(--success)] flex items-center justify-center shadow-[0_0_12px_rgba(var(--accent-rgb),0.3)]">
+            <Zap className="w-4 h-4 text-white drop-shadow-sm" />
           </div>
           <div className="flex flex-col">
-            <span className="text-[15px] font-semibold tracking-tight text-white leading-none font-['Space_Grotesk']">
+            <span className="text-[15px] font-semibold tracking-tight text-[var(--text-primary)] leading-none font-['Space_Grotesk']">
               NexusBot
             </span>
-            <span className="text-[10px] text-slate-500 leading-none mt-0.5 tracking-wide uppercase">
+            <span className="text-[10px] text-[var(--text-muted)] leading-none mt-0.5 tracking-wide uppercase">
               Trading Platform
             </span>
           </div>
@@ -226,7 +228,7 @@ export function Sidebar() {
 
         {/* Navigation */}
         <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
-          <div className="px-3 py-2 text-[10px] font-semibold text-slate-600 uppercase tracking-wider">
+          <div className="px-3 py-2 text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">
             Platform
           </div>
           {nav.map((item) => (
@@ -240,7 +242,7 @@ export function Sidebar() {
 
           {user?.role === "admin" && (
             <>
-              <div className="px-3 py-3 text-[10px] font-semibold text-slate-600 uppercase tracking-wider">
+              <div className="px-3 py-3 text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">
                 Administration
               </div>
               <Link
@@ -251,15 +253,15 @@ export function Sidebar() {
                   transition-colors duration-200
                   ${
                     pathname === "/admin"
-                      ? "bg-white/5 text-white border border-white/10 shadow-[0_0_12px_rgba(245,158,11,0.15)]"
-                      : "text-slate-400 hover:text-white hover:bg-white/[0.03] border border-transparent"
+                      ? "bg-[var(--bg-hover)] text-[var(--text-primary)] border border-[var(--border-default)] shadow-[0_0_12px_var(--warning-glow)]"
+                      : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]/50 border border-transparent"
                   }
                 `}
               >
-                <Shield className={`w-[18px] h-[18px] shrink-0 ${pathname === "/admin" ? "text-amber-400" : ""}`} />
+                <Shield className={`w-[18px] h-[18px] shrink-0 ${pathname === "/admin" ? "text-[var(--warning)]" : ""}`} />
                 <span className="truncate">Admin</span>
                 {pathname === "/admin" && (
-                  <span className="ml-auto w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(245,158,11,0.6)] shrink-0" />
+                  <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[var(--warning)] shadow-[0_0_6px_var(--warning-glow)] shrink-0" />
                 )}
               </Link>
             </>
@@ -267,7 +269,7 @@ export function Sidebar() {
         </nav>
 
         {/* Bottom gradient */}
-        <div className="pointer-events-none h-8 bg-gradient-to-t from-[#0f1117] to-transparent" />
+        <div className="pointer-events-none h-8 bg-gradient-to-t from-[var(--bg-elevated)] to-transparent" />
       </aside>
     </>
   );

@@ -20,6 +20,9 @@ enum TransactionType {
   convert_out
   trade_fee
   referral_payout
+  referral_payout_tokenb
+  referral_withdraw_request
+  referral_withdraw_approved
   refund
   admin_adjust
 }
@@ -123,6 +126,8 @@ model User {
   referralCode          String   @unique @map("referral_code")
   referredBy            String?  @db.Uuid @map("referred_by")
   totpSecretEncrypted   String?  @map("totp_secret_encrypted")
+  showcasePaperTrades  Boolean  @default(false) @map("showcase_paper_trades")
+  suspended             Boolean  @default(false)
   createdAt             DateTime @default(now()) @map("created_at")
   updatedAt             DateTime @updatedAt @map("updated_at")
 
@@ -151,6 +156,7 @@ model Wallet {
   bscAddress          String   @map("bsc_address")
   usdtBalance         Decimal  @default("0") @db.Decimal(20, 8) @map("usdt_balance")
   tokenBalance        Decimal  @default("0") @db.Decimal(20, 8) @map("token_balance")
+  referralTokenBalance Decimal @default("0") @db.Decimal(20, 8) @map("referral_token_balance")
   totalDeposited      Decimal  @default("0") @db.Decimal(20, 8) @map("total_deposited")
   totalWithdrawn      Decimal  @default("0") @db.Decimal(20, 8) @map("total_withdrawn")
   totalFeesPaid       Decimal  @default("0") @db.Decimal(20, 8) @map("total_fees_paid")
@@ -159,6 +165,7 @@ model Wallet {
 
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions Transaction[]
+  withdrawalRequests ReferralWithdrawRequest[]
 
   @@index([userId])
   @@map("wallets")
@@ -369,6 +376,34 @@ model AdminAuditLog {
   adminUser User @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
 
   @@map("admin_audit_log")
+}
+
+model ReferralWithdrawRequest {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid @map("user_id")
+  wallet      Wallet   @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  amount      Decimal  @db.Decimal(20, 8)
+  status      String   @default("pending")
+  requestedAt DateTime @default(now()) @map("requested_at")
+  processedAt DateTime? @map("processed_at")
+  processedBy String?  @db.Uuid @map("processed_by")
+  notes       String?
+
+  @@index([status])
+  @@index([userId])
+  @@map("referral_withdraw_requests")
+}
+
+model SystemLedger {
+  id          String   @id @default(uuid()) @db.Uuid
+  type        String
+  amount      Decimal  @db.Decimal(20, 8)
+  usdtBalance Decimal  @db.Decimal(20, 8) @map("usdt_balance")
+  metadata    Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([type, createdAt(sort: Desc)])
+  @@map("system_ledger")
 }
 
 model SecurityEvent {

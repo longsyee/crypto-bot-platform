@@ -32,7 +32,7 @@ const earningsColumns: Column<EarningsRow>[] = [
     header: 'Amount (USDT)',
     sortable: true,
     render: (row) => (
-      <span className="font-medium text-green-400">+{row.amount.toFixed(2)}</span>
+      <span className="font-medium text-[var(--success)]">+{row.amount.toFixed(2)}</span>
     ),
   },
   {
@@ -40,7 +40,7 @@ const earningsColumns: Column<EarningsRow>[] = [
     header: 'Tier',
     sortable: true,
     render: (row) => (
-      <span className="text-xs font-semibold text-gray-300">{row.tier}</span>
+      <span className="text-xs font-semibold text-[var(--text-secondary)]">{row.tier}</span>
     ),
   },
 ];
@@ -59,9 +59,9 @@ export const ReferralDashboard: React.FC = () => {
       </div>
 
       {currentTier && nextTier && !nextTier.isLocked && (
-        <div className="rounded-lg border border-gray-700 bg-gray-800 p-4">
-          <p className="text-sm text-gray-300">
-            <span className="font-semibold text-blue-400">
+        <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] p-4">
+          <p className="text-sm text-[var(--text-secondary)]">
+            <span className="font-semibold text-[var(--accent)]">
               {Math.max(0, nextTier.requiredForNext - currentTier.activeReferrals)}
             </span>{' '}
             more active referrals to reach{' '}
@@ -73,7 +73,7 @@ export const ReferralDashboard: React.FC = () => {
       )}
 
       <div className="space-y-3">
-        <h3 className="text-lg font-semibold text-gray-100">Earnings History</h3>
+        <h3 className="text-lg font-semibold text-[var(--text-primary)]">Earnings History</h3>
         <DataTable
           data={earningsData}
           columns={earningsColumns}

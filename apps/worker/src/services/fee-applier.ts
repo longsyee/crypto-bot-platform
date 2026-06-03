@@ -38,45 +38,5 @@ export async function applyTradeFee(
     await tx.botLog.create({
       data: { botId, level: "info", message: `Fee applied: ${fee.toFixed(8)}` },
     });
-
-    // Commission to referrer
-    const referral = await tx.referral.findUnique({
-      where: { referredUserId: userId },
-    });
-    if (referral && referral.commissionRate.greaterThan(0)) {
-      const commission = fee.mul(referral.commissionRate);
-      const referrerWallet = await tx.wallet.findUnique({
-        where: { userId: referral.referrerId },
-      });
-      if (referrerWallet) {
-        await tx.wallet.update({
-          where: { userId: referral.referrerId },
-          data: {
-            tokenBalance: { increment: commission },
-            totalEarnedReferral: { increment: commission },
-          },
-        });
-
-        await tx.transaction.create({
-          data: {
-            walletId: referrerWallet.id,
-            type: "referral_payout",
-            amount: commission,
-            currency: "TOKEN",
-            status: "confirmed",
-          },
-        });
-
-        await tx.commissionLedger.create({
-          data: {
-            referralId: referral.id,
-            transactionId: feeTx.id,
-            sourceUserId: userId,
-            commissionAmount: commission,
-            status: "paid",
-          },
-        });
-      }
-    }
   });
 }

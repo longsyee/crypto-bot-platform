@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useReferrals } from "../hooks/use-api";
+import { useReferrals, useReferralWithdrawals } from "../hooks/use-api";
 import { useAuth } from "../hooks/use-auth";
 import {
   Copy,
@@ -13,6 +13,10 @@ import {
   Gem,
   Star,
   ArrowRight,
+  Gift,
+  Clock,
+  CheckCircle,
+  XCircle,
 } from "lucide-react";
 import { useRef, useState, useCallback } from "react";
 import { useGSAP } from "@gsap/react";
@@ -25,11 +29,11 @@ export const Route = createFileRoute("/referrals")({
 });
 
 const TIERS = [
-  { id: "bronze", label: "Bronze", rate: 5, icon: Medal, color: "text-amber-600", bg: "bg-amber-600", ring: "ring-amber-600/30", shadow: "shadow-amber-600/20", bar: "bg-amber-500" },
-  { id: "silver", label: "Silver", rate: 12, icon: Award, color: "text-slate-300", bg: "bg-slate-400", ring: "ring-slate-400/30", shadow: "shadow-slate-400/20", bar: "bg-slate-400" },
-  { id: "gold", label: "Gold", rate: 20, icon: Crown, color: "text-yellow-400", bg: "bg-yellow-400", ring: "ring-yellow-400/30", shadow: "shadow-yellow-400/20", bar: "bg-yellow-400" },
-  { id: "platinum", label: "Platinum", rate: 28, icon: Gem, color: "text-cyan-300", bg: "bg-cyan-400", ring: "ring-cyan-400/30", shadow: "shadow-cyan-400/20", bar: "bg-cyan-400" },
-  { id: "kol", label: "KOL", rate: 35, icon: Star, color: "text-violet-400", bg: "bg-violet-500", ring: "ring-violet-500/30", shadow: "shadow-violet-500/20", bar: "bg-violet-500" },
+  { id: "bronze", label: "Bronze", rate: 5, icon: Medal, color: "text-[var(--warning)]", bg: "bg-[var(--warning)]", ring: "ring-[var(--warning)]/30", shadow: "shadow-[var(--warning)]/20", bar: "bg-[var(--warning)]" },
+  { id: "silver", label: "Silver", rate: 12, icon: Award, color: "text-[var(--text-muted)]", bg: "bg-[var(--bg-surface)]", ring: "ring-[var(--bg-surface)]/30", shadow: "shadow-[var(--bg-surface)]/20", bar: "bg-[var(--bg-surface)]" },
+  { id: "gold", label: "Gold", rate: 20, icon: Crown, color: "text-[var(--warning)]", bg: "bg-[var(--warning)]", ring: "ring-[var(--warning)]/30", shadow: "shadow-[var(--warning)]/20", bar: "bg-[var(--warning)]" },
+  { id: "platinum", label: "Platinum", rate: 28, icon: Gem, color: "text-[var(--accent)]", bg: "bg-[var(--accent)]", ring: "ring-[var(--accent)]/30", shadow: "shadow-[var(--accent)]/20", bar: "bg-[var(--accent)]" },
+  { id: "kol", label: "KOL", rate: 35, icon: Star, color: "text-[var(--primary)]", bg: "bg-[var(--primary)]", ring: "ring-[var(--primary)]/30", shadow: "shadow-[var(--primary)]/20", bar: "bg-[var(--primary)]" },
 ];
 
 function TierCard({
@@ -74,12 +78,12 @@ function TierCard({
       className={cn(
         "relative flex flex-col items-center text-center rounded-xl border px-3 py-4 transition-colors duration-300",
         isActive
-          ? "bg-[#1a1d29] border-white/10 shadow-[0_0_20px_rgba(59,130,246,0.12)]"
+          ? "bg-[var(--bg-hover)] border-[var(--border-default)] shadow-[0_0_20px_var(--primary-glow)]"
           : isReached
-          ? "bg-[#13161f] border-white/[0.04] opacity-80"
+          ? "bg-[var(--bg-card)] border-[var(--border-subtle)] opacity-80"
           : isNext
-          ? "bg-[#13161f] border-white/[0.04] opacity-60"
-          : "bg-[#13161f] border-white/[0.04] opacity-40"
+          ? "bg-[var(--bg-card)] border-[var(--border-subtle)] opacity-60"
+          : "bg-[var(--bg-card)] border-[var(--border-subtle)] opacity-40"
       )}
     >
       {/* Glow ring for active */}
@@ -96,20 +100,20 @@ function TierCard({
       <div
         className={cn(
           "w-10 h-10 rounded-full flex items-center justify-center mb-2",
-          isActive ? tier.bg : "bg-white/5",
+          isActive ? tier.bg : "bg-[var(--bg-hover)]",
           isActive ? tier.shadow : "",
           isActive ? "shadow-lg" : ""
         )}
       >
         <Icon
-          className={cn("w-5 h-5", isActive ? "text-white" : "text-slate-500")}
+          className={cn("w-5 h-5", isActive ? "text-[var(--text-invert)]" : "text-[var(--text-muted)]")}
         />
       </div>
 
       <p
         className={cn(
           "text-xs font-semibold uppercase tracking-wider",
-          isActive ? "text-white" : "text-slate-500"
+          isActive ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"
         )}
       >
         {tier.label}
@@ -117,7 +121,7 @@ function TierCard({
       <p
         className={cn(
           "text-lg font-bold mt-0.5",
-          isActive ? tier.color : "text-slate-600"
+          isActive ? tier.color : "text-[var(--text-muted)]"
         )}
       >
         {tier.rate}%
@@ -129,13 +133,13 @@ function TierCard({
           <div
             className={cn(
               "h-full rounded-full",
-              isReached ? tier.bar : "bg-slate-700"
+              isReached ? tier.bar : "bg-[var(--bg-pressed)]"
             )}
           />
           <ArrowRight
             className={cn(
               "absolute -right-1 -top-[7px] w-3.5 h-3.5",
-              isReached ? tier.color : "text-slate-700"
+              isReached ? tier.color : "text-[var(--bg-pressed)]"
             )}
           />
         </div>
@@ -146,6 +150,7 @@ function TierCard({
 
 function ReferralsPage() {
   const { data, isLoading } = useReferrals();
+  const { data: withdrawals } = useReferralWithdrawals();
   const user = useAuth((s) => s.user);
   const [copied, setCopied] = useState(false);
 
@@ -159,6 +164,7 @@ function ReferralsPage() {
   const referrals = data?.myReferrals || [];
   const earnings = data?.totalEarnings || 0;
   const commissionRate = data?.commissionRate ?? TIERS[safeCurrentIndex].rate;
+  const referralTokenBalance = data?.referralTokenBalance || 0;
 
   const handleCopy = useCallback(() => {
     if (referralCode !== "—") {
@@ -181,11 +187,11 @@ function ReferralsPage() {
       <div className="space-y-6 max-w-7xl mx-auto">
         {/* Header */}
         <div className="gsap-section flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-[var(--text-primary)] font-['Space_Grotesk']">
             Referrals
           </h1>
-          <span className="text-xs md:text-sm text-slate-400 bg-[#1a1d29] border border-white/[0.06] px-3 py-1.5 rounded-lg self-start sm:self-auto">
-            Current Tier: {" "}
+          <span className="text-xs md:text-sm text-[var(--text-muted)] bg-[var(--bg-card)] border border-[var(--border-subtle)] px-3 py-1.5 rounded-lg self-start sm:self-auto">
+            Current Tier:{" "}
             <span className={cn("font-semibold", TIERS[safeCurrentIndex].color)}>
               {TIERS[safeCurrentIndex].label}
             </span>
@@ -208,10 +214,10 @@ function ReferralsPage() {
         {/* Stats + Code Row */}
         <div className="gsap-section grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Referral Code Card */}
-          <div className="md:col-span-2 bg-[#1a1d29] border border-white/[0.06] rounded-xl p-5 flex flex-col justify-between">
-            <p className="text-slate-400 text-sm font-medium mb-3">Your Referral Code</p>
+          <div className="md:col-span-2 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-5 flex flex-col justify-between shadow-[var(--shadow-sm)]">
+            <p className="text-[var(--text-muted)] text-sm font-medium mb-3">Your Referral Code</p>
             <div className="flex flex-col sm:flex-row items-stretch gap-2">
-              <div className="flex-1 min-w-0 bg-[#0f1117] border border-white/[0.06] rounded-lg px-4 py-3 text-lg md:text-xl font-mono font-bold tracking-wide text-white flex items-center justify-center truncate">
+              <div className="flex-1 min-w-0 bg-[var(--bg-hover)] border border-[var(--border-subtle)] rounded-lg px-4 py-3 text-lg md:text-xl font-mono font-bold tracking-wide text-[var(--text-primary)] flex items-center justify-center truncate">
                 {referralCode}
               </div>
               <button
@@ -220,8 +226,8 @@ function ReferralsPage() {
                 className={cn(
                   "relative px-4 py-3 rounded-lg text-sm font-semibold flex items-center gap-2 transition-colors",
                   copied
-                    ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
-                    : "bg-[#0f1117] hover:bg-[#1e2130] text-slate-200 border border-white/[0.06]"
+                    ? "bg-[var(--success-glow)] text-[var(--success)] border border-[var(--success)]/20"
+                    : "bg-[var(--bg-hover)] hover:bg-[var(--bg-pressed)] text-[var(--text-secondary)] border border-[var(--border-subtle)]"
                 )}
               >
                 <span className="copy-feedback flex items-center gap-2">
@@ -237,37 +243,99 @@ function ReferralsPage() {
           </div>
 
           {/* Total Referred Users */}
-          <div className="bg-[#1a1d29] border border-white/[0.06] rounded-xl p-5 flex flex-col justify-between">
-            <div className="flex items-center gap-2 text-slate-400 text-sm font-medium mb-2">
+          <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-5 flex flex-col justify-between shadow-[var(--shadow-sm)]">
+            <div className="flex items-center gap-2 text-[var(--text-muted)] text-sm font-medium mb-2">
               <Users className="w-4 h-4" />
               Total Referred Users
             </div>
-            <p className="text-3xl font-bold text-white tracking-tight">
+            <p className="text-3xl font-bold text-[var(--text-primary)] tracking-tight">
               {referrals.length}
             </p>
           </div>
 
-          {/* Commission Rate + Earnings */}
-          <div className="bg-[#1a1d29] border border-white/[0.06] rounded-xl p-5 flex flex-col justify-between">
-            <div className="flex items-center gap-2 text-slate-400 text-sm font-medium mb-2">
-              <Percent className="w-4 h-4" />
-              Commission Rate
+          {/* Reward Token Balance */}
+          <div className="bg-[var(--bg-card)] border border-[var(--primary)]/20 rounded-xl p-5 flex flex-col justify-between shadow-[var(--shadow-sm)]">
+            <div className="flex items-center gap-2 text-[var(--primary)] text-sm font-medium mb-2">
+              <Gift className="w-4 h-4" />
+              Reward Token
             </div>
-            <p className="text-3xl font-bold text-white tracking-tight">
-              {commissionRate}%
+            <p className="text-3xl font-bold text-[var(--primary)] tracking-tight">
+              {Number(referralTokenBalance).toFixed(4)}
             </p>
-            <div className="flex items-center gap-2 mt-3 text-xs text-slate-400">
+            <div className="flex items-center gap-2 mt-3 text-xs text-[var(--text-muted)]">
               <Coins className="w-3.5 h-3.5" />
-              <span className="font-medium text-slate-300">{earnings}</span> TOKEN earned
+              <span className="font-medium text-[var(--text-secondary)]">{Number(earnings).toFixed(4)}</span> total earned
             </div>
           </div>
         </div>
 
+        {/* Reward Token Withdrawal History */}
+        <div className="gsap-section bg-[var(--bg-card)] border border-[var(--primary)]/20 rounded-xl overflow-hidden shadow-[var(--shadow-sm)]">
+          <div className="px-5 py-3.5 border-b border-[var(--primary)]/20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+            <h3 className="font-semibold text-sm text-[var(--primary)]">Reward Token Withdrawals</h3>
+            <span className="text-xs text-[var(--text-muted)] bg-[var(--bg-hover)] px-2 py-1 rounded-md border border-[var(--border-subtle)]">
+              {(withdrawals?.length || 0)} requests
+            </span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-[var(--text-muted)] border-b border-[var(--border-subtle)] bg-[var(--bg-hover)]/50">
+                  <th className="text-left px-5 py-3 font-medium text-xs uppercase tracking-wider">Amount</th>
+                  <th className="text-left px-5 py-3 font-medium text-xs uppercase tracking-wider">Status</th>
+                  <th className="text-left px-5 py-3 font-medium text-xs uppercase tracking-wider">Requested</th>
+                  <th className="text-left px-5 py-3 font-medium text-xs uppercase tracking-wider">Processed</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--border-subtle)]">
+                {!withdrawals || withdrawals.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-5 py-8 text-center text-[var(--text-muted)]">
+                      No withdrawal requests yet. Go to Wallet to request a withdrawal.
+                    </td>
+                  </tr>
+                ) : (
+                  withdrawals.map((req: any) => {
+                    const statusConfig: Record<
+                      string,
+                      { icon: any; color: string; label: string }
+                    > = {
+                      pending: { icon: Clock, color: "text-[var(--warning)]", label: "Pending" },
+                      approved: { icon: CheckCircle, color: "text-[var(--success)]", label: "Approved" },
+                      rejected: { icon: XCircle, color: "text-[var(--danger)]", label: "Rejected" },
+                    };
+                    const cfg = statusConfig[req.status] || statusConfig.pending;
+                    const Icon = cfg.icon;
+                    return (
+                      <tr key={req.id} className="hover:bg-[var(--bg-hover)]/50 transition-colors">
+                        <td className="px-5 py-3 text-[var(--primary)] font-medium">{Number(req.amount).toFixed(4)}</td>
+                        <td className="px-5 py-3">
+                          <span className={cn("inline-flex items-center gap-1.5 text-xs font-medium", cfg.color)}>
+                            <Icon className="w-3.5 h-3.5" /> {cfg.label}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3 text-[var(--text-muted)] text-xs">
+                          {new Date(req.requestedAt).toLocaleString()}
+                        </td>
+                        <td className="px-5 py-3 text-[var(--text-muted)] text-xs">
+                          {req.processedAt
+                            ? new Date(req.processedAt).toLocaleString()
+                            : "—"}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
         {/* Referred Users Table */}
-        <div className="gsap-section bg-[#1a1d29] border border-white/[0.06] rounded-xl overflow-hidden">
-          <div className="px-5 py-3.5 border-b border-white/[0.06] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-            <h3 className="font-semibold text-sm text-white">Referred Users</h3>
-            <span className="text-xs text-slate-500 bg-[#0f1117] px-2 py-1 rounded-md border border-white/[0.04]">
+        <div className="gsap-section bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl overflow-hidden shadow-[var(--shadow-sm)]">
+          <div className="px-5 py-3.5 border-b border-[var(--border-subtle)] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+            <h3 className="font-semibold text-sm text-[var(--text-primary)]">Referred Users</h3>
+            <span className="text-xs text-[var(--text-muted)] bg-[var(--bg-hover)] px-2 py-1 rounded-md border border-[var(--border-subtle)]">
               {referrals.length} total
             </span>
           </div>
@@ -275,7 +343,7 @@ function ReferralsPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-slate-400 border-b border-white/[0.06] bg-[#13161f]/50">
+                <tr className="text-[var(--text-muted)] border-b border-[var(--border-subtle)] bg-[var(--bg-hover)]/50">
                   <th className="text-left px-5 py-3 font-medium text-xs uppercase tracking-wider">
                     Email
                   </th>
@@ -290,10 +358,10 @@ function ReferralsPage() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/[0.04]">
+              <tbody className="divide-y divide-[var(--border-subtle)]">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={4} className="px-5 py-8 text-center text-slate-500">
+                    <td colSpan={4} className="px-5 py-8 text-center text-[var(--text-muted)]">
                       Loading...
                     </td>
                   </tr>
@@ -301,13 +369,13 @@ function ReferralsPage() {
                   <tr>
                     <td colSpan={4} className="px-5 py-10">
                       <div className="flex flex-col items-center justify-center text-center">
-                        <div className="w-12 h-12 rounded-full bg-[#0f1117] border border-white/[0.06] flex items-center justify-center mb-3">
-                          <Users className="w-5 h-5 text-slate-500" />
+                        <div className="w-12 h-12 rounded-full bg-[var(--bg-hover)] border border-[var(--border-subtle)] flex items-center justify-center mb-3">
+                          <Users className="w-5 h-5 text-[var(--text-muted)]" />
                         </div>
-                        <p className="text-slate-300 font-medium text-sm mb-1">
+                        <p className="text-[var(--text-secondary)] font-medium text-sm mb-1">
                           No referred users yet
                         </p>
-                        <p className="text-slate-500 text-xs max-w-xs">
+                        <p className="text-[var(--text-muted)] text-xs max-w-xs">
                           Share your referral code to start earning commissions when new users join.
                         </p>
                       </div>
@@ -323,9 +391,9 @@ function ReferralsPage() {
                     return (
                       <tr
                         key={ref.id}
-                        className="hover:bg-white/[0.02] transition-colors"
+                        className="hover:bg-[var(--bg-hover)]/50 transition-colors"
                       >
-                        <td className="px-5 py-3 text-slate-200 font-medium">
+                        <td className="px-5 py-3 text-[var(--text-secondary)] font-medium">
                           {ref.referredUser?.email || "—"}
                         </td>
                         <td className="px-5 py-3">
@@ -336,19 +404,19 @@ function ReferralsPage() {
                                 refTier.bg
                               )}
                             >
-                              <RefIcon className="w-3 h-3 text-white" />
+                              <RefIcon className="w-3 h-3 text-[var(--text-invert)]" />
                             </div>
-                            <span className="capitalize text-slate-300 text-sm">
+                            <span className="capitalize text-[var(--text-secondary)] text-sm">
                               {ref.tier || "bronze"}
                             </span>
                           </div>
                         </td>
                         <td className="px-5 py-3">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-[#0f1117] border border-white/[0.06] text-xs font-semibold text-slate-300">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-[var(--bg-hover)] border border-[var(--border-subtle)] text-xs font-semibold text-[var(--text-secondary)]">
                             {(ref.commissionRate * 100).toFixed(0)}%
                           </span>
                         </td>
-                        <td className="px-5 py-3 text-slate-400 text-xs">
+                        <td className="px-5 py-3 text-[var(--text-muted)] text-xs">
                           {ref.createdAt
                             ? new Date(ref.createdAt).toLocaleDateString("en-US", {
                                 year: "numeric",

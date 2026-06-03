@@ -16,8 +16,8 @@ export const Route = createFileRoute("/register")({
 
 function FeatureItem({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
-    <div className="flex items-center gap-3 text-sm text-slate-400">
-      <span className="w-8 h-8 rounded-lg bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-teal-400">
+    <div className="flex items-center gap-3 text-sm text-[var(--text-muted)]">
+      <span className="w-8 h-8 rounded-lg bg-[var(--text-invert)]/[0.04] border border-[var(--text-invert)]/[0.08] flex items-center justify-center text-[var(--accent)]">
         {icon}
       </span>
       {label}
@@ -170,19 +170,19 @@ export default function RegisterPage() {
         <div className="relative z-10 flex-1 flex flex-col justify-center items-center">
           <div className="auth-left-brand">
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center shadow-[0_0_20px_rgba(45,212,191,0.3)]">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--accent)] to-[var(--success)] flex items-center justify-center shadow-[0_0_20px_rgba(var(--accent-rgb),0.3)]">
               <Zap className="w-5 h-5 text-[#09090b]" />
             </div>
             <div>
-              <div className="text-[15px] font-semibold text-white font-['Space_Grotesk'] tracking-tight">NexusBot</div>
-              <div className="text-[10px] text-slate-500 uppercase tracking-wider">Trading Platform</div>
+              <div className="text-[15px] font-semibold text-[var(--text-primary)] font-['Space_Grotesk'] tracking-tight">NexusBot</div>
+              <div className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider">Trading Platform</div>
             </div>
           </div>
 
           <h2 className="auth-left-title">
             Start trading
             <br />
-            <span className="text-teal-400">in minutes.</span>
+            <span className="text-[var(--accent)]">in minutes.</span>
           </h2>
           <p className="auth-left-subtitle">
             Join thousands of traders who automate their strategies with DCA bots, signal trading, and paper trading.
@@ -214,7 +214,7 @@ export default function RegisterPage() {
                   ? "Join thousands of traders automating their crypto strategies."
                   : <>
                       We sent a 6-digit code to{" "}
-                      <strong className="text-[#fafafa]">{email}</strong>
+                      <strong className="text-[var(--text-primary)]">{email}</strong>
                     </>}
               </p>
 
@@ -287,10 +287,10 @@ export default function RegisterPage() {
                       value={referralCode}
                       onChange={(e) => setReferralCode(e.target.value)}
                       placeholder="REF-XXXXXXXX"
-                      className={`auth-field-input ${urlRef ? "border-teal-500/30 bg-teal-500/[0.04]" : ""}`}
+                      className={`auth-field-input ${urlRef ? "border-[var(--accent)]/30 bg-[var(--accent)]/[0.04]" : ""}`}
                     />
                     {urlRef && (
-                      <p className="text-xs text-teal-400 mt-1.5 flex items-center gap-1">
+                      <p className="text-xs text-[var(--accent)] mt-1.5 flex items-center gap-1">
                         <CheckCircle className="w-3 h-3" />
                         Auto-filled from invitation link
                       </p>

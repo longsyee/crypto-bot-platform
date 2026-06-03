@@ -26,18 +26,18 @@ function RootComponent() {
 
   if (isPublic) {
     return (
-      <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-[#09090b] dark:text-white">
+      <div className="min-h-screen bg-[var(--bg-base)] text-[var(--text-primary)]">
         <Outlet />
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50 text-gray-900 dark:bg-[#09090b] dark:text-white">
+    <div className="flex min-h-screen bg-[var(--bg-base)] text-[var(--text-primary)]">
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0 lg:ml-0">
         <Header />
-        <main className="flex-1 p-4 sm:p-5 lg:p-6 overflow-x-hidden overflow-y-auto bg-gray-50 text-gray-900 dark:bg-[#09090b] dark:text-white">
+        <main className="flex-1 p-4 sm:p-5 lg:p-6 overflow-x-hidden overflow-y-auto bg-[var(--bg-base)] text-[var(--text-primary)]">
           <Outlet />
         </main>
       </div>
