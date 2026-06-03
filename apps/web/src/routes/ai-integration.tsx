@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useToast } from "../hooks/use-toast";
+import { useI18n } from "../hooks/use-i18n";
 import {
   ArrowLeft,
   Key,
@@ -10,8 +11,6 @@ import {
   Trash2,
   Plus,
   X,
-  Eye,
-  EyeOff,
   Bot,
   BookOpen,
   Shield,
@@ -30,10 +29,11 @@ const AI_DOCS_URL = "https://github.com/longsyee/crypto-bot-platform/blob/master
 
 function AiIntegrationPage() {
   const toast = useToast();
+  const { t } = useI18n();
   const [showKeyModal, setShowKeyModal] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
   const [createdKey, setCreatedKey] = useState("<null>");
-  const [showKey, setShowKey] = useState(false);
+  const [justCopied, setJustCopied] = useState(false);
   const [defaultMode, setDefaultMode] = useState<"paper" | "live">(() => {
     return (localStorage.getItem("ai_default_mode") as "paper" | "live") || "paper";
   });
@@ -68,6 +68,47 @@ function AiIntegrationPage() {
     2
   );
 
+  const handleCopyKey = useCallback((key: string) => {
+    navigator.clipboard.writeText(key);
+    setJustCopied(true);
+    toast.success(t("aiIntegration.copied"));
+    setTimeout(() => setJustCopied(false), 2000);
+  }, [toast, t]);
+
+  const handleGenerate = useCallback(() => {
+    if (!newKeyName.trim()) return;
+    createKey.mutate(
+      { name: newKeyName.trim() },
+      {
+        onSuccess: (res) => {
+          if (res?.data?.apiKey) {
+            const key = res.data.apiKey;
+            setCreatedKey(key);
+            navigator.clipboard.writeText(key);
+            toast.success(t("aiIntegration.copied"));
+            setJustCopied(true);
+            setTimeout(() => setJustCopied(false), 2000);
+          }
+        },
+        onError: () => toast.error(t("common.error")),
+      }
+    );
+  }, [createKey, newKeyName, toast, t]);
+
+  const openModal = useCallback(() => {
+    setShowKeyModal(true);
+    setCreatedKey("<null>");
+    setNewKeyName("");
+    setJustCopied(false);
+  }, []);
+
+  const closeModal = useCallback(() => {
+    setShowKeyModal(false);
+    setCreatedKey("<null>");
+    setNewKeyName("");
+    setJustCopied(false);
+  }, []);
+
   return (
     <div className="max-w-3xl mx-auto">
       {/* Header */}
@@ -80,9 +121,9 @@ function AiIntegrationPage() {
         </Link>
         <div>
           <h1 className="text-lg font-semibold text-[var(--text-primary)] font-['Space_Grotesk'] tracking-tight">
-            AI Agent Integration
+            {t("aiIntegration.title")}
           </h1>
-          <p className="text-xs text-[var(--text-muted)]">Connect Claude, Cursor, Cline, or any MCP agent to trade</p>
+          <p className="text-xs text-[var(--text-muted)]">{t("aiIntegration.subtitle")}</p>
         </div>
       </div>
 
@@ -125,18 +166,18 @@ function AiIntegrationPage() {
           { id: "keys", label: "API Keys", icon: <Key className="w-3.5 h-3.5" /> },
           { id: "setup", label: "MCP Setup", icon: <Terminal className="w-3.5 h-3.5" /> },
           { id: "docs", label: "Docs & Safety", icon: <BookOpen className="w-3.5 h-3.5" /> },
-        ].map((t) => (
+        ].map((tab) => (
           <button
-            key={t.id}
-            onClick={() => setActiveTab(t.id as any)}
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as any)}
             className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium transition-colors ${
-              activeTab === t.id
+              activeTab === tab.id
                 ? "bg-[var(--bg-card)] text-[var(--text-primary)]"
                 : "bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
             }`}
           >
-            {t.icon}
-            {t.label}
+            {tab.icon}
+            {tab.label}
           </button>
         ))}
       </div>
@@ -146,11 +187,11 @@ function AiIntegrationPage() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-sm font-semibold text-[var(--text-primary)] font-['Space_Grotesk'] tracking-tight">Your API Keys</h2>
-              <p className="text-[11px] text-[var(--text-muted)] mt-0.5">Long-lived keys for AI agents, scripts, and integrations.</p>
+              <h2 className="text-sm font-semibold text-[var(--text-primary)] font-['Space_Grotesk'] tracking-tight">{t("aiIntegration.apiKeysTitle")}</h2>
+              <p className="text-[11px] text-[var(--text-muted)] mt-0.5">{t("aiIntegration.apiKeysDesc")}</p>
             </div>
             <button
-              onClick={() => { setShowKeyModal(true); setCreatedKey("<null>"); setNewKeyName(""); }}
+              onClick={openModal}
               className="inline-flex items-center gap-1 px-2 py-1 text-[11px] rounded-md bg-[var(--primary)] text-[var(--text-invert)] font-medium hover:brightness-110 transition-all"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -159,12 +200,12 @@ function AiIntegrationPage() {
           </div>
 
           {keysLoading ? (
-            <p className="text-xs text-[var(--text-muted)]">Loading keys...</p>
+            <p className="text-xs text-[var(--text-muted)]">{t("common.loading")}...</p>
           ) : !apiKeys?.length ? (
             <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-6 text-center">
               <Key className="w-6 h-6 text-[var(--text-muted)] mx-auto mb-2" />
-              <p className="text-sm text-[var(--text-muted)]">No API keys yet.</p>
-              <p className="text-[10px] text-[var(--text-muted)] mt-1">Generate a key to connect your AI agent.</p>
+              <p className="text-sm text-[var(--text-muted)]">{t("aiIntegration.noKeys")}</p>
+              <p className="text-[10px] text-[var(--text-muted)] mt-1">{t("aiIntegration.noKeysDesc")}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-px bg-[var(--border-subtle)] rounded-xl overflow-hidden border border-[var(--border-subtle)]">
@@ -336,8 +377,8 @@ function AiIntegrationPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
           <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 w-full max-w-md mx-4">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-['Space_Grotesk'] text-sm font-semibold tracking-tight">Generate API Key</h3>
-              <button onClick={() => setShowKeyModal(false)} className="text-[var(--text-muted)] hover:text-[var(--text-primary)]">
+              <h3 className="font-['Space_Grotesk'] text-sm font-semibold tracking-tight">{t("aiIntegration.generateApiKey")}</h3>
+              <button onClick={closeModal} className="text-[var(--text-muted)] hover:text-[var(--text-primary)]">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -345,65 +386,63 @@ function AiIntegrationPage() {
             {createdKey !== "<null>" ? (
               <div className="space-y-3">
                 <div className="bg-[var(--success)]/10 border border-[var(--success)]/20 rounded-lg p-3">
-                  <p className="text-xs text-[var(--success)] font-medium mb-1">Key created successfully</p>
-                  <p className="text-[10px] text-[var(--text-muted)]">This is the only time you will see the full key. Store it securely.</p>
+                  <p className="text-xs text-[var(--success)] font-medium mb-1">{t("aiIntegration.keyCreated")}</p>
+                  <p className="text-[10px] text-[var(--text-muted)]">{t("aiIntegration.keyCreatedDesc")}</p>
                 </div>
-                <div className="flex items-center gap-2 bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-lg p-2">
-                  <input
-                    type={showKey ? "text" : "password"}
+
+                {/* Plain-text key display with auto-select */}
+                <div className="relative">
+                  <textarea
                     value={createdKey}
                     readOnly
-                    className="flex-1 bg-transparent text-xs font-mono text-[var(--text-primary)] outline-none"
+                    onFocus={(e) => e.currentTarget.select()}
+                    rows={2}
+                    className="w-full px-3 py-2 rounded-lg bg-[var(--bg-base)] border border-[var(--border-subtle)] text-xs font-mono text-[var(--text-primary)] outline-none focus:border-[var(--primary)] resize-none break-all"
                   />
-                  <button onClick={() => setShowKey((v) => !v)} className="text-[var(--text-muted)]">
-                    {showKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                  </button>
                   <button
-                    onClick={() => { navigator.clipboard.writeText(createdKey); toast.success("Copied"); }}
-                    className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                    onClick={() => handleCopyKey(createdKey)}
+                    className="absolute top-1.5 right-1.5 p-1 rounded-md text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors"
+                    title={t("common.copy")}
                   >
-                    <Copy className="w-3.5 h-3.5" />
+                    {justCopied ? <Check className="w-3.5 h-3.5 text-[var(--success)]" /> : <Copy className="w-3.5 h-3.5" />}
                   </button>
                 </div>
+
+                {/* Prominent copy button */}
                 <button
-                  onClick={() => setShowKeyModal(false)}
+                  onClick={() => handleCopyKey(createdKey)}
+                  className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-[var(--primary)] text-xs font-medium hover:bg-[var(--primary)]/20 transition-colors"
+                >
+                  {justCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  {justCopied ? t("aiIntegration.copied") : t("aiIntegration.copyToClipboard")}
+                </button>
+
+                <button
+                  onClick={closeModal}
                   className="w-full px-3 py-1.5 rounded-md bg-[var(--primary)] text-[var(--text-invert)] text-xs font-medium hover:brightness-110"
                 >
-                  Done
+                  {t("aiIntegration.done")}
                 </button>
               </div>
             ) : (
               <div className="space-y-3">
                 <div>
-                  <label className="block text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold mb-1.5">Key Name</label>
+                  <label className="block text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold mb-1.5">{t("aiIntegration.keyName")}</label>
                   <input
                     type="text"
                     value={newKeyName}
                     onChange={(e) => setNewKeyName(e.target.value)}
-                    placeholder="e.g. Claude Desktop"
+                    placeholder={t("aiIntegration.keyNamePlaceholder")}
                     className="w-full px-3 py-2 rounded-md bg-[var(--bg-base)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] outline-none focus:border-[var(--primary)]"
+                    onKeyDown={(e) => { if (e.key === "Enter") handleGenerate(); }}
                   />
                 </div>
                 <button
-                  onClick={() => {
-                    if (!newKeyName.trim()) return;
-                    createKey.mutate(
-                      { name: newKeyName.trim() },
-                      {
-                        onSuccess: (res) => {
-                          if (res?.data?.apiKey) {
-                            setCreatedKey(res.data.apiKey);
-                            toast.success("API key generated");
-                          }
-                        },
-                        onError: () => toast.error("Failed to generate key"),
-                      }
-                    );
-                  }}
+                  onClick={handleGenerate}
                   disabled={createKey.isPending || !newKeyName.trim()}
                   className="w-full px-3 py-1.5 rounded-md bg-[var(--primary)] text-[var(--text-invert)] text-xs font-medium hover:brightness-110 disabled:opacity-50"
                 >
-                  {createKey.isPending ? "Generating..." : "Generate Key"}
+                  {createKey.isPending ? t("aiIntegration.generating") : t("aiIntegration.generateKey")}
                 </button>
               </div>
             )}
