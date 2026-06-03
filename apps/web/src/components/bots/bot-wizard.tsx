@@ -548,11 +548,11 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
 
   if (finished) {
     return (
-      <div className="relative rounded-xl p-8 text-center">
+      <div className="relative rounded-xl p-4 text-center">
         {showConfetti && (
           <ConfettiBurst onComplete={() => setShowConfetti(false)} />
         )}
-        <div className="relative z-10 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--success)]/10 border border-[var(--success)]/20 shadow-[0_0_20px_rgba(var(--success-rgb),0.2)]">
+        <div className="relative z-10 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--success)]/10 border border-[var(--success)]/20">
           <Sparkles className="h-8 w-8 text-[var(--success)]" />
         </div>
         <h3 className="relative z-10 text-xl font-semibold text-[var(--text-primary)]">Bot Created Successfully</h3>
@@ -561,7 +561,7 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
         </p>
         <button
           onClick={() => onSuccess?.()}
-          className="relative z-10 mt-6 inline-flex items-center gap-2 rounded-lg bg-[var(--primary)] px-5 py-2.5 text-sm font-medium text-[var(--text-primary)] shadow-lg shadow-[var(--shadow-lg)] transition-all hover:bg-[var(--primary)] active:scale-[0.98]"
+          className="relative z-10 mt-6 inline-flex items-center gap-2 rounded-md bg-[var(--primary)] px-3 py-1.5 text-xs font-medium text-[var(--text-primary)] transition-all hover:bg-[var(--primary)] active:scale-[0.98]"
         >
           Go to My Bots
           <ChevronRight className="h-4 w-4" />
@@ -586,7 +586,7 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
                   className={[
                     "flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold transition-all",
                     isActive
-                      ? "bg-[var(--primary)] text-[var(--text-primary)] shadow-[0_0_12px_rgba(59,130,246,0.4)]"
+                      ? "bg-[var(--primary)] text-[var(--text-primary)]"
                       : isDone
                       ? "bg-[var(--success)]/20 text-[var(--success)] border border-[var(--success)]/30"
                       : "bg-[var(--bg-surface)] text-[var(--text-muted)] border border-[var(--border-subtle)]/30",
@@ -644,9 +644,9 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
                       key={opt.key}
                       onClick={() => setBotType(opt.key)}
                       className={[
-                        "relative rounded-xl border p-6 text-left transition-all duration-200",
+                        "relative rounded-xl border p-4 text-left transition-all duration-200",
                         selected
-                          ? `border-${opt.color}-500 bg-${opt.color}-500/10 shadow-[0_0_20px_rgba(59,130,246,0.15)]`
+                          ? `border-${opt.color}-500 bg-${opt.color}-500/10`
                           : "border-[var(--border-subtle)]/50 bg-[var(--bg-card)] hover:border-[var(--border-subtle)] hover:bg-[var(--bg-surface)]/20",
                       ].join(" ")}
                       style={
@@ -764,7 +764,7 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
               )}
 
               {connLoading ? (
-                <div className="rounded-lg border border-[var(--border-subtle)]/50 bg-[var(--bg-card)] p-8 text-center text-sm text-[var(--text-muted)]">
+                <div className="rounded-lg border border-[var(--border-subtle)]/50 bg-[var(--bg-card)] p-4 text-center text-sm text-[var(--text-muted)]">
                   Loading connections...
                 </div>
               ) : connectionOptions.length === 0 ? (
@@ -897,7 +897,7 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
                     className={[
                       "relative rounded-xl border p-5 text-left transition-all duration-200",
                       mode === "paper"
-                        ? "border-blue-500/50 bg-[var(--primary)]/10 shadow-[0_0_20px_rgba(59,130,246,0.15)]"
+                        ? "border-blue-500/50 bg-[var(--primary)]/10"
                         : "border-[var(--border-subtle)]/50 bg-[var(--bg-card)] hover:border-[var(--border-subtle)] hover:bg-[var(--bg-surface)]/20",
                     ].join(" ")}
                     style={
@@ -925,7 +925,7 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
                     className={[
                       "relative rounded-xl border p-5 text-left transition-all duration-200",
                       mode === "live"
-                        ? "border-[var(--danger)]/50 bg-[var(--danger)]/10 shadow-[0_0_20px_rgba(var(--danger-rgb),0.15)]"
+                        ? "border-[var(--danger)]/50 bg-[var(--danger)]/10"
                         : "border-[var(--border-subtle)]/50 bg-[var(--bg-card)] hover:border-[var(--border-subtle)] hover:bg-[var(--bg-surface)]/20",
                     ].join(" ")}
                     style={
@@ -1892,7 +1892,7 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess }) => {
           <button
             onClick={handleNext}
             disabled={!canNext || createBot.isPending}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--primary)] px-5 py-2 text-sm font-medium text-[var(--text-primary)] shadow-lg shadow-[var(--shadow-lg)] transition-all hover:bg-[var(--primary)] disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.97]"
+            className="inline-flex items-center gap-1.5 rounded-md bg-[var(--primary)] px-3 py-1.5 text-xs font-medium text-[var(--text-primary)] transition-all hover:bg-[var(--primary)] disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.97]"
           >
             {createBot.isPending ? (
               <>
