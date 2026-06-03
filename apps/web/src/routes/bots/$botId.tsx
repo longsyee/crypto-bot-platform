@@ -159,57 +159,57 @@ function CapitalCard({
       </CardHeader>
       <CardContent>
         {isPaper ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-[var(--border-subtle)] rounded-xl overflow-hidden">
             {/* Available */}
-            <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-hover)]/40 p-4 space-y-2">
-              <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
+            <div className="bg-[var(--bg-card)] px-4 py-3 flex flex-col gap-1.5 border-t-2 border-[var(--primary)]">
+              <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold flex items-center gap-1.5">
                 <Unlock className="w-3.5 h-3.5" /> Available Balance
-              </div>
-              <div className="text-xl font-semibold text-[var(--text-primary)]">
+              </span>
+              <span className="font-['Space_Grotesk'] text-xl font-semibold tracking-tight text-[var(--text-primary)]">
                 {availableUSDT.toFixed(2)} <span className="text-sm font-normal text-[var(--text-muted)]">USDT</span>
-              </div>
-              <div className="text-[10px] text-[var(--text-muted)]">Free margin not in positions</div>
+              </span>
+              <span className="font-mono text-[11px] text-[var(--text-muted)]">Free margin not in positions</span>
             </div>
 
             {/* Margin On Hold */}
-            <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-hover)]/40 p-4 space-y-2">
-              <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
+            <div className="bg-[var(--bg-card)] px-4 py-3 flex flex-col gap-1.5 border-t-2 border-[var(--warning)]">
+              <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold flex items-center gap-1.5">
                 <Lock className="w-3.5 h-3.5" /> Margin On Hold
-              </div>
-              <div className="text-xl font-semibold text-[var(--text-primary)]">
+              </span>
+              <span className="font-['Space_Grotesk'] text-xl font-semibold tracking-tight text-[var(--text-primary)]">
                 {marginUsed.toFixed(2)} <span className="text-sm font-normal text-[var(--text-muted)]">USDT</span>
-              </div>
-              <div className="text-[10px] text-[var(--text-muted)]">{leverage}× leverage</div>
+              </span>
+              <span className="font-mono text-[11px] text-[var(--text-muted)]">{leverage}× leverage</span>
             </div>
 
             {/* Fees */}
-            <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-hover)]/40 p-4 space-y-2">
-              <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
+            <div className="bg-[var(--bg-card)] px-4 py-3 flex flex-col gap-1.5 border-t-2 border-[var(--danger)]">
+              <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold flex items-center gap-1.5">
                 <DollarSign className="w-3.5 h-3.5" /> Fees Paid
-              </div>
-              <div className="text-xl font-semibold text-[var(--text-primary)]">
+              </span>
+              <span className="font-['Space_Grotesk'] text-xl font-semibold tracking-tight text-[var(--text-primary)]">
                 {totalFees.toFixed(4)} <span className="text-sm font-normal text-[var(--text-muted)]">USDT</span>
-              </div>
-              <div className="text-[10px] text-[var(--text-muted)]">Cumulative trading fees</div>
+              </span>
+              <span className="font-mono text-[11px] text-[var(--text-muted)]">Cumulative trading fees</span>
             </div>
 
             {/* Realized */}
-            <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-hover)]/40 p-4 space-y-2">
-              <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
+            <div className={`bg-[var(--bg-card)] px-4 py-3 flex flex-col gap-1.5 border-t-2 ${realizedPnl >= 0 ? "border-[var(--success)]" : "border-[var(--danger)]"}`}>
+              <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold flex items-center gap-1.5">
                 <TrendingUp className="w-3.5 h-3.5" /> Realized PnL
-              </div>
-              <div className={`text-xl font-semibold ${realizedPnl >= 0 ? "text-[var(--success)]" : "text-[var(--danger)]"}`}>
+              </span>
+              <span className={`font-['Space_Grotesk'] text-xl font-semibold tracking-tight ${realizedPnl >= 0 ? "text-[var(--success)]" : "text-[var(--danger)]"}`}>
                 {realizedPnl >= 0 ? "+" : ""}{realizedPnl.toFixed(4)} <span className="text-sm font-normal text-[var(--text-muted)]">USDT</span>
-              </div>
-              <div className="text-[10px] text-[var(--text-muted)]">Closed trade profit / loss</div>
+              </span>
+              <span className="font-mono text-[11px] text-[var(--text-muted)]">Closed trade profit / loss</span>
             </div>
 
             {/* Live Market Price */}
-            <div className="rounded-xl border border-[var(--primary)]/20 bg-[var(--primary-glow)] p-4 space-y-2">
-              <div className="flex items-center gap-1.5 text-xs text-[var(--primary)] font-medium">
+            <div className="bg-[var(--bg-card)] px-4 py-3 flex flex-col gap-1.5 border-t-2 border-[var(--primary)]">
+              <span className="text-[10px] uppercase tracking-widest text-[var(--primary)] font-semibold flex items-center gap-1.5">
                 <Activity className="w-3.5 h-3.5" /> Live Market Price
-              </div>
-              <div className="text-xl font-semibold text-[var(--text-primary)]">
+              </span>
+              <span className="font-['Space_Grotesk'] text-xl font-semibold tracking-tight text-[var(--text-primary)]">
                 {priceLoading ? (
                   <span className="text-sm text-[var(--text-muted)] animate-pulse">Fetching…</span>
                 ) : livePrice > 0 ? (
@@ -219,19 +219,19 @@ function CapitalCard({
                 ) : (
                   <span className="text-sm text-[var(--text-muted)]">—</span>
                 )}
-              </div>
-              <div className="text-[10px] text-[var(--text-muted)]">Real-time CCXT ticker</div>
+              </span>
+              <span className="font-mono text-[11px] text-[var(--text-muted)]">Real-time CCXT ticker</span>
             </div>
 
             {/* Floating PnL */}
-            <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-hover)]/40 p-4 space-y-2">
-              <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
+            <div className={`bg-[var(--bg-card)] px-4 py-3 flex flex-col gap-1.5 border-t-2 ${totalFloating >= 0 ? "border-[var(--success)]" : "border-[var(--danger)]"}`}>
+              <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold flex items-center gap-1.5">
                 <TrendingUp className="w-3.5 h-3.5" /> Floating PnL
-              </div>
-              <div className={`text-xl font-semibold ${totalFloating >= 0 ? "text-[var(--success)]" : "text-[var(--danger)]"}`}>
+              </span>
+              <span className={`font-['Space_Grotesk'] text-xl font-semibold tracking-tight ${totalFloating >= 0 ? "text-[var(--success)]" : "text-[var(--danger)]"}`}>
                 {totalFloating >= 0 ? "+" : ""}{totalFloating.toFixed(4)} <span className="text-sm font-normal text-[var(--text-muted)]">USDT</span>
-              </div>
-              <div className="text-[10px] text-[var(--text-muted)]">Unrealized (Live Price − VWAP) × Size</div>
+              </span>
+              <span className="font-mono text-[11px] text-[var(--text-muted)]">Unrealized (Live Price − VWAP) × Size</span>
             </div>
 
             {/* Positions section - full width if any */}
@@ -317,7 +317,7 @@ function CapitalCard({
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-[var(--border-subtle)] rounded-xl overflow-hidden">
             {exchangeBalanceLoading ? (
               <div className="col-span-full text-sm text-[var(--text-muted)]">Loading exchange balance…</div>
             ) : !exchangeBalance || Object.keys(exchangeBalance).length === 0 ? (
@@ -820,56 +820,41 @@ function BotDetailPage() {
             </TabsList>
 
             <TabsContent value="overview">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Card className="bg-[var(--bg-card)] border-[var(--border-subtle)]">
-                  <CardHeader className="pb-2">
-                    <CardDescription className="flex items-center gap-1.5 text-[var(--text-muted)]">
-                      <ListOrdered className="w-3.5 h-3.5" />
-                      Total {isPaper ? "Paper Trades" : "Orders"}
-                    </CardDescription>
-                    <CardTitle className="text-2xl text-[var(--text-primary)]">{totalTrades}</CardTitle>
-                  </CardHeader>
-                </Card>
-                <Card className="bg-[var(--bg-card)] border-[var(--border-subtle)]">
-                  <CardHeader className="pb-2">
-                    <CardDescription className="flex items-center gap-1.5 text-[var(--text-muted)]">
-                      <DollarSign className="w-3.5 h-3.5" />
-                      Total Realized PnL
-                    </CardDescription>
-                    <CardTitle
-                      className={`text-2xl ${
-                        pnl >= 0 ? "text-[var(--success)]" : "text-[var(--danger)]"
-                      }`}
-                    >
-                      {pnl >= 0 ? "+" : ""}
-                      {pnl.toFixed(2)} USDT
-                    </CardTitle>
-                  </CardHeader>
-                </Card>
-                <Card className="bg-[var(--bg-card)] border-[var(--border-subtle)]">
-                  <CardHeader className="pb-2">
-                    <CardDescription className="flex items-center gap-1.5 text-[var(--text-muted)]">
-                      <Target className="w-3.5 h-3.5" />
-                      Avg Entry
-                    </CardDescription>
-                    <CardTitle className="text-2xl text-[var(--text-primary)]">
-                      {avgEntry > 0 ? avgEntry.toFixed(4) : "—"}
-                    </CardTitle>
-                  </CardHeader>
-                </Card>
-
-                {/* Direction / Leverage */}
-                <Card className="bg-[var(--bg-card)] border-[var(--border-subtle)]">
-                  <CardHeader className="pb-2">
-                    <CardDescription className="flex items-center gap-1.5 text-[var(--text-muted)]">
-                      <Activity className="w-3.5 h-3.5" />
-                      Direction / Leverage
-                    </CardDescription>
-                    <CardTitle className="text-2xl capitalize text-[var(--text-primary)]">
-                      {(bot?.configJson as any)?.direction || "long"} / {(bot?.configJson as any)?.leverage || 1}×
-                    </CardTitle>
-                  </CardHeader>
-                </Card>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-[var(--border-subtle)] rounded-xl overflow-hidden">
+                <div className="bg-[var(--bg-card)] px-4 py-3 flex flex-col gap-1.5 border-t-2 border-[var(--primary)]">
+                  <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold flex items-center gap-1.5">
+                    <ListOrdered className="w-3.5 h-3.5" />
+                    Total {isPaper ? "Paper Trades" : "Orders"}
+                  </span>
+                  <span className="font-['Space_Grotesk'] text-xl font-semibold tracking-tight text-[var(--text-primary)]">{totalTrades}</span>
+                </div>
+                <div className="bg-[var(--bg-card)] px-4 py-3 flex flex-col gap-1.5 border-t-2 border-[var(--success)]">
+                  <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold flex items-center gap-1.5">
+                    <DollarSign className="w-3.5 h-3.5" />
+                    Total Realized PnL
+                  </span>
+                  <span className={`font-['Space_Grotesk'] text-xl font-semibold tracking-tight ${pnl >= 0 ? "text-[var(--success)]" : "text-[var(--danger)]"}`}>
+                    {pnl >= 0 ? "+" : ""}{pnl.toFixed(2)} <span className="text-sm font-normal text-[var(--text-muted)]">USDT</span>
+                  </span>
+                </div>
+                <div className="bg-[var(--bg-card)] px-4 py-3 flex flex-col gap-1.5 border-t-2 border-[var(--accent)]">
+                  <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold flex items-center gap-1.5">
+                    <Target className="w-3.5 h-3.5" />
+                    Avg Entry
+                  </span>
+                  <span className="font-['Space_Grotesk'] text-xl font-semibold tracking-tight text-[var(--text-primary)]">
+                    {avgEntry > 0 ? avgEntry.toFixed(4) : "—"}
+                  </span>
+                </div>
+                <div className="bg-[var(--bg-card)] px-4 py-3 flex flex-col gap-1.5 border-t-2 border-[var(--warning)]">
+                  <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold flex items-center gap-1.5">
+                    <Activity className="w-3.5 h-3.5" />
+                    Direction / Leverage
+                  </span>
+                  <span className="font-['Space_Grotesk'] text-xl font-semibold tracking-tight text-[var(--text-primary)] capitalize">
+                    {(bot?.configJson as any)?.direction || "long"} / {(bot?.configJson as any)?.leverage || 1}×
+                  </span>
+                </div>
               </div>
 
               {/* Capital Breakdown */}
