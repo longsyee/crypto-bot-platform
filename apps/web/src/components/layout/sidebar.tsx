@@ -125,12 +125,22 @@ export function Sidebar() {
     { scope: sidebarRef }
   );
 
+  // Unified overlay sync: overlay opacity + pointer-events always track mobileOpen.
+  // This fixes the bug where clicking a nav item (or Escape) closed the sidebar
+  // but left the overlay opaque and blocking pointer events.
+  useEffect(() => {
+    if (!overlayRef.current) return;
+    gsap.to(overlayRef.current, {
+      opacity: mobileOpen ? 1 : 0,
+      duration: 0.25,
+      ease: "power2.out",
+      pointerEvents: mobileOpen ? "auto" : "none",
+    });
+  }, [mobileOpen]);
+
   // Close sidebar on route change (mobile)
   useEffect(() => {
     setMobileOpen(false);
-    if (overlayRef.current) {
-      gsap.to(overlayRef.current, { opacity: 0, duration: 0.2, pointerEvents: "none" });
-    }
   }, [pathname]);
 
   // Close sidebar on Escape key
@@ -138,9 +148,6 @@ export function Sidebar() {
     function handleKey(e: KeyboardEvent) {
       if (e.key === "Escape" && mobileOpen) {
         setMobileOpen(false);
-        if (overlayRef.current) {
-          gsap.to(overlayRef.current, { opacity: 0, duration: 0.2, pointerEvents: "none" });
-        }
       }
     }
     document.addEventListener("keydown", handleKey);
@@ -160,17 +167,7 @@ export function Sidebar() {
   }, [mobileOpen]);
 
   const toggleMobile = useCallback(() => {
-    setMobileOpen((prev) => {
-      const next = !prev;
-      if (overlayRef.current) {
-        gsap.to(overlayRef.current, {
-          opacity: next ? 1 : 0,
-          duration: 0.2,
-          pointerEvents: next ? "auto" : "none",
-        });
-      }
-      return next;
-    });
+    setMobileOpen((prev) => !prev);
   }, []);
 
   return (
@@ -187,12 +184,7 @@ export function Sidebar() {
       {/* Overlay backdrop */}
       <div
         ref={overlayRef}
-        onClick={() => {
-          setMobileOpen(false);
-          if (overlayRef.current) {
-            gsap.to(overlayRef.current, { opacity: 0, duration: 0.2, pointerEvents: "none" });
-          }
-        }}
+        onClick={() => setMobileOpen(false)}
         className="fixed inset-0 bg-[var(--bg-base)]/70 z-[1300] opacity-0 pointer-events-none lg:hidden"
       />
 
