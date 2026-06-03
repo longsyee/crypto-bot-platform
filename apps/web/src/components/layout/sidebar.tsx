@@ -16,27 +16,30 @@ import {
   BookOpen,
 } from "lucide-react";
 import { useAuth } from "../../hooks/use-auth";
+import { useI18n } from "../../hooks/use-i18n";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 
 const nav = [
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/wallet", label: "Wallet", icon: Wallet },
-  { to: "/exchange-connections", label: "Exchanges", icon: Plug },
-  { to: "/bots", label: "Bots", icon: Bot },
-  { to: "/calculator", label: "DCA Simulator", icon: Calculator },
-  { to: "/rankings", label: "Rankings", icon: Trophy },
-  { to: "/referrals", label: "Referrals", icon: Users },
+  { to: "/dashboard", tKey: "nav.dashboard", icon: LayoutDashboard },
+  { to: "/wallet", tKey: "nav.wallet", icon: Wallet },
+  { to: "/exchange-connections", tKey: "nav.exchanges", icon: Plug },
+  { to: "/bots", tKey: "nav.bots", icon: Bot },
+  { to: "/calculator", tKey: "nav.dcaSimulator", icon: Calculator },
+  { to: "/rankings", tKey: "nav.rankings", icon: Trophy },
+  { to: "/referrals", tKey: "nav.referrals", icon: Users },
 ];
 
 function NavItem({
   item,
   active,
   onClick,
+  label,
 }: {
   item: (typeof nav)[number];
   active: boolean;
   onClick?: () => void;
+  label: string;
 }) {
   const itemRef = useRef<HTMLAnchorElement>(null);
   const glowRef = useRef<HTMLSpanElement>(null);
@@ -94,7 +97,7 @@ function NavItem({
         className="absolute inset-0 rounded-md bg-gradient-to-r from-[var(--primary)]/10 to-transparent opacity-0 pointer-events-none"
       />
       <Icon className="w-[16px] h-[16px] relative z-10 shrink-0" />
-      <span className="relative z-10 truncate">{item.label}</span>
+      <span className="relative z-10 truncate">{label}</span>
     </Link>
   );
 }
@@ -102,6 +105,7 @@ function NavItem({
 export function Sidebar() {
   const { pathname } = useLocation();
   const user = useAuth((s) => s.user);
+  const { t } = useI18n();
   const [mobileOpen, setMobileOpen] = useState(false);
   const sidebarRef = useRef<HTMLElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -219,19 +223,20 @@ export function Sidebar() {
         {/* Navigation */}
         <nav className="flex-1 p-2 space-y-px bg-[var(--border-subtle)] overflow-y-auto">
           <div className="bg-[var(--bg-elevated)] px-3 py-2 text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">
-            Platform
+            {t("nav.platform") || "Platform"}
           </div>
           {nav.map((item) => (
             <NavItem
               key={item.to}
               item={item}
+              label={t(item.tKey)}
               active={pathname === item.to || pathname.startsWith(`${item.to}/`)}
               onClick={() => setMobileOpen(false)}
             />
           ))}
 
           <div className="bg-[var(--bg-elevated)] px-3 py-2 text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">
-            Developer
+            {t("nav.developer")}
           </div>
           <Link
             to="/ai-integration"
@@ -247,7 +252,7 @@ export function Sidebar() {
             `}
           >
             <Terminal className={`w-[16px] h-[16px] shrink-0 ${pathname === "/ai-integration" ? "text-[var(--primary)]" : ""}`} />
-            <span className="truncate">AI Integration</span>
+            <span className="truncate">{t("nav.aiIntegration")}</span>
           </Link>
           <Link
             to="/api-docs"
@@ -263,13 +268,13 @@ export function Sidebar() {
             `}
           >
             <BookOpen className={`w-[16px] h-[16px] shrink-0 ${pathname === "/api-docs" ? "text-[var(--primary)]" : ""}`} />
-            <span className="truncate">API Docs</span>
+            <span className="truncate">{t("nav.apiDocs")}</span>
           </Link>
 
           {user?.role === "admin" && (
             <>
               <div className="bg-[var(--bg-elevated)] px-3 py-2 text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">
-                Administration
+                {t("nav.admin")}
               </div>
               <Link
                 to="/admin"
@@ -285,7 +290,7 @@ export function Sidebar() {
                 `}
               >
                 <Shield className={`w-[16px] h-[16px] shrink-0 ${pathname === "/admin" ? "text-[var(--warning)]" : ""}`} />
-                <span className="truncate">Admin</span>
+                <span className="truncate">{t("nav.admin")}</span>
               </Link>
             </>
           )}

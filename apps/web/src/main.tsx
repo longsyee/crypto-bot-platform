@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { router } from "./router";
 import { useToastStore } from "./hooks/use-toast";
 import { X, CheckCircle, AlertCircle, Info } from "lucide-react";
+import { I18nProvider } from "./hooks/use-i18n";
 import "./index.css";
 
 const queryClient = new QueryClient();
@@ -59,7 +60,9 @@ function ToastContainer() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
+      <I18nProvider>
+        <RouterProvider router={router} />
+      </I18nProvider>
       <ToastContainer />
     </QueryClientProvider>
   );

@@ -2,6 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useAuth } from "../hooks/use-auth";
 import { useToast } from "../hooks/use-toast";
+import { useTheme } from "../hooks/use-theme";
+import { useI18n } from "../hooks/use-i18n";
+import { useMe, useSetup2FA, useVerify2FA, useDisable2FA } from "../hooks/use-api";
+import { QRCodeSVG } from "qrcode.react";
 import {
   ArrowLeft,
   Bell,
@@ -12,9 +16,16 @@ import {
   Save,
   Check,
   Terminal,
+  KeyRound,
+  X,
+  Eye,
+  EyeOff,
+  Copy,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import { useTheme } from "../hooks/use-theme";
 
 export const Route = createFileRoute("/settings")({
   component: SettingsPage,
@@ -24,16 +35,71 @@ function SettingsPage() {
   const user = useAuth((s) => s.user);
   const toast = useToast();
   const { theme, toggle } = useTheme();
+  const { t, lang, setLang } = useI18n();
+  const { data: meData } = useMe();
   const [notifications, setNotifications] = useState(true);
-  const [lang, setLang] = useState("en");
   const [saving, setSaving] = useState(false);
+
+  // 2FA modal state
+  const [show2FAModal, setShow2FAModal] = useState(false);
+  const [showDisableModal, setShowDisableModal] = useState(false);
+  const [setupStep, setSetupStep] = useState<1 | 2>(1);
+  const [qrData, setQrData] = useState<{ secret: string; otpauthUrl: string } | null>(null);
+  const [totpCode, setTotpCode] = useState("");
+  const [disablePassword, setDisablePassword] = useState("");
+  const [showDisablePw, setShowDisablePw] = useState(false);
+
+  const setup2FA = useSetup2FA();
+  const verify2FA = useVerify2FA();
+  const disable2FA = useDisable2FA();
+
+  const is2FAEnabled = meData?.totpEnabled || false;
 
   const handleSave = () => {
     setSaving(true);
     setTimeout(() => {
       setSaving(false);
-      toast.success("Preferences saved");
+      toast.success(t("common.success"));
     }, 600);
+  };
+
+  const handleEnable2FA = async () => {
+    setSetupStep(1);
+    setTotpCode("");
+    setShow2FAModal(true);
+    try {
+      const res = await setup2FA.mutateAsync();
+      if (res) {
+        setQrData(res);
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to setup 2FA");
+    }
+  };
+
+  const handleVerify2FA = async () => {
+    if (totpCode.length !== 6) return;
+    try {
+      await verify2FA.mutateAsync(totpCode);
+      toast.success(t("twoFA.successEnabled"));
+      setShow2FAModal(false);
+      setQrData(null);
+      setTotpCode("");
+    } catch (err: any) {
+      toast.error(err?.message || t("twoFA.invalidCode"));
+    }
+  };
+
+  const handleDisable2FA = async () => {
+    if (!disablePassword) return;
+    try {
+      await disable2FA.mutateAsync(disablePassword);
+      toast.success(t("twoFA.successDisabled"));
+      setShowDisableModal(false);
+      setDisablePassword("");
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to disable 2FA");
+    }
   };
 
   return (
@@ -48,44 +114,43 @@ function SettingsPage() {
         </Link>
         <div>
           <h1 className="text-xl font-semibold text-[var(--text-primary)] font-['Space_Grotesk'] tracking-tight">
-            Settings
+            {t("settings.title")}
           </h1>
-          <p className="text-sm text-[var(--text-muted)]">Manage your preferences</p>
+          <p className="text-sm text-[var(--text-muted)]">{t("settings.subtitle")}</p>
         </div>
       </div>
 
       <div className="space-y-5">
         {/* Appearance */}
-        <SettingsSection title="Appearance" icon={<Moon className="w-4 h-4" />}>
+        <SettingsSection title={t("settings.appearance")} icon={<Moon className="w-4 h-4" />}>
           <ToggleRow
-            label="Dark Mode"
-            description="Use dark theme across the platform"
+            label={t("settings.darkMode")}
+            description={t("settings.darkModeDesc")}
             enabled={theme === "dark"}
             onChange={toggle}
           />
         </SettingsSection>
 
         {/* Notifications */}
-        <SettingsSection title="Notifications" icon={<Bell className="w-4 h-4" />}>
+        <SettingsSection title={t("settings.notifications")} icon={<Bell className="w-4 h-4" />}>
           <ToggleRow
-            label="Push Notifications"
-            description="Receive alerts for trades, deposits, and system events"
+            label={t("settings.pushNotifications")}
+            description={t("settings.pushNotificationsDesc")}
             enabled={notifications}
             onChange={setNotifications}
           />
         </SettingsSection>
 
         {/* Language */}
-        <SettingsSection title="Language & Region" icon={<Globe className="w-4 h-4" />}>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        <SettingsSection title={t("settings.languageRegion")} icon={<Globe className="w-4 h-4" />}>
+          <div className="grid grid-cols-2 gap-2">
             {[
               { code: "en", label: "English" },
               { code: "zh", label: "中文" },
-              { code: "ms", label: "Bahasa" },
             ].map((l) => (
               <button
                 key={l.code}
-                onClick={() => setLang(l.code)}
+                onClick={() => setLang(l.code as any)}
                 className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-sm border transition-colors ${
                   lang === l.code
                     ? "bg-[var(--primary-glow)] border-[var(--primary)]/20 text-[var(--primary)]"
@@ -100,11 +165,43 @@ function SettingsPage() {
         </SettingsSection>
 
         {/* Security */}
-        <SettingsSection title="Security" icon={<Shield className="w-4 h-4" />}>
+        <SettingsSection title={t("settings.security")} icon={<Shield className="w-4 h-4" />}>
           <div className="space-y-1">
-            <LinkButton label="Change Password" to="/forgot-password" />
-            <LinkButton label="Two-Factor Authentication" to="#" />
-            <LinkButton label="Active Sessions" to="#" />
+            <LinkButton label={t("settings.changePassword")} to="/forgot-password" />
+            <div className="flex items-center justify-between py-2.5 border-b border-[var(--border-subtle)] last:border-0">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-[var(--text-muted)]">{t("settings.twoFactorAuth")}</span>
+                {is2FAEnabled ? (
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-[var(--success)]/10 text-[var(--success)]">
+                    <CheckCircle2 className="w-3 h-3" />
+                    {t("twoFA.statusEnabled")}
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-[var(--text-muted)]/10 text-[var(--text-muted)]">
+                    <AlertCircle className="w-3 h-3" />
+                    {t("twoFA.statusDisabled")}
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={is2FAEnabled ? () => setShowDisableModal(true) : handleEnable2FA}
+                disabled={setup2FA.isPending}
+                className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors ${
+                  is2FAEnabled
+                    ? "bg-[var(--danger)]/10 text-[var(--danger)] hover:bg-[var(--danger)]/20"
+                    : "bg-[var(--primary)]/10 text-[var(--primary)] hover:bg-[var(--primary)]/20"
+                }`}
+              >
+                {setup2FA.isPending ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : is2FAEnabled ? (
+                  t("twoFA.disableBtn")
+                ) : (
+                  t("twoFA.enableBtn")
+                )}
+              </button>
+            </div>
+            <LinkButton label={t("settings.activeSessions")} to="#" />
           </div>
         </SettingsSection>
 
@@ -120,11 +217,9 @@ function SettingsPage() {
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-[var(--text-primary)] font-['Space_Grotesk'] tracking-tight">
-                  AI Agent Integration
+                  {t("settings.aiIntegration")}
                 </h3>
-                <p className="text-[11px] text-[var(--text-muted)] mt-0.5">
-                  API keys, MCP setup, and trading mode for Claude / Cursor / Cline
-                </p>
+                <p className="text-[11px] text-[var(--text-muted)] mt-0.5">{t("settings.aiIntegrationDesc")}</p>
               </div>
             </div>
             <ChevronRight className="w-4 h-4 text-[var(--text-muted)]" />
@@ -150,17 +245,152 @@ function SettingsPage() {
             {saving ? (
               <>
                 <div className="w-4 h-4 border-2 border-[var(--text-invert)]/30 border-t-[var(--text-invert)] rounded-full animate-spin" />
-                Saving...
+                {t("common.loading")}...
               </>
             ) : (
               <>
                 <Save className="w-4 h-4" />
-                Save Changes
+                {t("settings.save")}
               </>
             )}
           </button>
         </div>
       </div>
+
+      {/* 2FA Setup Modal */}
+      {show2FAModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-5 w-full max-w-sm mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-['Space_Grotesk'] text-sm font-semibold tracking-tight">{t("twoFA.setupTitle")}</h3>
+              <button
+                onClick={() => { setShow2FAModal(false); setQrData(null); setTotpCode(""); }}
+                className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {setupStep === 1 && qrData ? (
+              <div className="space-y-4">
+                <p className="text-xs text-[var(--text-muted)] leading-relaxed">{t("twoFA.setupStep1")}</p>
+                <div className="flex justify-center p-3 bg-white rounded-lg">
+                  <QRCodeSVG value={qrData.otpauthUrl} size={180} />
+                </div>
+                <div className="bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-lg p-2 flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={qrData.secret}
+                    readOnly
+                    className="flex-1 bg-transparent text-xs font-mono text-[var(--text-primary)] outline-none"
+                  />
+                  <button
+                    onClick={() => { navigator.clipboard.writeText(qrData.secret); toast.success("Copied"); }}
+                    className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                <button
+                  onClick={() => setSetupStep(2)}
+                  className="w-full px-3 py-2 rounded-md bg-[var(--primary)] text-[var(--text-invert)] text-xs font-medium hover:brightness-110"
+                >
+                  {t("common.next") || "Next"}
+                </button>
+              </div>
+            ) : setupStep === 2 ? (
+              <div className="space-y-4">
+                <p className="text-xs text-[var(--text-muted)]">{t("twoFA.setupStep2")}</p>
+                <input
+                  type="text"
+                  value={totpCode}
+                  onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  placeholder="000000"
+                  className="w-full px-3 py-2 rounded-md bg-[var(--bg-base)] border border-[var(--border-subtle)] text-sm text-[var(--text-primary)] text-center tracking-[0.5em] outline-none focus:border-[var(--primary)]"
+                  maxLength={6}
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setSetupStep(1)}
+                    className="flex-1 px-3 py-2 rounded-md border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors"
+                  >
+                    {t("common.back") || "Back"}
+                  </button>
+                  <button
+                    onClick={handleVerify2FA}
+                    disabled={totpCode.length !== 6 || verify2FA.isPending}
+                    className="flex-1 px-3 py-2 rounded-md bg-[var(--primary)] text-[var(--text-invert)] text-xs font-medium hover:brightness-110 disabled:opacity-50"
+                  >
+                    {verify2FA.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin mx-auto" />
+                    ) : (
+                      t("twoFA.verifyBtn")
+                    )}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-4">
+                <Loader2 className="w-5 h-5 animate-spin text-[var(--text-muted)] mx-auto" />
+                <p className="text-xs text-[var(--text-muted)] mt-2">{t("common.loading")}...</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 2FA Disable Modal */}
+      {showDisableModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-5 w-full max-w-sm mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-['Space_Grotesk'] text-sm font-semibold tracking-tight">{t("twoFA.disableTitle")}</h3>
+              <button
+                onClick={() => { setShowDisableModal(false); setDisablePassword(""); }}
+                className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <p className="text-xs text-[var(--text-muted)] mb-3">{t("twoFA.disableDesc")}</p>
+            <div className="relative mb-4">
+              <input
+                type={showDisablePw ? "text" : "password"}
+                value={disablePassword}
+                onChange={(e) => setDisablePassword(e.target.value)}
+                placeholder={t("twoFA.passwordPlaceholder")}
+                className="w-full px-3 py-2 rounded-md bg-[var(--bg-base)] border border-[var(--border-subtle)] text-sm text-[var(--text-primary)] outline-none focus:border-[var(--primary)] pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowDisablePw((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
+              >
+                {showDisablePw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => { setShowDisableModal(false); setDisablePassword(""); }}
+                className="flex-1 px-3 py-2 rounded-md border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors"
+              >
+                {t("common.cancel")}
+              </button>
+              <button
+                onClick={handleDisable2FA}
+                disabled={!disablePassword || disable2FA.isPending}
+                className="flex-1 px-3 py-2 rounded-md bg-[var(--danger)] text-[var(--text-invert)] text-xs font-medium hover:brightness-110 disabled:opacity-50"
+              >
+                {disable2FA.isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin mx-auto" />
+                ) : (
+                  t("twoFA.confirmDisable")
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

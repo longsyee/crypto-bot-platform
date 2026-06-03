@@ -45,7 +45,6 @@ export function useTheme() {
   const toggle = useCallback(() => {
     setThemeState((prev) => {
       if (prev === "dark") return "light";
-      if (prev === "light") return "system";
       return "dark";
     });
   }, []);

@@ -1,7 +1,9 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
+import { z } from "zod";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
+import speakeasy from "speakeasy";
 import {
   RegisterSchema,
   LoginSchema,
@@ -9,12 +11,21 @@ import {
   ResendOtpSchema,
   ForgotPasswordSchema,
   ResetPasswordSchema,
+  TotpCodeSchema,
+  TotpDisableSchema,
 } from "@crypto-bot-platform/shared";
 import { prisma } from "@crypto-bot-platform/prisma";
-import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../services/jwt";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  verifyRefreshToken,
+  generateTempToken,
+  verifyTempToken,
+} from "../services/jwt";
 import { rateLimitMiddleware } from "../middleware/rate-limit";
 import { config } from "../config";
 import { sendOtpEmail, sendPasswordResetEmail } from "../services/email";
+import { authMiddleware } from "../middleware/auth";
 
 const auth = new Hono();
 
@@ -170,6 +181,20 @@ auth.post(
     if (!user || !(await bcrypt.compare(body.password, user.passwordHash))) {
       return c.json({ success: false, error: "Invalid credentials", code: "BAD_CREDENTIALS" }, 401);
     }
+
+    // If 2FA is enabled, return a temporary token instead of full session
+    if (user.totpEnabled) {
+      const tempToken = generateTempToken(user.id);
+      return c.json({
+        success: true,
+        data: {
+          mfaRequired: true,
+          tempToken,
+          user: { id: user.id, email: user.email, role: user.role, emailVerified: user.emailVerified },
+        },
+      });
+    }
+
     const accessToken = generateAccessToken(user.id, user.role);
     const refreshToken = generateRefreshToken(user.id);
     return c.json({
@@ -197,6 +222,159 @@ auth.post("/refresh", async (c) => {
     return c.json({ success: false, error: "Invalid refresh token", code: "INVALID_REFRESH" }, 401);
   }
 });
+
+// ============================================================
+// 2FA TOTP
+// ============================================================
+
+auth.post(
+  "/2fa/setup",
+  rateLimitMiddleware(3, 3600, "2fa-setup"),
+  authMiddleware,
+  async (c) => {
+    const user = c.get("user");
+    if (user.totpEnabled) {
+      return c.json({ success: false, error: "2FA is already enabled", code: "2FA_ALREADY_ENABLED" }, 400);
+    }
+
+    const secret = speakeasy.generateSecret({
+      name: "NexusBot",
+      length: 32,
+    });
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        totpSecret: secret.base32,
+        totpEnabled: false,
+        totpVerified: false,
+      },
+    });
+
+    const otpauthUrl = speakeasy.otpauthURL({
+      secret: secret.base32,
+      label: user.email,
+      issuer: "NexusBot",
+      encoding: "base32",
+    });
+
+    return c.json({
+      success: true,
+      data: {
+        secret: secret.base32,
+        otpauthUrl,
+      },
+    });
+  }
+);
+
+auth.post(
+  "/2fa/verify",
+  rateLimitMiddleware(5, 300, "2fa-verify"),
+  authMiddleware,
+  zValidator("json", TotpCodeSchema),
+  async (c) => {
+    const user = c.get("user");
+    const body = c.req.valid("json");
+
+    if (!user.totpSecret) {
+      return c.json({ success: false, error: "2FA not set up", code: "2FA_NOT_SETUP" }, 400);
+    }
+
+    const verified = speakeasy.totp.verify({
+      secret: user.totpSecret,
+      encoding: "base32",
+      token: body.code,
+      window: 1,
+    });
+
+    if (!verified) {
+      return c.json({ success: false, error: "Invalid verification code", code: "INVALID_TOTP" }, 400);
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { totpEnabled: true, totpVerified: true },
+    });
+
+    return c.json({ success: true, data: { message: "2FA enabled successfully" } });
+  }
+);
+
+auth.post(
+  "/2fa/disable",
+  rateLimitMiddleware(3, 900, "2fa-disable"),
+  authMiddleware,
+  zValidator("json", TotpDisableSchema),
+  async (c) => {
+    const user = c.get("user");
+    const body = c.req.valid("json");
+
+    if (!user.totpEnabled) {
+      return c.json({ success: false, error: "2FA is not enabled", code: "2FA_NOT_ENABLED" }, 400);
+    }
+
+    const passwordValid = await bcrypt.compare(body.password, user.passwordHash);
+    if (!passwordValid) {
+      return c.json({ success: false, error: "Invalid password", code: "INVALID_PASSWORD" }, 400);
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        totpSecret: null,
+        totpEnabled: false,
+        totpVerified: false,
+      },
+    });
+
+    return c.json({ success: true, data: { message: "2FA disabled successfully" } });
+  }
+);
+
+auth.post(
+  "/2fa/login-verify",
+  rateLimitMiddleware(5, 300, "2fa-login-verify"),
+  zValidator("json", z.object({ tempToken: z.string().min(1), code: z.string().length(6).regex(/^\d{6}$/) })),
+  async (c) => {
+    const body = c.req.valid("json");
+
+    let payload: { userId: string };
+    try {
+      payload = verifyTempToken(body.tempToken);
+    } catch {
+      return c.json({ success: false, error: "Invalid or expired temporary token", code: "INVALID_TEMP_TOKEN" }, 401);
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: payload.userId } });
+    if (!user || !user.totpEnabled || !user.totpSecret) {
+      return c.json({ success: false, error: "2FA not enabled or user not found", code: "2FA_NOT_ENABLED" }, 400);
+    }
+
+    const verified = speakeasy.totp.verify({
+      secret: user.totpSecret,
+      encoding: "base32",
+      token: body.code,
+      window: 1,
+    });
+
+    if (!verified) {
+      return c.json({ success: false, error: "Invalid verification code", code: "INVALID_TOTP" }, 400);
+    }
+
+    const accessToken = generateAccessToken(user.id, user.role);
+    const refreshToken = generateRefreshToken(user.id);
+
+    return c.json({
+      success: true,
+      data: {
+        user: { id: user.id, email: user.email, role: user.role, emailVerified: user.emailVerified },
+        accessToken,
+        refreshToken,
+      },
+    });
+  }
+);
 
 auth.post(
   "/forgot-password",

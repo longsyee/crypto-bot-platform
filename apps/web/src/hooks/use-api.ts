@@ -451,3 +451,54 @@ export function useUpdateApiKey() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["api-keys"] }),
   });
 }
+
+// ------------------------------------------------------------------
+// 2FA
+// ------------------------------------------------------------------
+
+export function useSetup2FA() {
+  return useMutation({
+    mutationFn: () =>
+      api<{ secret: string; otpauthUrl: string }>("/auth/2fa/setup", {
+        method: "POST",
+      }),
+  });
+}
+
+export function useVerify2FA() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (code: string) =>
+      api<any>("/auth/2fa/verify", {
+        method: "POST",
+        body: JSON.stringify({ code }),
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["me"] }),
+  });
+}
+
+export function useDisable2FA() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (password: string) =>
+      api<any>("/auth/2fa/disable", {
+        method: "POST",
+        body: JSON.stringify({ password }),
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["me"] }),
+  });
+}
+
+export function useLogin2FA() {
+  return useMutation({
+    mutationFn: ({ tempToken, code }: { tempToken: string; code: string }) =>
+      api<{
+        accessToken: string;
+        refreshToken: string;
+        user: any;
+      }>("/auth/2fa/login-verify", {
+        method: "POST",
+        body: JSON.stringify({ tempToken, code }),
+      }),
+  });
+}

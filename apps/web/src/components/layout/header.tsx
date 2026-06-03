@@ -5,6 +5,7 @@ import { useAuth } from "../../hooks/use-auth";
 import { useWallet } from "../../hooks/use-api";
 import { useTheme } from "../../hooks/use-theme";
 import { useNotificationStore } from "../../hooks/use-notifications";
+import { useI18n } from "../../hooks/use-i18n";
 import {
   LogOut,
   ChevronDown,
@@ -23,6 +24,7 @@ import {
   AlertTriangle,
   AlertCircle,
   CheckCircle2,
+  Globe,
 } from "lucide-react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
@@ -43,6 +45,7 @@ export function Header() {
   const notifRef = useRef<HTMLDivElement>(null);
   const notifBtnRef = useRef<HTMLButtonElement>(null);
 
+  const { t, lang, setLang } = useI18n();
   const notifications = useNotificationStore((s) => s.items);
   const unreadCount = useNotificationStore((s) => s.unreadCount);
   const markAsRead = useNotificationStore((s) => s.markAsRead);
@@ -138,7 +141,7 @@ export function Header() {
       {/* Left: Title */}
       <div className="flex items-center gap-3 min-w-0">
         <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold hidden sm:inline-block truncate">
-          Welcome back,
+          {t("header.welcome")}
           <span className="text-[var(--text-secondary)] ml-1">{user?.email?.split("@")[0] || "Trader"}</span>
         </span>
       </div>
@@ -163,6 +166,15 @@ export function Header() {
           <Wallet className="w-3 h-3" />
           <span className="font-mono text-[11px] font-semibold">{balance}</span>
         </div>
+
+        {/* Language Toggle */}
+        <button
+          onClick={() => setLang(lang === "en" ? "zh" : "en")}
+          className="relative p-1.5 rounded-md text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors duration-200 text-[11px] font-medium min-w-[28px]"
+          title={lang === "en" ? "Switch to 中文" : "Switch to English"}
+        >
+          {lang === "en" ? "EN" : "中文"}
+        </button>
 
         {/* Theme Toggle */}
         <button
@@ -210,13 +222,13 @@ export function Header() {
               "
             >
               <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-subtle)]">
-                <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">Notifications</span>
+                <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">{t("header.notifications")}</span>
                 <div className="flex items-center gap-1">
                   {unreadCount > 0 && (
                     <button
                       onClick={markAllRead}
                       className="p-1 rounded-md text-[10px] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors"
-                      title="Mark all read"
+                      title={t("header.markAllRead")}
                     >
                       <CheckCheck className="w-3.5 h-3.5" />
                     </button>
@@ -224,7 +236,7 @@ export function Header() {
                   <button
                     onClick={clearAll}
                     className="p-1 rounded-md text-[10px] text-[var(--text-muted)] hover:text-[var(--danger)] hover:bg-[var(--danger-glow)] transition-colors"
-                    title="Clear all"
+                    title={t("header.clearAll")}
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -234,7 +246,7 @@ export function Header() {
               <div className="max-h-[320px] overflow-y-auto divide-y divide-[var(--border-subtle)]">
                 {notifications.length === 0 ? (
                   <div className="px-4 py-8 text-center text-[11px] text-[var(--text-muted)]">
-                    No notifications yet
+                    {t("header.noNotifications")}
                   </div>
                 ) : (
                   notifications.map((n) => {
@@ -373,7 +385,7 @@ export function Header() {
                   className="w-full flex items-center gap-2 px-3 py-1.5 rounded-md text-[11px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors duration-150"
                 >
                   <User className="w-3.5 h-3.5 text-[var(--text-muted)]" />
-                  Profile
+                  {t("header.profile")}
                 </button>
                 <button
                   onClick={() => {
@@ -388,7 +400,7 @@ export function Header() {
                   "
                 >
                   <Settings className="w-3.5 h-3.5 text-[var(--text-muted)]" />
-                  Settings
+                  {t("settings.title")}
                 </button>
                 <div className="my-0.5 border-t border-[var(--border-subtle)]" />
                 <button
@@ -401,7 +413,7 @@ export function Header() {
                   "
                 >
                   <LogOut className="w-3.5 h-3.5" />
-                  Sign out
+                  {t("header.signOut")}
                 </button>
               </div>
             </div>

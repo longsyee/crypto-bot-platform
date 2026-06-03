@@ -160,7 +160,7 @@ function AiIntegrationPage() {
 
           {keysLoading ? (
             <p className="text-xs text-[var(--text-muted)]">Loading keys...</p>
-          ) : !apiKeys?.data?.length ? (
+          ) : !apiKeys?.length ? (
             <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-6 text-center">
               <Key className="w-6 h-6 text-[var(--text-muted)] mx-auto mb-2" />
               <p className="text-sm text-[var(--text-muted)]">No API keys yet.</p>
@@ -168,7 +168,7 @@ function AiIntegrationPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-px bg-[var(--border-subtle)] rounded-xl overflow-hidden border border-[var(--border-subtle)]">
-              {apiKeys.data.map((k: any) => (
+              {apiKeys.map((k: any) => (
                 <div key={k.id} className="bg-[var(--bg-card)] p-3 flex items-center justify-between">
                   <div className="min-w-0">
                     <div className="text-sm font-medium text-[var(--text-primary)] truncate">{k.name}</div>
