@@ -259,80 +259,153 @@ function SettingsPage() {
 
       {/* 2FA Setup Modal */}
       {show2FAModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-          <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-5 w-full max-w-sm mx-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-['Space_Grotesk'] text-sm font-semibold tracking-tight">{t("twoFA.setupTitle")}</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-2xl p-6 w-full max-w-sm mx-4 shadow-2xl">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 border border-[var(--primary)]/20 flex items-center justify-center text-[var(--primary)]">
+                  <Shield className="w-4 h-4" />
+                </div>
+                <h3 className="font-['Space_Grotesk'] text-sm font-semibold tracking-tight text-[var(--text-primary)]">{t("twoFA.setupTitle")}</h3>
+              </div>
               <button
                 onClick={() => { setShow2FAModal(false); setQrData(null); setTotpCode(""); }}
-                className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                className="p-1.5 rounded-md text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
+            {/* Step indicator */}
+            <div className="flex items-center gap-2 mb-5 mt-3">
+              <div className="flex items-center gap-1.5">
+                <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                  setupStep >= 1 ? "bg-[var(--primary)] text-[var(--text-invert)]" : "bg-[var(--bg-hover)] text-[var(--text-muted)]"
+                }`}>1</span>
+                <span className={`text-[11px] font-medium ${setupStep >= 1 ? "text-[var(--primary)]" : "text-[var(--text-muted)]"}`}>Scan</span>
+              </div>
+              <div className="flex-1 h-px bg-[var(--border-subtle)] relative">
+                <div className={`absolute inset-y-0 left-0 bg-[var(--primary)] transition-all duration-300 ${
+                  setupStep >= 2 ? "w-full" : "w-0"
+                }`} />
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                  setupStep >= 2 ? "bg-[var(--primary)] text-[var(--text-invert)]" : "bg-[var(--bg-hover)] text-[var(--text-muted)]"
+                }`}>2</span>
+                <span className={`text-[11px] font-medium ${setupStep >= 2 ? "text-[var(--primary)]" : "text-[var(--text-muted)]"}`}>Verify</span>
+              </div>
+            </div>
+
             {setupStep === 1 && qrData ? (
-              <div className="space-y-4">
-                <p className="text-xs text-[var(--text-muted)] leading-relaxed">{t("twoFA.setupStep1")}</p>
-                <div className="flex justify-center p-3 bg-white rounded-lg">
-                  <QRCodeSVG value={qrData.otpauthUrl} size={180} />
+              <div className="space-y-5">
+                <div className="text-center">
+                  <p className="text-sm font-medium text-[var(--text-primary)] mb-1">
+                    Scan with your authenticator app
+                  </p>
+                  <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
+                    {t("twoFA.setupStep1")}
+                  </p>
                 </div>
-                <div className="bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-lg p-2 flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={qrData.secret}
-                    readOnly
-                    className="flex-1 bg-transparent text-xs font-mono text-[var(--text-primary)] outline-none"
-                  />
-                  <button
-                    onClick={() => { navigator.clipboard.writeText(qrData.secret); toast.success("Copied"); }}
-                    className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                  >
-                    <Copy className="w-3.5 h-3.5" />
-                  </button>
+
+                {/* QR Card */}
+                <div className="bg-white rounded-xl p-4 border border-[var(--border-subtle)] shadow-sm flex justify-center">
+                  <QRCodeSVG value={qrData.otpauthUrl} size={192} />
                 </div>
+
+                {/* Secret Key */}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">{t("twoFA.secretLabel")}</label>
+                  <div className="bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-lg p-2.5 flex items-center gap-2 group hover:border-[var(--primary)]/30 transition-colors">
+                    <input
+                      type="text"
+                      value={qrData.secret}
+                      readOnly
+                      onFocus={(e) => e.currentTarget.select()}
+                      className="flex-1 bg-transparent text-xs font-mono text-[var(--text-primary)] outline-none tracking-wider"
+                    />
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(qrData.secret);
+                        toast.success(t("common.copy"));
+                      }}
+                      className="p-1.5 rounded-md text-[var(--text-muted)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors"
+                      title={t("common.copy")}
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-[var(--text-muted)]">
+                    Can&apos;t scan? Enter this code manually into your app.
+                  </p>
+                </div>
+
                 <button
                   onClick={() => setSetupStep(2)}
-                  className="w-full px-3 py-2 rounded-md bg-[var(--primary)] text-[var(--text-invert)] text-xs font-medium hover:brightness-110"
+                  className="w-full px-4 py-2.5 rounded-lg bg-[var(--primary)] text-[var(--text-invert)] text-xs font-semibold hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                 >
                   {t("common.next") || "Next"}
+                  <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               </div>
             ) : setupStep === 2 ? (
-              <div className="space-y-4">
-                <p className="text-xs text-[var(--text-muted)]">{t("twoFA.setupStep2")}</p>
+              <div className="space-y-5">
+                <div className="text-center">
+                  <div className="w-12 h-12 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20 flex items-center justify-center text-[var(--primary)] mx-auto mb-3">
+                    <KeyRound className="w-6 h-6" />
+                  </div>
+                  <p className="text-sm font-medium text-[var(--text-primary)] mb-1">
+                    Enter verification code
+                  </p>
+                  <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
+                    {t("twoFA.setupStep2")}
+                  </p>
+                </div>
+
                 <input
                   type="text"
                   value={totpCode}
                   onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
                   placeholder="000000"
-                  className="w-full px-3 py-2 rounded-md bg-[var(--bg-base)] border border-[var(--border-subtle)] text-sm text-[var(--text-primary)] text-center tracking-[0.5em] outline-none focus:border-[var(--primary)]"
+                  autoFocus
+                  className="w-full px-4 py-3 rounded-lg bg-[var(--bg-base)] border border-[var(--border-subtle)] text-lg text-[var(--text-primary)] text-center tracking-[0.75em] font-mono font-semibold outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 transition-all"
                   maxLength={6}
                 />
-                <div className="flex gap-2">
+
+                <div className="flex gap-3">
                   <button
                     onClick={() => setSetupStep(1)}
-                    className="flex-1 px-3 py-2 rounded-md border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors"
+                    className="flex-1 px-4 py-2.5 rounded-lg border border-[var(--border-subtle)] text-xs font-semibold text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] transition-colors"
                   >
                     {t("common.back") || "Back"}
                   </button>
                   <button
                     onClick={handleVerify2FA}
                     disabled={totpCode.length !== 6 || verify2FA.isPending}
-                    className="flex-1 px-3 py-2 rounded-md bg-[var(--primary)] text-[var(--text-invert)] text-xs font-medium hover:brightness-110 disabled:opacity-50"
+                    className="flex-1 px-4 py-2.5 rounded-lg bg-[var(--primary)] text-[var(--text-invert)] text-xs font-semibold hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     {verify2FA.isPending ? (
-                      <Loader2 className="w-4 h-4 animate-spin mx-auto" />
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        {t("common.verifying")}...
+                      </>
                     ) : (
-                      t("twoFA.verifyBtn")
+                      <>
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        {t("twoFA.verifyBtn")}
+                      </>
                     )}
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="text-center py-4">
-                <Loader2 className="w-5 h-5 animate-spin text-[var(--text-muted)] mx-auto" />
-                <p className="text-xs text-[var(--text-muted)] mt-2">{t("common.loading")}...</p>
+              <div className="text-center py-8">
+                <div className="relative w-10 h-10 mx-auto mb-3">
+                  <div className="absolute inset-0 rounded-full border-2 border-[var(--border-subtle)]" />
+                  <Loader2 className="w-10 h-10 animate-spin text-[var(--primary)] absolute inset-0" />
+                </div>
+                <p className="text-xs text-[var(--text-muted)]">{t("common.loading")}...</p>
               </div>
             )}
           </div>
