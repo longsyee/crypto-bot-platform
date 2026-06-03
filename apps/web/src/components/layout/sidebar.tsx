@@ -12,6 +12,8 @@ import {
   Calculator,
   Plug,
   Trophy,
+  Terminal,
+  BookOpen,
 } from "lucide-react";
 import { useAuth } from "../../hooks/use-auth";
 import { useGSAP } from "@gsap/react";
@@ -227,6 +229,42 @@ export function Sidebar() {
               onClick={() => setMobileOpen(false)}
             />
           ))}
+
+          <div className="bg-[var(--bg-elevated)] px-3 py-2 text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">
+            Developer
+          </div>
+          <Link
+            to="/ai-integration"
+            onClick={() => setMobileOpen(false)}
+            className={`
+              flex items-center gap-3 px-3 py-2 rounded-md text-[11px] font-medium
+              transition-colors duration-200
+              ${
+                pathname === "/ai-integration"
+                  ? "bg-[var(--bg-hover)] text-[var(--text-primary)] border-l-2 border-[var(--primary)]"
+                  : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]/50 border-l-2 border-transparent"
+              }
+            `}
+          >
+            <Terminal className={`w-[16px] h-[16px] shrink-0 ${pathname === "/ai-integration" ? "text-[var(--primary)]" : ""}`} />
+            <span className="truncate">AI Integration</span>
+          </Link>
+          <Link
+            to="/api-docs"
+            onClick={() => setMobileOpen(false)}
+            className={`
+              flex items-center gap-3 px-3 py-2 rounded-md text-[11px] font-medium
+              transition-colors duration-200
+              ${
+                pathname === "/api-docs"
+                  ? "bg-[var(--bg-hover)] text-[var(--text-primary)] border-l-2 border-[var(--primary)]"
+                  : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]/50 border-l-2 border-transparent"
+              }
+            `}
+          >
+            <BookOpen className={`w-[16px] h-[16px] shrink-0 ${pathname === "/api-docs" ? "text-[var(--primary)]" : ""}`} />
+            <span className="truncate">API Docs</span>
+          </Link>
 
           {user?.role === "admin" && (
             <>

@@ -18,6 +18,7 @@ import {
   AlertTriangle,
   Check,
   ExternalLink,
+  ChevronRight,
 } from "lucide-react";
 import { useApiKeys, useCreateApiKey, useRevokeApiKey } from "../hooks/use-api";
 
@@ -272,7 +273,7 @@ function AiIntegrationPage() {
                 </ul>
               </div>
               <div className="bg-[var(--bg-card)] p-3 border-t-2 border-[var(--danger)]">
-                <div className="text-[10px] uppercase tracking-widest text-[var(--danger)] font-semibold mb-1">Live Trading</li>
+                <div className="text-[10px] uppercase tracking-widest text-[var(--danger)] font-semibold mb-1">Live Trading</div>
                 <ul className="text-[11px] text-[var(--text-muted)] space-y-1 list-disc list-inside">
                   <li>Real orders on real exchanges</li>
                   <li>Requires active exchange connection</li>
@@ -304,6 +305,17 @@ function AiIntegrationPage() {
             </ul>
           </div>
 
+          <Link
+            to="/api-docs"
+            className="flex items-center justify-between bg-[var(--bg-elevated)] border border-[var(--border-subtle)] rounded-xl p-3 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors mb-3"
+          >
+            <span className="flex items-center gap-2">
+              <BookOpen className="w-4 h-4 text-[var(--accent)]" />
+              REST API Documentation
+            </span>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </Link>
+
           <a
             href={AI_DOCS_URL}
             target="_blank"
@@ -311,8 +323,8 @@ function AiIntegrationPage() {
             className="flex items-center justify-between bg-[var(--bg-elevated)] border border-[var(--border-subtle)] rounded-xl p-3 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors"
           >
             <span className="flex items-center gap-2">
-              <BookOpen className="w-4 h-4 text-[var(--accent)]" />
-              Full MCP Integration Documentation
+              <Terminal className="w-4 h-4 text-[var(--accent)]" />
+              MCP Integration Guide (GitHub)
             </span>
             <ExternalLink className="w-3.5 h-3.5" />
           </a>

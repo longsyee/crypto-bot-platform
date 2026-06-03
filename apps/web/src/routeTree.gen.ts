@@ -21,6 +21,8 @@ import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as ExchangeConnectionsRouteImport } from './routes/exchange-connections'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CalculatorRouteImport } from './routes/calculator'
+import { Route as ApiDocsRouteImport } from './routes/api-docs'
+import { Route as AiIntegrationRouteImport } from './routes/ai-integration'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BotsIndexRouteImport } from './routes/bots/index'
@@ -87,6 +89,16 @@ const CalculatorRoute = CalculatorRouteImport.update({
   path: '/calculator',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDocsRoute = ApiDocsRouteImport.update({
+  id: '/api-docs',
+  path: '/api-docs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiIntegrationRoute = AiIntegrationRouteImport.update({
+  id: '/ai-integration',
+  path: '/ai-integration',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -116,6 +128,8 @@ const BotsBotIdRoute = BotsBotIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/ai-integration': typeof AiIntegrationRoute
+  '/api-docs': typeof ApiDocsRoute
   '/calculator': typeof CalculatorRoute
   '/dashboard': typeof DashboardRoute
   '/exchange-connections': typeof ExchangeConnectionsRoute
@@ -135,6 +149,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/ai-integration': typeof AiIntegrationRoute
+  '/api-docs': typeof ApiDocsRoute
   '/calculator': typeof CalculatorRoute
   '/dashboard': typeof DashboardRoute
   '/exchange-connections': typeof ExchangeConnectionsRoute
@@ -155,6 +171,8 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/ai-integration': typeof AiIntegrationRoute
+  '/api-docs': typeof ApiDocsRoute
   '/calculator': typeof CalculatorRoute
   '/dashboard': typeof DashboardRoute
   '/exchange-connections': typeof ExchangeConnectionsRoute
@@ -176,6 +194,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/ai-integration'
+    | '/api-docs'
     | '/calculator'
     | '/dashboard'
     | '/exchange-connections'
@@ -195,6 +215,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin'
+    | '/ai-integration'
+    | '/api-docs'
     | '/calculator'
     | '/dashboard'
     | '/exchange-connections'
@@ -214,6 +236,8 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/ai-integration'
+    | '/api-docs'
     | '/calculator'
     | '/dashboard'
     | '/exchange-connections'
@@ -234,6 +258,8 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
+  AiIntegrationRoute: typeof AiIntegrationRoute
+  ApiDocsRoute: typeof ApiDocsRoute
   CalculatorRoute: typeof CalculatorRoute
   DashboardRoute: typeof DashboardRoute
   ExchangeConnectionsRoute: typeof ExchangeConnectionsRoute
@@ -337,6 +363,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CalculatorRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api-docs': {
+      id: '/api-docs'
+      path: '/api-docs'
+      fullPath: '/api-docs'
+      preLoaderRoute: typeof ApiDocsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai-integration': {
+      id: '/ai-integration'
+      path: '/ai-integration'
+      fullPath: '/ai-integration'
+      preLoaderRoute: typeof AiIntegrationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin': {
       id: '/admin'
       path: '/admin'
@@ -378,6 +418,8 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
+  AiIntegrationRoute: AiIntegrationRoute,
+  ApiDocsRoute: ApiDocsRoute,
   CalculatorRoute: CalculatorRoute,
   DashboardRoute: DashboardRoute,
   ExchangeConnectionsRoute: ExchangeConnectionsRoute,
