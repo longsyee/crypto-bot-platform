@@ -34,6 +34,7 @@ function AiIntegrationPage() {
   const [newKeyName, setNewKeyName] = useState("");
   const [createdKey, setCreatedKey] = useState("<null>");
   const [justCopied, setJustCopied] = useState(false);
+  const [copiedKeyId, setCopiedKeyId] = useState<string | null>(null);
   const [defaultMode, setDefaultMode] = useState<"paper" | "live">(() => {
     return (localStorage.getItem("ai_default_mode") as "paper" | "live") || "paper";
   });
@@ -210,21 +211,35 @@ function AiIntegrationPage() {
           ) : (
             <div className="grid grid-cols-1 gap-px bg-[var(--border-subtle)] rounded-xl overflow-hidden border border-[var(--border-subtle)]">
               {apiKeys.map((k: any) => (
-                <div key={k.id} className="bg-[var(--bg-card)] p-3 flex items-center justify-between">
-                  <div className="min-w-0">
+                <div key={k.id} className="bg-[var(--bg-card)] p-3 flex items-center justify-between gap-3">
+                  <div className="min-w-0 flex-1">
                     <div className="text-sm font-medium text-[var(--text-primary)] truncate">{k.name}</div>
                     <div className="text-[10px] text-[var(--text-muted)] font-mono mt-0.5">
                       {k.keyPrefix}•••••••• {k.lastUsedAt ? `Last used ${new Date(k.lastUsedAt).toLocaleDateString()}` : "Never used"}
                     </div>
                   </div>
-                  <button
-                    onClick={() => revokeKey.mutate(k.id)}
-                    disabled={revokeKey.isPending}
-                    className="px-2 py-1 rounded-md text-[11px] text-[var(--text-muted)] hover:text-[var(--danger)] transition-colors"
-                    title="Revoke"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(k.keyPrefix);
+                        setCopiedKeyId(k.id);
+                        toast.success(t("aiIntegration.copied"));
+                        setTimeout(() => setCopiedKeyId((prev) => prev === k.id ? null : prev), 1500);
+                      }}
+                      className="p-1.5 rounded-md text-[var(--text-muted)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors"
+                      title="Copy prefix"
+                    >
+                      {copiedKeyId === k.id ? <Check className="w-3.5 h-3.5 text-[var(--success)]" /> : <Copy className="w-3.5 h-3.5" />}
+                    </button>
+                    <button
+                      onClick={() => revokeKey.mutate(k.id)}
+                      disabled={revokeKey.isPending}
+                      className="p-1.5 rounded-md text-[var(--text-muted)] hover:text-[var(--danger)] hover:bg-[var(--danger)]/10 transition-colors"
+                      title="Revoke"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
