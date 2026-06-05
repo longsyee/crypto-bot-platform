@@ -1652,6 +1652,28 @@ export async function emergencyExit(botId: string): Promise<{ success: boolean; 
   const cfg = bot.configJson as any;
   const connector = getConnector(bot.connection.exchangeId, bot.mode, botId);
   const symbol = (bot as any).tradingPair || cfg.default_symbol || "BTC/USDT";
+  const leverage = cfg.leverage || 1;
+
+  // Connect exchange (same as startDcaLoop — required before any placeOrder calls)
+  if (bot.mode === "live") {
+    await (connector as ExchangeConnector).connect({
+      apiKey: decrypt(bot.connection.apiKeyEncrypted),
+      secret: decrypt(bot.connection.apiSecretEncrypted),
+      passphrase: bot.connection.passphraseEncrypted
+        ? decrypt(bot.connection.passphraseEncrypted)
+        : undefined,
+      testnet: bot.connection.isTestnet,
+      leverage,
+      symbol,
+    });
+  } else {
+    await (connector as ExchangeConnector).connect({
+      apiKey: "",
+      secret: "",
+      leverage,
+      symbol,
+    });
+  }
 
   let totalPnl = 0;
   const dirs = botState.mode === "dual" ? (["long", "short"] as const) : ([botState.state.direction] as const);
@@ -1662,40 +1684,48 @@ export async function emergencyExit(botId: string): Promise<{ success: boolean; 
     const sellAmount = state.totalAmount.toNumber();
     if (sellAmount <= 0) continue;
 
-    const sellOrder = await connector.placeOrder({
-      symbol,
-      side: getExitSide(dir),
-      type: "market",
-      amount: sellAmount,
-      reduceOnly: true,
-      positionSide: dir.toUpperCase() as "LONG" | "SHORT",
-    });
+    try {
+      const sellOrder = await connector.placeOrder({
+        symbol,
+        side: getExitSide(dir),
+        type: "market",
+        amount: sellAmount,
+        reduceOnly: true,
+        positionSide: dir.toUpperCase() as "LONG" | "SHORT",
+      });
 
-    const lastPrice = sellOrder.cost ? sellOrder.cost / sellAmount : 0;
-    const sellFee = estimateFee(sellOrder.cost || 0);
-    const pnl = calculateRealizedPnl(
-      lastPrice || 0,
-      sellAmount,
-      state.vwap,
-      state.totalFees.plus(sellFee),
-      dir
-    );
-    state.sessionRealizedPnl += pnl;
-    totalPnl += pnl;
-    botRiskManagers.get(botId)?.onTradeClosed(pnl);
+      const lastPrice = sellOrder.cost ? sellOrder.cost / sellAmount : 0;
+      const sellFee = estimateFee(sellOrder.cost || 0);
+      const pnl = calculateRealizedPnl(
+        lastPrice || 0,
+        sellAmount,
+        state.vwap,
+        state.totalFees.plus(sellFee),
+        dir
+      );
+      state.sessionRealizedPnl += pnl;
+      totalPnl += pnl;
+      botRiskManagers.get(botId)?.onTradeClosed(pnl);
 
-    logAlert({
-      botId,
-      message: `Emergency exit [${dir}] executed at ${lastPrice || 0}. Realized PnL: $${pnl.toFixed(4)}`,
-      metadata: {
-        exitPrice: lastPrice || 0,
-        vwap: state.vwap.toString(),
-        totalAmount: state.totalAmount.toString(),
-        pnl,
-        fees: state.totalFees.plus(sellFee).toString(),
-        direction: dir,
-      },
-    });
+      logAlert({
+        botId,
+        message: `Emergency exit [${dir}] executed at ${lastPrice || 0}. Realized PnL: $${pnl.toFixed(4)}`,
+        metadata: {
+          exitPrice: lastPrice || 0,
+          vwap: state.vwap.toString(),
+          totalAmount: state.totalAmount.toString(),
+          pnl,
+          fees: state.totalFees.plus(sellFee).toString(),
+          direction: dir,
+        },
+      });
+    } catch (err: any) {
+      logAlert({
+        botId,
+        message: `Emergency exit [${dir}] failed: ${err.message}`,
+        metadata: { error: err.message, stack: err.stack },
+      });
+    }
   }
 
   await prisma.bot.update({
