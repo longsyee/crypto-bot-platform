@@ -26,7 +26,14 @@ bots.get("/", requireAuth, async (c) => {
     },
     orderBy: { updatedAt: "desc" },
   });
-  return c.json({ success: true, data });
+  // Light-weight serialization: flatten _count and expose stateJson / paperBalance
+  const serialized = data.map((b) => ({
+    ...b,
+    ordersCount: b._count.botOrders,
+    stateJson: b.stateJson as any,
+    paperBalance: b.paperBalance as any,
+  }));
+  return c.json({ success: true, data: serialized });
 });
 
 bots.post("/", requireAuth, zValidator("json", CreateBotSchema), async (c) => {

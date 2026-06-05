@@ -55,6 +55,8 @@ interface DirectionalState {
   lastMacdSignalTime: number;
   lastRsiSignalTime: number;
   lastEmaSignalTime: number;
+  // Snapshot of last known market price for list-page PnL display
+  lastPrice: number;
 }
 
 type BotState =
@@ -375,6 +377,7 @@ export async function startDcaLoop(botId: string): Promise<void> {
             breakevenTriggered: false,
             waterfallPausedTicks: 0,
             activeTrailingTier: -1,
+            lastPrice: 0,
             guardPriceHistory: [],
             guardPausedUntil: 0,
             emaFastHistory: [],
@@ -509,6 +512,7 @@ export async function startDcaLoop(botId: string): Promise<void> {
           const currentState = getDirectionalState(botState, direction);
           if (!currentState) continue;
           currentState.tickCount++;
+          currentState.lastPrice = lastPrice;
 
           // --- Risk: guard + volatility expansion ---
           const riskManager = botRiskManagers.get(botId);
@@ -1360,6 +1364,7 @@ async function placeBaseOrder(opts: {
     breakevenTriggered: false,
     waterfallPausedTicks: 0,
     activeTrailingTier: -1,
+    lastPrice: 0,
     guardPriceHistory: [],
     guardPausedUntil: 0,
     emaFastHistory: [],
@@ -1773,6 +1778,7 @@ function createEmptyState(direction: "long" | "short"): DirectionalState {
     lastMacdSignalTime: 0,
     lastRsiSignalTime: 0,
     lastEmaSignalTime: 0,
+    lastPrice: 0,
   };
 }
 
@@ -1807,10 +1813,14 @@ function hydrateDirectionalState(persisted: any): DirectionalState {
     lastMacdSignalTime: persisted.lastMacdSignalTime || 0,
     lastRsiSignalTime: persisted.lastRsiSignalTime || 0,
     lastEmaSignalTime: persisted.lastEmaSignalTime || 0,
+    lastPrice: persisted.lastPrice || 0,
   };
 }
 
 function buildDirectionalStateJson(s: DirectionalState): object {
+  const livePrice = s.lastPrice || 0;
+  const unrealizedPnl = livePrice > 0 ? getUnrealizedPnl(livePrice, s) : 0;
+  const unrealizedPct = livePrice > 0 ? getUnrealizedPct(livePrice, s) : 0;
   return {
     direction: s.direction,
     baseOrderFilled: s.baseOrderFilled,
@@ -1827,6 +1837,7 @@ function buildDirectionalStateJson(s: DirectionalState): object {
     priceHistory: s.priceHistory,
     extremePrice: s.extremePrice,
     sessionRealizedPnl: s.sessionRealizedPnl,
+    realizedPnl: s.sessionRealizedPnl,
     peakEquity: s.peakEquity,
     chopCount: s.chopCount,
     divisionTiersHit: s.divisionTiersHit,
@@ -1836,6 +1847,9 @@ function buildDirectionalStateJson(s: DirectionalState): object {
     lastMacdSignalTime: s.lastMacdSignalTime,
     lastRsiSignalTime: s.lastRsiSignalTime,
     lastEmaSignalTime: s.lastEmaSignalTime,
+    livePrice,
+    unrealizedPnl,
+    unrealizedPct,
   };
 }
 
@@ -1855,10 +1869,16 @@ function hydrateState(persisted: any): BotState {
 
 function buildStateJson(botState: BotState): object {
   if (botState.mode === "dual") {
+    const longJson = buildDirectionalStateJson(botState.long) as any;
+    const shortJson = buildDirectionalStateJson(botState.short) as any;
     return {
       mode: "dual",
-      long: buildDirectionalStateJson(botState.long),
-      short: buildDirectionalStateJson(botState.short),
+      long: longJson,
+      short: shortJson,
+      livePrice: longJson.livePrice || shortJson.livePrice || 0,
+      realizedPnl: (longJson.realizedPnl || 0) + (shortJson.realizedPnl || 0),
+      unrealizedPnl: (longJson.unrealizedPnl || 0) + (shortJson.unrealizedPnl || 0),
+      unrealizedPct: longJson.unrealizedPct || shortJson.unrealizedPct || 0,
     };
   }
   return buildDirectionalStateJson(botState.state);

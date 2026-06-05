@@ -195,7 +195,18 @@ function BotsPage() {
 
                   {/* Floating PnL badge */}
                   <div className="relative flex items-center justify-between">
-                    {bot.paperBalance?.realizedPnl != null ? (
+                    {bot.stateJson?.unrealizedPnl != null ? (
+                      <span
+                        className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${
+                          Number(bot.stateJson.unrealizedPnl) >= 0
+                            ? "bg-[var(--success)]/10 text-[var(--success)] border-[var(--success)]/20"
+                            : "bg-[var(--danger)]/10 text-[var(--danger)] border-[var(--danger)]/20"
+                        }`}
+                      >
+                        {Number(bot.stateJson.unrealizedPnl) >= 0 ? "+" : ""}
+                        {bot.stateJson.unrealizedPnl} USDT
+                      </span>
+                    ) : bot.paperBalance?.realizedPnl != null ? (
                       <span
                         className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${
                           Number(bot.paperBalance.realizedPnl) >= 0
@@ -269,7 +280,7 @@ function BotsPage() {
                         {t("common.orders")}
                       </span>
                       <span className="text-xs font-semibold text-[var(--text-secondary)]">
-                        {bot._count?.botOrders ?? "—"}
+                        {bot.ordersCount ?? "—"}
                       </span>
                     </div>
                     <div className="bg-[var(--bg-hover)]/60 border border-[var(--border-subtle)] rounded-lg px-3 py-2 flex flex-col gap-0.5">
@@ -277,7 +288,12 @@ function BotsPage() {
                         {t("common.pnl")}
                       </span>
                       <span className="text-xs font-semibold">
-                        {bot.paperBalance?.realizedPnl != null ? (
+                        {bot.stateJson?.realizedPnl != null ? (
+                          <span className={Number(bot.stateJson.realizedPnl) >= 0 ? "text-[var(--success)]" : "text-[var(--danger)]"}>
+                            {Number(bot.stateJson.realizedPnl) >= 0 ? "+" : ""}
+                            {bot.stateJson.realizedPnl} USDT
+                          </span>
+                        ) : bot.paperBalance?.realizedPnl != null ? (
                           <span className={Number(bot.paperBalance.realizedPnl) >= 0 ? "text-[var(--success)]" : "text-[var(--danger)]"}>
                             {Number(bot.paperBalance.realizedPnl) >= 0 ? "+" : ""}
                             {bot.paperBalance.realizedPnl} USDT
@@ -292,7 +308,12 @@ function BotsPage() {
                         {t("common.profit")}
                       </span>
                       <span className="text-xs font-semibold">
-                        {bot.paperBalance?.realizedPnl != null ? (
+                        {bot.stateJson?.realizedPnl != null ? (
+                          <span className={Number(bot.stateJson.realizedPnl) >= 0 ? "text-[var(--success)]" : "text-[var(--danger)]"}>
+                            {Number(bot.stateJson.realizedPnl) >= 0 ? "+" : ""}
+                            ${bot.stateJson.realizedPnl}
+                          </span>
+                        ) : bot.paperBalance?.realizedPnl != null ? (
                           <span className={Number(bot.paperBalance.realizedPnl) >= 0 ? "text-[var(--success)]" : "text-[var(--danger)]"}>
                             {Number(bot.paperBalance.realizedPnl) >= 0 ? "+" : ""}
                             ${bot.paperBalance.realizedPnl}
