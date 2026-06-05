@@ -46,7 +46,10 @@ wallets.post("/generate-address", requireAuth, async (c) => {
   const walletServiceUrl = config.WALLET_SERVICE_URL;
   const res = await fetch(`${walletServiceUrl}/internal/generate-address`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(config.INTERNAL_API_SECRET ? { "X-Internal-Secret": config.INTERNAL_API_SECRET } : {}),
+    },
     body: JSON.stringify({ userId: user.id }),
   });
 

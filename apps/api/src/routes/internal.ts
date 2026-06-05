@@ -1,8 +1,21 @@
 import { Hono } from "hono";
 import { prisma } from "@crypto-bot-platform/prisma";
 import { recalculateReferralTier } from "../services/referral-tier";
+import { config } from "../config";
 
 const internal = new Hono();
+
+internal.use(async (c, next) => {
+  if (!config.INTERNAL_API_SECRET) {
+    await next();
+    return;
+  }
+  const secret = c.req.header("X-Internal-Secret");
+  if (secret !== config.INTERNAL_API_SECRET) {
+    return c.json({ success: false, error: "Unauthorized" }, 401);
+  }
+  await next();
+});
 
 /**
  * POST /internal/deposit-confirmed

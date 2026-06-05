@@ -12,6 +12,7 @@ const envSchema = z.object({
   ADMIN_EMAILS: z.string().default(""), // comma-separated emails that auto-get admin role
   FIRST_USER_ADMIN: z.coerce.boolean().default(false), // first registered user becomes admin
   WALLET_SERVICE_URL: z.string().url().default("http://localhost:3011"),
+  INTERNAL_API_SECRET: z.string().default(""),
   API_CALLBACK_URL: z.string().url().default("http://localhost:3010/internal/deposit-confirmed"),
   API_PORT: z.coerce.number().default(3010),
   CORS_ORIGINS: z.string().default("http://localhost:5183,http://localhost:4173,http://localhost:4174"),

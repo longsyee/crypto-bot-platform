@@ -10,7 +10,10 @@ interface DepositCallback {
 export async function sendDepositCallback(payload: DepositCallback): Promise<void> {
   const res = await fetch(walletConfig.API_CALLBACK_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(walletConfig.INTERNAL_API_SECRET ? { "X-Internal-Secret": walletConfig.INTERNAL_API_SECRET } : {}),
+    },
     body: JSON.stringify(payload),
   });
   if (!res.ok) {

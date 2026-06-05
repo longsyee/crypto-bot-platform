@@ -2,7 +2,8 @@ import { Hono } from "hono";
 import { generateBscAddress } from "../services/hd-wallet";
 import { db } from "../db/client";
 import { depositAddresses } from "../db/schema";
-import { eq } from "drizzle-orm";
+import { eq, max } from "drizzle-orm";
+import crypto from "crypto";
 
 const internal = new Hono();
 
@@ -12,13 +13,13 @@ internal.post("/generate-address", async (c) => {
   const existing = existingRows[0];
   if (existing) return c.json({ success: true, data: { address: existing.bscAddress } });
 
-  const countRes = await db.select({ count: depositAddresses.id }).from(depositAddresses);
-  const count = countRes.length;
-  const { address } = generateBscAddress(count);
+  const maxRes = await db.select({ maxIdx: max(depositAddresses.addressIndex) }).from(depositAddresses);
+  const nextIndex = (maxRes[0]?.maxIdx ?? -1) + 1;
+  const { address } = generateBscAddress(nextIndex);
   await db.insert(depositAddresses).values({
     id: crypto.randomUUID(),
     userId,
-    addressIndex: count,
+    addressIndex: nextIndex,
     bscAddress: address,
   });
   return c.json({ success: true, data: { address } });

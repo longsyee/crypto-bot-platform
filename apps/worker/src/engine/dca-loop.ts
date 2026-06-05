@@ -72,6 +72,7 @@ const botIntervals = new Map<string, NodeJS.Timeout>();
 const botPersistIntervals = new Map<string, NodeJS.Timeout>();
 const botErrorCounts = new Map<string, number>();
 const botRiskManagers = new Map<string, RiskManager>();
+const botTickLocks = new Map<string, boolean>();
 
 const MAX_CONSECUTIVE_ERRORS = 3;
 const SAFETY_COOLDOWN_TICKS = 1;
@@ -268,6 +269,10 @@ function updateDirectionalState(
 // ============================================================
 
 export async function startDcaLoop(botId: string): Promise<void> {
+  if (botIntervals.has(botId)) {
+    console.warn(`[DCA:${botId}] Loop already running; skipping duplicate start`);
+    return;
+  }
   try {
     await registerBot(botId);
     const bot = await prisma.bot.findUnique({
@@ -514,11 +519,14 @@ export async function startDcaLoop(botId: string): Promise<void> {
     // Price watch loop
     botErrorCounts.set(botId, 0);
     const interval = setInterval(async () => {
+      if (botTickLocks.get(botId)) return; // skip if previous tick still running
+      botTickLocks.set(botId, true);
       try {
         if (!botStates.has(botId)) {
           clearInterval(interval);
           clearInterval(persistInterval);
           botErrorCounts.delete(botId);
+          botTickLocks.delete(botId);
           return;
         }
         botErrorCounts.set(botId, 0);
@@ -1249,11 +1257,14 @@ export async function startDcaLoop(botId: string): Promise<void> {
             await unregisterBot(botId);
             clearInterval(interval);
             clearInterval(persistInterval);
+            botTickLocks.delete(botId);
             return;
           }
         }
 
+        botTickLocks.delete(botId);
       } catch (err: any) {
+        botTickLocks.delete(botId);
         if (err.message && err.message.includes("Insufficient balance")) {
           logAlert({
             botId,
@@ -1812,6 +1823,7 @@ export async function stopDcaLoop(botId: string): Promise<void> {
   }
   botStates.delete(botId);
   botRiskManagers.delete(botId);
+  botTickLocks.delete(botId);
   await prisma.bot.update({
     where: { id: botId },
     data: { status: "stopped", stateJson: null as any },
