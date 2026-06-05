@@ -17,10 +17,20 @@ interface AuthState {
   logout: () => void;
 }
 
+function safeParseUser(): User | null {
+  try {
+    const raw = localStorage.getItem("user");
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    localStorage.removeItem("user");
+    return null;
+  }
+}
+
 export const useAuth = create<AuthState>((set) => ({
   token: localStorage.getItem("accessToken"),
   refreshToken: localStorage.getItem("refreshToken"),
-  user: JSON.parse(localStorage.getItem("user") || "null"),
+  user: safeParseUser(),
   setAuth: (token, refreshToken, user) => {
     localStorage.setItem("accessToken", token);
     localStorage.setItem("refreshToken", refreshToken);

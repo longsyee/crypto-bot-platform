@@ -87,7 +87,11 @@ export async function api<T>(path: string, options?: RequestInit): Promise<T> {
           return retryJson.data;
         }
       }
-      logoutAndRedirect();
+      // Only logout on token-specific errors, not generic 401s from misconfigured routes
+      const tokenInvalidCodes = ["INVALID_TOKEN", "USER_GONE", "NO_TOKEN"];
+      if (tokenInvalidCodes.includes(json.code)) {
+        logoutAndRedirect();
+      }
     }
     throw new Error(json.error || res.statusText || `HTTP ${res.status}`);
   }

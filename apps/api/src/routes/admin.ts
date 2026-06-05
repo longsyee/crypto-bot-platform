@@ -122,18 +122,22 @@ admin.post("/refund", zValidator("json", RefundSchema), async (c) => {
         metadataJson: { originalTransactionId: transactionId },
       },
     }),
-    prisma.adminAuditLog.create({
-      data: {
-        adminUserId: adminUser.id,
-        action: "refund",
-        targetType: "transaction",
-        targetId: transactionId,
-        oldValueJson: { tokenBalance: oldBalance } as any,
-        newValueJson: { refunded: amount } as any,
-        ipAddress: c.req.header("x-forwarded-for") || "unknown",
-      },
-    }),
   ]);
+
+  // Audit log is best-effort; do not fail the refund if this fails
+  await prisma.adminAuditLog.create({
+    data: {
+      adminUserId: adminUser.id,
+      action: "refund",
+      targetType: "transaction",
+      targetId: transactionId,
+      oldValueJson: { tokenBalance: oldBalance } as any,
+      newValueJson: { refunded: amount } as any,
+      ipAddress: c.req.header("x-forwarded-for") || "unknown",
+    },
+  }).catch((err) => {
+    console.error("[admin/refund] Audit log failed:", err);
+  });
 
   return c.json({ success: true });
 });

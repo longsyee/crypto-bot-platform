@@ -18,7 +18,11 @@ export const authMiddleware = createMiddleware(async (c, next) => {
     }
     c.set("user", user);
     await next();
-  } catch {
-    return c.json({ success: false, error: "Invalid or expired token", code: "INVALID_TOKEN" }, 401);
+  } catch (err: any) {
+    if (err.name === "JsonWebTokenError" || err.name === "TokenExpiredError") {
+      return c.json({ success: false, error: "Invalid or expired token", code: "INVALID_TOKEN" }, 401);
+    }
+    console.error("[auth] Unexpected error:", err);
+    return c.json({ success: false, error: "Internal server error", code: "AUTH_ERROR" }, 500);
   }
 });

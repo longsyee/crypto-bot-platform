@@ -65,7 +65,8 @@ webhooks.post("/signal/:botId", webhookAuth, requirePermission("signals:write"),
         400
       );
     }
-    const expected = createHmac("sha256", secret).update(JSON.stringify(body)).digest("hex");
+    const canonicalBody = JSON.stringify(body, Object.keys(body).sort());
+    const expected = createHmac("sha256", secret).update(canonicalBody).digest("hex");
     if (signature !== expected) {
       logAlert({
         botId,
