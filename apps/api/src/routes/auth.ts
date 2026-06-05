@@ -182,6 +182,10 @@ auth.post(
       return c.json({ success: false, error: "Invalid credentials", code: "BAD_CREDENTIALS" }, 401);
     }
 
+    if (!user.emailVerified) {
+      return c.json({ success: false, error: "Email not verified", code: "EMAIL_NOT_VERIFIED" }, 403);
+    }
+
     // If 2FA is enabled, return a temporary token instead of full session
     if (user.totpEnabled) {
       const tempToken = generateTempToken(user.id);
@@ -208,20 +212,24 @@ auth.post(
   }
 );
 
-auth.post("/refresh", async (c) => {
-  const body = await c.req.json();
-  try {
-    const payload = verifyRefreshToken(body.refresh_token);
-    const user = await prisma.user.findUnique({ where: { id: payload.userId } });
-    if (!user) {
-      return c.json({ success: false, error: "User not found", code: "USER_GONE" }, 401);
+auth.post(
+  "/refresh",
+  zValidator("json", z.object({ refresh_token: z.string().min(1) })),
+  async (c) => {
+    const body = c.req.valid("json");
+    try {
+      const payload = verifyRefreshToken(body.refresh_token);
+      const user = await prisma.user.findUnique({ where: { id: payload.userId } });
+      if (!user) {
+        return c.json({ success: false, error: "User not found", code: "USER_GONE" }, 401);
+      }
+      const accessToken = generateAccessToken(user.id, user.role);
+      return c.json({ success: true, data: { accessToken } });
+    } catch {
+      return c.json({ success: false, error: "Invalid refresh token", code: "INVALID_REFRESH" }, 401);
     }
-    const accessToken = generateAccessToken(user.id, user.role);
-    return c.json({ success: true, data: { accessToken } });
-  } catch {
-    return c.json({ success: false, error: "Invalid refresh token", code: "INVALID_REFRESH" }, 401);
   }
-});
+);
 
 // ============================================================
 // 2FA TOTP
