@@ -182,12 +182,12 @@ export function Header() {
         >
           <BookOpen className="w-3.5 h-3.5" />
           <span className="whitespace-nowrap font-mono text-[11px] font-semibold">
-            {(wallet?.simFundsBalance ?? 0).toFixed(2)} SF
+            {Number(wallet?.simFundsBalance || 0).toFixed(2)} SF
           </span>
         </div>
         <div className="sm:hidden flex items-center gap-1.5 px-2 py-1 rounded-md bg-[var(--bg-card)] border border-[var(--border-subtle)] text-[var(--primary)]">
           <BookOpen className="w-3 h-3" />
-          <span className="font-mono text-[11px] font-semibold">{(wallet?.simFundsBalance ?? 0).toFixed(0)} SF</span>
+          <span className="font-mono text-[11px] font-semibold">{Number(wallet?.simFundsBalance || 0).toFixed(0)} SF</span>
         </div>
 
         {/* Language Toggle */}

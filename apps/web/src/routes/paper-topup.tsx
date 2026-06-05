@@ -61,7 +61,7 @@ function PaperTopupPage() {
             </span>
           </div>
           <p className="font-mono text-2xl font-semibold tracking-tight text-[var(--primary)]">
-            {walletLoading ? "—" : (wallet?.simFundsBalance ?? 0).toFixed(2)}
+            {walletLoading ? "—" : Number(wallet?.simFundsBalance || 0).toFixed(2)}
             <span className="text-sm text-[var(--text-muted)] font-normal ml-1">SF</span>
           </p>
         </div>
