@@ -20,7 +20,7 @@ function PaperTopupPage() {
   const rate = config?.paper_mock_rate_usdt ? parseFloat(config.paper_mock_rate_usdt) : 100;
   const usdtAmount = parseFloat(amount) || 0;
   const simFunds = usdtAmount * rate;
-  const availableUsdt = wallet?.usdtBalance ?? 0;
+  const availableUsdt = Number(wallet?.usdtBalance || 0);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
