@@ -212,6 +212,9 @@ export const dictionary = {
       mustBePositive: "Must be positive",
       edit: "Edit",
       updated: "Updated",
+      orders: "Orders",
+      pnl: "PnL",
+      profit: "Profit",
       retry: "Retry",
     },
     profile: {
@@ -1188,6 +1191,9 @@ export const dictionary = {
       mustBePositive: "必须为正数",
       edit: "编辑",
       updated: "更新时间",
+      orders: "订单",
+      pnl: "盈亏",
+      profit: "利润",
       retry: "重试",
     },
     profile: {
@@ -2216,6 +2222,9 @@ export const dictionary = {
       mustBePositive: "Mesti positif",
       edit: "Sunting",
       updated: "Dikemaskini",
+      orders: "Pesanan",
+      pnl: "Untung/Rugi",
+      profit: "Keuntungan",
       retry: "Cuba semula",
     },
     profile: {
