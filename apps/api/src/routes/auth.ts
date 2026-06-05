@@ -80,7 +80,7 @@ auth.post(
     });
 
     // Send OTP email (dev fallback prints to console)
-    await sendOtpEmail(user.email, otp).catch(() => {});
+    await sendOtpEmail(user.email, otp);
 
     // Create empty wallet
     await prisma.wallet.create({
@@ -165,7 +165,7 @@ auth.post(
       data: { emailOtp: otp, emailOtpExpiresAt: otpExpires },
     });
 
-    await sendOtpEmail(user.email, otp).catch(() => {});
+    await sendOtpEmail(user.email, otp);
 
     return c.json({ success: true, data: { message: "OTP resent" } });
   }
@@ -396,7 +396,7 @@ auth.post(
       data: { passwordResetToken: token, passwordResetExpiresAt: expires },
     });
 
-    await sendPasswordResetEmail(user.email, token).catch(() => {});
+    await sendPasswordResetEmail(user.email, token);
 
     return c.json({ success: true, data: { message: "If the email exists, a reset link has been sent." } });
   }

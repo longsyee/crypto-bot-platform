@@ -1,4 +1,6 @@
 import { Hono } from "hono";
+import { zValidator } from "@hono/zod-validator";
+import { z } from "zod";
 import { authMiddleware } from "../middleware/auth";
 import { requireAuth } from "../middleware/require-auth";
 import { prisma } from "@crypto-bot-platform/prisma";
@@ -6,34 +8,56 @@ import { config } from "../config";
 
 const wallets = new Hono();
 
+const ConvertSchema = z.object({
+  amount: z.number().positive("Amount must be positive"),
+  direction: z.enum(["usdt_to_token", "token_to_usdt"]),
+});
+
 wallets.get("/me", requireAuth, async (c) => {
   const user = c.get("user");
   const wallet = await prisma.wallet.findUnique({ where: { userId: user.id } });
   return c.json({ success: true, data: wallet });
 });
 
-wallets.post("/convert", requireAuth, async (c) => {
+wallets.post("/convert", requireAuth, zValidator("json", ConvertSchema), async (c) => {
   const user = c.get("user");
-  const { amount } = await c.req.json();
+  const { amount, direction } = c.req.valid("json");
   const wallet = await prisma.wallet.findUnique({ where: { userId: user.id } });
   if (!wallet) return c.json({ success: false, error: "Wallet not found" }, 404);
 
-  if (wallet.usdtBalance.lessThan(amount)) {
-    return c.json({ success: false, error: "Insufficient USDT balance" }, 400);
+  if (direction === "usdt_to_token") {
+    if (wallet.usdtBalance.lessThan(amount)) {
+      return c.json({ success: false, error: "Insufficient USDT balance" }, 400);
+    }
+    await prisma.$transaction([
+      prisma.wallet.update({
+        where: { userId: user.id },
+        data: { usdtBalance: { decrement: amount }, tokenBalance: { increment: amount } },
+      }),
+      prisma.transaction.create({
+        data: { walletId: wallet.id, type: "convert_out", amount, currency: "USDT", status: "confirmed" },
+      }),
+      prisma.transaction.create({
+        data: { walletId: wallet.id, type: "convert_in", amount, currency: "TOKEN", status: "confirmed" },
+      }),
+    ]);
+  } else {
+    if (wallet.tokenBalance.lessThan(amount)) {
+      return c.json({ success: false, error: "Insufficient token balance" }, 400);
+    }
+    await prisma.$transaction([
+      prisma.wallet.update({
+        where: { userId: user.id },
+        data: { tokenBalance: { decrement: amount }, usdtBalance: { increment: amount } },
+      }),
+      prisma.transaction.create({
+        data: { walletId: wallet.id, type: "convert_out", amount, currency: "TOKEN", status: "confirmed" },
+      }),
+      prisma.transaction.create({
+        data: { walletId: wallet.id, type: "convert_in", amount, currency: "USDT", status: "confirmed" },
+      }),
+    ]);
   }
-
-  await prisma.$transaction([
-    prisma.wallet.update({
-      where: { userId: user.id },
-      data: { usdtBalance: { decrement: amount }, tokenBalance: { increment: amount } },
-    }),
-    prisma.transaction.create({
-      data: { walletId: wallet.id, type: "convert_out", amount, currency: "USDT", status: "confirmed" },
-    }),
-    prisma.transaction.create({
-      data: { walletId: wallet.id, type: "convert_in", amount, currency: "TOKEN", status: "confirmed" },
-    }),
-  ]);
 
   const updated = await prisma.wallet.findUnique({ where: { userId: user.id } });
   return c.json({ success: true, data: updated });

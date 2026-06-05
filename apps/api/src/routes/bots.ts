@@ -3,7 +3,7 @@ import { authMiddleware } from "../middleware/auth";
 import { requireAuth } from "../middleware/require-auth";
 import { roleMiddleware } from "../middleware/role";
 import { prisma } from "@crypto-bot-platform/prisma";
-import { CreateBotSchema, DcaBotConfigSchema, logState, logOrder } from "@crypto-bot-platform/shared";
+import { CreateBotSchema, DcaBotConfigSchema, SignalBotConfigSchema, logState, logOrder } from "@crypto-bot-platform/shared";
 import { zValidator } from "@hono/zod-validator";
 import { Queue } from "bullmq";
 import { config } from "../config";
@@ -181,8 +181,14 @@ bots.patch("/:id", requireAuth, async (c) => {
         return c.json({ success: false, error: "Invalid DCA config", details: parsed.error.flatten() }, 400);
       }
       update.configJson = parsed.data;
+    } else if (bot.type === "signal") {
+      const parsed = SignalBotConfigSchema.safeParse(body.configJson);
+      if (!parsed.success) {
+        return c.json({ success: false, error: "Invalid signal config", details: parsed.error.flatten() }, 400);
+      }
+      update.configJson = parsed.data;
     } else {
-      update.configJson = body.configJson;
+      return c.json({ success: false, error: "Unknown bot type" }, 400);
     }
   }
   const updated = await prisma.bot.update({ where: { id }, data: update });
@@ -289,6 +295,9 @@ bots.patch("/:id/mode", requireAuth, async (c) => {
   const user = c.get("user");
   const id = c.req.param("id");
   const { mode } = await c.req.json();
+  if (!mode || !["paper", "live"].includes(mode)) {
+    return c.json({ success: false, error: "Invalid mode. Must be 'paper' or 'live'" }, 400);
+  }
   const bot = await prisma.bot.findFirst({ where: { id, userId: user.id } });
   if (!bot) return c.json({ success: false, error: "Bot not found" }, 404);
   if (bot.status !== "stopped") {

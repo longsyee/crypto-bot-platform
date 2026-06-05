@@ -21,6 +21,9 @@ export class CCXTConnector implements ExchangeConnector {
     symbol?: string;
   }): Promise<void> {
     const ExchangeClass = ccxt[this.exchangeId as keyof typeof ccxt] as any;
+    if (!ExchangeClass || !ccxt.exchanges.includes(this.exchangeId)) {
+      throw new Error(`Unsupported exchange: ${this.exchangeId}`);
+    }
     this.exchange = new ExchangeClass({
       apiKey: credentials.apiKey,
       secret: credentials.secret,

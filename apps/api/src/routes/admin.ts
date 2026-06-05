@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { Queue } from "bullmq";
 import { authMiddleware } from "../middleware/auth";
 import { roleMiddleware } from "../middleware/role";
 import { ipAllowlistMiddleware } from "../middleware/ip-allowlist";
@@ -6,6 +7,8 @@ import { prisma } from "@crypto-bot-platform/prisma";
 import { config } from "../config";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
+
+const botQueue = new Queue("bot", { connection: { url: config.REDIS_URL } });
 
 const admin = new Hono();
 
@@ -48,6 +51,7 @@ admin.post("/bots/:id/kill", async (c) => {
   const id = c.req.param("id");
   const adminUser = c.get("user");
   await prisma.bot.update({ where: { id }, data: { status: "stopped" } });
+  await botQueue.add("bot-stop", { botId: id, emergency: true });
   await prisma.adminAuditLog.create({
     data: {
       adminUserId: adminUser.id,
