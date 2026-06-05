@@ -47,31 +47,6 @@ export async function startMonitor(): Promise<void> {
   let consecutiveRateLimits = 0;
   let circuitBreakerUntil = 0;
   let scanning = false;
-  let reconnectAttempts = 0;
-
-  function attachProviderHandlers() {
-    provider.on("error", (err: any) => {
-      console.error("[MONITOR] Provider error:", err.message || err);
-    });
-    provider.on("close", () => {
-      console.warn("[MONITOR] Provider connection closed. Reconnecting...");
-      const backoff = Math.min(30_000, 2_000 * Math.pow(2, reconnectAttempts));
-      reconnectAttempts++;
-      setTimeout(() => {
-        provider = new ethers.JsonRpcProvider(walletConfig.BSC_RPC_URL);
-        attachProviderHandlers();
-        provider.getBlockNumber().then((bn) => {
-          lastCheckedBlock = bn;
-          reconnectAttempts = 0;
-          console.log("[MONITOR] Reconnected. Block:", bn);
-        }).catch((err) => {
-          console.error("[MONITOR] Reconnect failed:", err.message);
-        });
-      }, backoff);
-    });
-  }
-
-  attachProviderHandlers();
 
   // --- Smart deposit detection loop ---
   setInterval(async () => {
