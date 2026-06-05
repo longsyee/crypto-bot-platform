@@ -2,7 +2,7 @@ import { useRef, useState, useCallback, useEffect } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useToast } from "../../hooks/use-toast";
 import { useAuth } from "../../hooks/use-auth";
-import { useWallet } from "../../hooks/use-api";
+import { useWallet, useAvatar } from "../../hooks/use-api";
 import { useTheme } from "../../hooks/use-theme";
 import { useNotificationStore } from "../../hooks/use-notifications";
 import { useI18n } from "../../hooks/use-i18n";
@@ -34,6 +34,7 @@ export function Header() {
   const logout = useAuth((s) => s.logout);
   const navigate = useNavigate();
   const { data: wallet } = useWallet();
+  const { data: avatarData } = useAvatar();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const toast = useToast();
@@ -127,6 +128,8 @@ export function Header() {
     ? `${wallet.address.slice(0, 6)}...${wallet.address.slice(-4)}`
     : null;
 
+  const hasAvatar = !!avatarData && avatarData.startsWith("data:");
+
   return (
     <header
       ref={headerRef}
@@ -142,7 +145,7 @@ export function Header() {
       <div className="flex items-center gap-3 min-w-0">
         <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold hidden sm:inline-block truncate">
           {t("header.welcome")}
-          <span className="text-[var(--text-secondary)] ml-1">{user?.email?.split("@")[0] || "Trader"}</span>
+          <span className="text-[var(--text-secondary)] ml-1">{user?.email?.split("@")[0] || t("common.trader")}</span>
         </span>
       </div>
 
@@ -169,11 +172,14 @@ export function Header() {
 
         {/* Language Toggle */}
         <button
-          onClick={() => setLang(lang === "en" ? "zh" : "en")}
+          onClick={() => {
+            const next = lang === "en" ? "zh" : lang === "zh" ? "ms" : "en";
+            setLang(next);
+          }}
           className="relative p-1.5 rounded-md text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors duration-200 text-[11px] font-medium min-w-[28px]"
-          title={lang === "en" ? "Switch to 中文" : "Switch to English"}
+          title={lang === "en" ? "Switch to 中文" : lang === "zh" ? "Switch to Malay" : "Switch to English"}
         >
-          {lang === "en" ? "EN" : "中文"}
+          {lang === "en" ? "EN" : lang === "zh" ? "中文" : "MS"}
         </button>
 
         {/* Theme Toggle */}
@@ -317,8 +323,12 @@ export function Header() {
               transition-all duration-200
             "
           >
-            <div className="w-6 h-6 rounded-sm bg-[var(--accent)] flex items-center justify-center text-[10px] font-bold text-white">
-              {user?.email?.charAt(0).toUpperCase() || "U"}
+            <div className="w-6 h-6 rounded-sm overflow-hidden bg-[var(--accent)] flex items-center justify-center shrink-0">
+              {hasAvatar ? (
+                <img src={avatarData} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-[10px] font-bold text-white">{user?.email?.charAt(0).toUpperCase() || "U"}</span>
+              )}
             </div>
             <ChevronDown
               className={`
@@ -341,8 +351,12 @@ export function Header() {
               {/* User info */}
               <div className="px-4 py-3 border-b border-[var(--border-subtle)]">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-sm bg-[var(--accent)] flex items-center justify-center text-xs font-bold text-white">
-                    {user?.email?.charAt(0).toUpperCase() || "U"}
+                  <div className="w-8 h-8 rounded-sm overflow-hidden bg-[var(--accent)] flex items-center justify-center shrink-0">
+                    {hasAvatar ? (
+                      <img src={avatarData} alt="Avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-xs font-bold text-white">{user?.email?.charAt(0).toUpperCase() || "U"}</span>
+                    )}
                   </div>
                   <div className="flex flex-col min-w-0">
                     <span className="text-[11px] font-semibold text-[var(--text-primary)] truncate">

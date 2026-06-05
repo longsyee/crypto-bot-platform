@@ -37,7 +37,7 @@ function loadConfig(): ApiConfig {
 
 const config = loadConfig();
 
-export async function apiGet<T>(path: string): Promise<{ success: boolean; data?: T; error?: string; code?: string }> {
+export async function apiGet<T>(path: string): Promise<{ success: boolean; data?: T; error?: string; code?: string; meta?: any }> {
   const res = await fetch(`${config.apiBaseUrl}${path}`, {
     headers: {
       "X-API-Key": config.apiKey,
@@ -47,7 +47,7 @@ export async function apiGet<T>(path: string): Promise<{ success: boolean; data?
   return res.json() as any;
 }
 
-export async function apiPost<T>(path: string, body: unknown): Promise<{ success: boolean; data?: T; error?: string; code?: string }> {
+export async function apiPost<T>(path: string, body: unknown): Promise<{ success: boolean; data?: T; error?: string; code?: string; meta?: any }> {
   const res = await fetch(`${config.apiBaseUrl}${path}`, {
     method: "POST",
     headers: {
@@ -59,7 +59,7 @@ export async function apiPost<T>(path: string, body: unknown): Promise<{ success
   return res.json() as any;
 }
 
-export async function apiPatch<T>(path: string, body: unknown): Promise<{ success: boolean; data?: T; error?: string; code?: string }> {
+export async function apiPatch<T>(path: string, body: unknown): Promise<{ success: boolean; data?: T; error?: string; code?: string; meta?: any }> {
   const res = await fetch(`${config.apiBaseUrl}${path}`, {
     method: "PATCH",
     headers: {
@@ -71,7 +71,7 @@ export async function apiPatch<T>(path: string, body: unknown): Promise<{ succes
   return res.json() as any;
 }
 
-export async function apiDelete<T>(path: string): Promise<{ success: boolean; data?: T; error?: string; code?: string }> {
+export async function apiDelete<T>(path: string): Promise<{ success: boolean; data?: T; error?: string; code?: string; meta?: any }> {
   const res = await fetch(`${config.apiBaseUrl}${path}`, {
     method: "DELETE",
     headers: {

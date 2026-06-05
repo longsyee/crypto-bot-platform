@@ -1,5 +1,13 @@
 import { createMiddleware } from "hono/factory";
 import { prisma } from "@crypto-bot-platform/prisma";
+import { Redis } from "ioredis";
+import { config } from "../config";
+
+const redis = new Redis(config.REDIS_URL);
+
+/** Per-key rate limit: 120 requests per 60-second window */
+const KEY_MAX = 120;
+const KEY_WINDOW = 60;
 
 /**
  * Middleware that authenticates via X-API-Key header.
@@ -58,6 +66,16 @@ export const apiKeyAuthMiddleware = createMiddleware(async (c, next) => {
   // Check user suspension
   if (matched.user.suspended) {
     return c.json({ success: false, error: "Account suspended", code: "ACCOUNT_SUSPENDED" }, 403);
+  }
+
+  // Per-key rate limiting
+  const rlKey = `ratelimit:apikey:${matched.id}`;
+  const current = await redis.incr(rlKey);
+  if (current === 1) {
+    await redis.expire(rlKey, KEY_WINDOW);
+  }
+  if (current > KEY_MAX) {
+    return c.json({ success: false, error: "API key rate limit exceeded", code: "API_KEY_RATE_LIMIT" }, 429);
   }
 
   // Update lastUsedAt (fire-and-forget)

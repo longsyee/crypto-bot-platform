@@ -6,6 +6,7 @@ import { Decimal } from "@prisma/client/runtime/library";
 import { logOrder, logTrade, logState, logFee, logAlert } from "@crypto-bot-platform/shared";
 import type { ExchangeConnector } from "../exchange/connector";
 import { checkIndicatorSignal } from "../indicators";
+import { RiskManager, checkGlobalCorrelation } from "./risk-manager";
 
 // ============================================================
 // Types
@@ -43,6 +44,17 @@ interface DirectionalState {
   breakevenTriggered: boolean;
   waterfallPausedTicks: number;
   activeTrailingTier: number; // index of current trailing tier, -1 = none
+  // Guard
+  guardPriceHistory: { price: number; ts: number }[];
+  guardPausedUntil: number;
+  // Trend / RSI tracking
+  emaFastHistory: number[];
+  emaSlowHistory: number[];
+  rsiValue: number | null;
+  // Signal deduplication (Sample/newRobot style)
+  lastMacdSignalTime: number;
+  lastRsiSignalTime: number;
+  lastEmaSignalTime: number;
 }
 
 type BotState =
@@ -57,15 +69,13 @@ const botStates = new Map<string, BotState>();
 const botIntervals = new Map<string, NodeJS.Timeout>();
 const botPersistIntervals = new Map<string, NodeJS.Timeout>();
 const botErrorCounts = new Map<string, number>();
+const botRiskManagers = new Map<string, RiskManager>();
 
 const MAX_CONSECUTIVE_ERRORS = 3;
 const SAFETY_COOLDOWN_TICKS = 1;
 const POSITION_SYNC_INTERVAL = 10;
 const FUNDING_RATE_INTERVAL = 30;
-const WATERFALL_WINDOW_TICKS = 12; // 60s at 5s tick
-const WATERFALL_PAUSE_TICKS = 6; // 30s pause
 const LIMIT_ORDER_MAX_TICKS = 10; // cancel & re-place after 50s
-const BREAKEVEN_BUFFER_PCT = 0.3; // must exceed VWAP by 0.3% before breakeven activates
 
 // ============================================================
 // Helpers
@@ -93,12 +103,72 @@ function getExitSide(direction: "long" | "short"): "buy" | "sell" {
   return direction === "long" ? "sell" : "buy";
 }
 
-function getNextSafetyOrderSize(baseSize: number, volumeScale: number, safetyOrdersFilled: number): number {
+function getNextSafetyOrderSize(
+  baseSize: number,
+  volumeScale: number,
+  safetyOrdersFilled: number,
+  rounds?: any[],
+  roundIndex?: number
+): number {
+  if (rounds && roundIndex !== undefined && rounds[roundIndex]) {
+    const r = rounds[roundIndex];
+    if (roundIndex === 0) return baseSize * (r.multiplier || 1);
+    const prev = getNextSafetyOrderSize(baseSize, volumeScale, safetyOrdersFilled - 1, rounds, roundIndex - 1);
+    return prev * (r.multiplier || 1);
+  }
   return baseSize * Math.pow(volumeScale, safetyOrdersFilled);
 }
 
-function getNextDeviationTrigger(initialDeviation: number, stepScale: number, safetyOrdersFilled: number): number {
+function getNextDeviationTrigger(
+  initialDeviation: number,
+  stepScale: number,
+  safetyOrdersFilled: number,
+  rounds?: any[],
+  roundIndex?: number
+): number {
+  if (rounds && roundIndex !== undefined && rounds[roundIndex]) {
+    return rounds[roundIndex].price_fluctuation_pct ?? initialDeviation;
+  }
   return initialDeviation * Math.pow(stepScale, safetyOrdersFilled);
+}
+
+function calculateEMA(values: number[], period: number): number {
+  if (values.length < period) return values[values.length - 1] || 0;
+  const k = 2 / (period + 1);
+  let ema = values[0];
+  for (let i = 1; i < values.length; i++) {
+    ema = values[i] * k + ema * (1 - k);
+  }
+  return ema;
+}
+
+function calculateRSI(closes: number[], period: number = 14): number {
+  if (closes.length < period + 1) return 50;
+  let gains = 0;
+  let losses = 0;
+  for (let i = 1; i <= period; i++) {
+    const change = closes[closes.length - i] - closes[closes.length - i - 1];
+    if (change > 0) gains += change;
+    else losses += Math.abs(change);
+  }
+  const avgGain = gains / period;
+  const avgLoss = losses / period;
+  if (avgLoss === 0) return 100;
+  const rs = avgGain / avgLoss;
+  return 100 - (100 / (1 + rs));
+}
+
+function computeTrend(state: DirectionalState, cfg: any, lastPrice: number): "uptrend" | "downtrend" | "neutral" {
+  if (!cfg.ema_fast || !cfg.ema_slow) return "neutral";
+  state.emaFastHistory.push(lastPrice);
+  state.emaSlowHistory.push(lastPrice);
+  if (state.emaFastHistory.length > cfg.ema_fast * 2) state.emaFastHistory.shift();
+  if (state.emaSlowHistory.length > cfg.ema_slow * 2) state.emaSlowHistory.shift();
+  const fast = calculateEMA(state.emaFastHistory, cfg.ema_fast);
+  const slow = calculateEMA(state.emaSlowHistory, cfg.ema_slow);
+  if (fast > slow * 1.001) return "uptrend";
+  if (fast < slow * 0.999) return "downtrend";
+  return "neutral";
 }
 
 function shouldTriggerSafetyOrder(
@@ -133,21 +203,6 @@ function shouldTriggerFixedTakeProfit(
   }
 }
 
-function shouldTriggerStopLoss(
-  lastPrice: number,
-  vwap: Decimal,
-  stopLossPercent: number,
-  direction: "long" | "short"
-): boolean {
-  if (direction === "long") {
-    const slPrice = vwap.mul(1 - stopLossPercent / 100);
-    return new Decimal(lastPrice).lte(slPrice);
-  } else {
-    const slPrice = vwap.mul(1 + stopLossPercent / 100);
-    return new Decimal(lastPrice).gte(slPrice);
-  }
-}
-
 function calculateRealizedPnl(
   sellPrice: number,
   sellAmount: number,
@@ -172,24 +227,6 @@ function getUnrealizedPct(lastPrice: number, state: DirectionalState): number {
   const pnl = getUnrealizedPnl(lastPrice, state);
   const costBasis = state.vwap.mul(state.totalAmount.toNumber()).toNumber();
   return costBasis > 0 ? (pnl / costBasis) * 100 : 0;
-}
-
-function checkWaterfall(state: DirectionalState, ratio: number): boolean {
-  if (state.priceHistory.length < 3) return false;
-  const prices = state.priceHistory;
-  const min = Math.min(...prices);
-  const max = Math.max(...prices);
-  if (min <= 0) return false;
-  const volatility = ((max - min) / min) * 100;
-  return volatility > ratio;
-}
-
-function getBreakevenPrice(vwap: Decimal, bufferPct: number, direction: "long" | "short"): Decimal {
-  if (direction === "long") {
-    return vwap.mul(1 + bufferPct / 100);
-  } else {
-    return vwap.mul(1 - bufferPct / 100);
-  }
 }
 
 function getDirectionList(cfg: any): ("long" | "short")[] {
@@ -338,6 +375,14 @@ export async function startDcaLoop(botId: string): Promise<void> {
             breakevenTriggered: false,
             waterfallPausedTicks: 0,
             activeTrailingTier: -1,
+            guardPriceHistory: [],
+            guardPausedUntil: 0,
+            emaFastHistory: [],
+            emaSlowHistory: [],
+            rsiValue: null,
+            lastMacdSignalTime: 0,
+            lastRsiSignalTime: 0,
+            lastEmaSignalTime: 0,
           };
           botState = { mode: "single", state };
           botStates.set(botId, botState);
@@ -348,49 +393,74 @@ export async function startDcaLoop(botId: string): Promise<void> {
               stateJson: buildStateJson(botState) as any,
             },
           });
-        } else if (cfg.indicator_type && cfg.indicator_type !== "none") {
-          const state = createEmptyState(direction);
-          botState = { mode: "single", state };
-          botStates.set(botId, botState);
-          await prisma.bot.update({
-            where: { id: botId },
-            data: {
-              safetyOrdersPlaced: 0,
-              stateJson: buildStateJson(botState) as any,
-            },
-          });
-          logState({
-            botId,
-            message: `DCA bot waiting for ${cfg.indicator_type} signal (${cfg.indicator_timeframe || "1h"}) before first order`,
-            metadata: {
-              indicator_type: cfg.indicator_type,
-              indicator_timeframe: cfg.indicator_timeframe,
-              direction,
-            },
-          });
         } else {
-          await placeBaseOrder({
-            botId,
-            symbol,
-            orderType,
-            leverage,
-            connector,
-            cfg,
-            direction,
-            lastPrice: 0, // will fetch ticker inside
-          });
-          botState = botStates.get(botId)!;
+          const hasEntrySignals = cfg.macd_signal_enabled || cfg.rsi_signal_enabled || cfg.ema_entry_enabled || (cfg.indicator_type && cfg.indicator_type !== "none");
+          if (hasEntrySignals) {
+            const state = createEmptyState(direction);
+            botState = { mode: "single", state };
+            botStates.set(botId, botState);
+            await prisma.bot.update({
+              where: { id: botId },
+              data: {
+                safetyOrdersPlaced: 0,
+                stateJson: buildStateJson(botState) as any,
+              },
+            });
+            const activeSignals = [
+              cfg.macd_signal_enabled && "MACD",
+              cfg.rsi_signal_enabled && "RSI",
+              cfg.ema_entry_enabled && "EMA",
+              cfg.indicator_type && cfg.indicator_type !== "none" && cfg.indicator_type,
+            ].filter(Boolean).join(" + ");
+            logState({
+              botId,
+              message: `DCA bot waiting for ${activeSignals} signal before first order`,
+              metadata: {
+                indicator_timeframe: cfg.indicator_timeframe,
+                direction,
+              },
+            });
+          } else {
+            await placeBaseOrder({
+              botId,
+              symbol,
+              orderType,
+              leverage,
+              connector,
+              cfg,
+              direction,
+              lastPrice: 0, // will fetch ticker inside
+            });
+            botState = botStates.get(botId)!;
+          }
         }
       }
+    }
+
+    // Initialize risk manager (hydrate if stateJson has persisted risk state)
+    const persistedRiskState = (bot.stateJson as any)?.riskManager;
+    const riskManager = RiskManager.hydrate(botId, cfg, persistedRiskState);
+    botRiskManagers.set(botId, riskManager);
+
+    // Warn if multiple bots are running on the same symbol
+    const correlation = await checkGlobalCorrelation(botId, symbol, prisma);
+    if (correlation.overlapCount > 0) {
+      logAlert({ botId, message: `[RISK] Correlation warning: ${correlation.warning}` });
     }
 
     // Persist state to DB every 30s
     const persistInterval = setInterval(async () => {
       const s = botStates.get(botId);
       if (!s) return;
+      const rm = botRiskManagers.get(botId);
       await prisma.bot.update({
         where: { id: botId },
-        data: { stateJson: buildStateJson(s) as any },
+        data: {
+          stateJson: {
+            ...buildStateJson(s),
+            riskManager: rm?.serialize(),
+          } as any,
+        },
       });
       const dirStates = s.mode === "dual" ? [s.long, s.short] : [s.state];
       for (const ds of dirStates) {
@@ -440,9 +510,29 @@ export async function startDcaLoop(botId: string): Promise<void> {
           if (!currentState) continue;
           currentState.tickCount++;
 
-          // Update price history for waterfall detection
+          // --- Risk: guard + volatility expansion ---
+          const riskManager = botRiskManagers.get(botId);
+          if (!riskManager) {
+            logState({ botId, message: "Risk manager not initialized — skipping tick" });
+            continue;
+          }
+          const guardRisk = riskManager.checkGuard(lastPrice, currentState);
+          if (guardRisk.action === "pause") {
+            logState({ botId, message: guardRisk.reason, metadata: guardRisk.metadata });
+            continue;
+          }
+          const volRisk = riskManager.checkVolatilityExpansion(currentState);
+          if (volRisk.action === "pause") {
+            logState({ botId, message: volRisk.reason, metadata: volRisk.metadata });
+            continue;
+          }
+
+          // Compute trend for this tick
+          const trend = computeTrend(currentState, cfg, lastPrice);
+
+          // Update price history for waterfall detection (12-tick rolling window)
           currentState.priceHistory.push(lastPrice);
-          if (currentState.priceHistory.length > WATERFALL_WINDOW_TICKS) {
+          if (currentState.priceHistory.length > 12) {
             currentState.priceHistory.shift();
           }
 
@@ -469,56 +559,163 @@ export async function startDcaLoop(botId: string): Promise<void> {
 
         // --- Base order (indicator-driven or immediate) ---
         if (!currentState.baseOrderFilled) {
-          if (cfg.indicator_type && cfg.indicator_type !== "none") {
+          const hasEntrySignals = cfg.macd_signal_enabled || cfg.rsi_signal_enabled || cfg.ema_entry_enabled || (cfg.indicator_type && cfg.indicator_type !== "none");
+          let shouldEnter = !hasEntrySignals; // wait for signals if any are enabled
+          let entryReason = hasEntrySignals ? "waiting for signals" : "immediate";
+
+          // MACD entry signal (golden cross on histogram)
+          if (cfg.macd_signal_enabled) {
             try {
-              const candles = await connector.fetchOHLCV(
-                symbol,
-                cfg.indicator_timeframe || "1h",
-                100
-              );
-              const closes = candles.map((c) => c.close);
+              const candles = await connector.fetchOHLCV(symbol, cfg.indicator_timeframe || "1h", 100);
+              const closes = candles.map((c: any) => c.close);
+              const result = checkIndicatorSignal("macd", closes, {});
+              const candleTime = (candles[candles.length - 1] as any)?.timestamp || (candles[candles.length - 1] as any)?.[0] || 0;
+              if (result.signal && candleTime !== currentState.lastMacdSignalTime) {
+                currentState.lastMacdSignalTime = candleTime;
+                logState({ botId, message: `MACD signal passed: ${result.reason}`, metadata: { price: lastPrice } });
+              } else if (!result.signal) {
+                shouldEnter = false;
+                entryReason = result.reason;
+              } else {
+                shouldEnter = false;
+                entryReason = "MACD signal already acted on this candle";
+              }
+            } catch (_e) {
+              shouldEnter = false;
+              entryReason = "MACD check failed";
+            }
+          }
+
+          // RSI signal gating
+          if (shouldEnter && cfg.rsi_signal_enabled) {
+            try {
+              const candles = await connector.fetchOHLCV(symbol, cfg.indicator_timeframe || "1h", 100);
+              const closes = candles.map((c: any) => c.close);
+              const rsi = calculateRSI(closes, 14);
+              currentState.rsiValue = rsi;
+              const candleTime = (candles[candles.length - 1] as any)?.timestamp || (candles[candles.length - 1] as any)?.[0] || 0;
+              const blocked = (direction === "long" && rsi > (cfg.rsi_upper || 70)) || (direction === "short" && rsi < (cfg.rsi_lower || 30));
+              if (blocked) {
+                shouldEnter = false;
+                entryReason = `RSI ${rsi.toFixed(1)} unfavorable for ${direction}`;
+              } else if (candleTime === currentState.lastRsiSignalTime) {
+                shouldEnter = false;
+                entryReason = "RSI signal already acted on this candle";
+              } else {
+                currentState.lastRsiSignalTime = candleTime;
+                logState({ botId, message: `RSI signal passed: ${rsi.toFixed(1)} for ${direction}`, metadata: { price: lastPrice } });
+              }
+            } catch (_e) {
+              shouldEnter = false;
+              entryReason = "RSI check failed";
+            }
+          }
+
+          // EMA entry signal (golden cross)
+          if (shouldEnter && cfg.ema_entry_enabled) {
+            try {
+              const candles = await connector.fetchOHLCV(symbol, cfg.indicator_timeframe || "1h", 100);
+              const closes = candles.map((c: any) => c.close);
+              const result = checkIndicatorSignal("ema_cross", closes, {
+                emaShort: cfg.ema_fast || 9,
+                emaLong: cfg.ema_slow || 26,
+              });
+              const candleTime = (candles[candles.length - 1] as any)?.timestamp || (candles[candles.length - 1] as any)?.[0] || 0;
+              if (result.signal && candleTime !== currentState.lastEmaSignalTime) {
+                currentState.lastEmaSignalTime = candleTime;
+                logState({ botId, message: `EMA signal passed: ${result.reason}`, metadata: { price: lastPrice } });
+              } else if (!result.signal) {
+                shouldEnter = false;
+                entryReason = result.reason;
+              } else {
+                shouldEnter = false;
+                entryReason = "EMA signal already acted on this candle";
+              }
+            } catch (_e) {
+              shouldEnter = false;
+              entryReason = "EMA check failed";
+            }
+          }
+
+          // Legacy indicator check (manual indicator_type)
+          if (shouldEnter && cfg.indicator_type && cfg.indicator_type !== "none") {
+            try {
+              const candles = await connector.fetchOHLCV(symbol, cfg.indicator_timeframe || "1h", 100);
+              const closes = candles.map((c: any) => c.close);
               const result = checkIndicatorSignal(cfg.indicator_type, closes, {
                 rsiPeriod: cfg.rsi_period,
                 rsiThreshold: cfg.rsi_threshold,
                 emaShort: cfg.ema_short,
                 emaLong: cfg.ema_long,
               });
-              if (result.signal) {
-                await placeBaseOrder({
-                  botId,
-                  symbol,
-                  orderType,
-                  leverage,
-                  connector,
-                  cfg,
-                  direction,
-                  lastPrice,
-                  reason: result.reason,
-                });
-              } else {
+              if (!result.signal) {
+                shouldEnter = false;
+                entryReason = result.reason;
+              }
+            } catch (_e) {
+              shouldEnter = false;
+              entryReason = "Indicator check failed";
+            }
+          }
+
+          // Trend-following mode: only enter with trend (additional filter after signals)
+          if (shouldEnter && cfg.trend_following_mode) {
+            if (trend === "neutral") {
+              shouldEnter = false;
+              entryReason = "accumulating EMA data for trend detection";
+              logState({
+                botId,
+                message: `Trend-following: skipping ${direction} entry (accumulating EMA data)`,
+                metadata: { emaFastLength: currentState.emaFastHistory.length, emaSlowLength: currentState.emaSlowHistory.length, price: lastPrice },
+              });
+            } else {
+              const trendDirection = trend === "uptrend" ? "long" : "short";
+              if (direction !== trendDirection) {
+                shouldEnter = false;
+                entryReason = `trend is ${trend}`;
                 logState({
                   botId,
-                  message: `Waiting for ${cfg.indicator_type} signal: ${result.reason}`,
-                  metadata: {
-                    indicator: cfg.indicator_type,
-                    timeframe: cfg.indicator_timeframe,
-                    reason: result.reason,
-                    price: lastPrice,
-                  },
+                  message: `Trend-following: skipping ${direction} entry (trend is ${trend})`,
+                  metadata: { trend, direction, price: lastPrice },
                 });
-                continue;
               }
-            } catch (indicatorErr: any) {
-              logAlert({
-                botId,
-                message: `Indicator check failed: ${indicatorErr.message}. Will retry on next tick.`,
-                metadata: { error: indicatorErr.message },
-              });
-              continue;
             }
-          } else {
-            await placeBaseOrder({ botId, symbol, orderType, leverage, connector, cfg, direction, lastPrice });
           }
+
+          // Reverse-trend entry: enter against trend (additional filter after signals)
+          if (shouldEnter && cfg.reverse_trend_entry_enabled) {
+            if (trend === "neutral") {
+              shouldEnter = false;
+              entryReason = "accumulating EMA data for trend detection";
+              logState({
+                botId,
+                message: `Reverse-trend: skipping ${direction} entry (accumulating EMA data)`,
+                metadata: { emaFastLength: currentState.emaFastHistory.length, emaSlowLength: currentState.emaSlowHistory.length, price: lastPrice },
+              });
+            } else {
+              const trendDirection = trend === "uptrend" ? "long" : "short";
+              if (direction === trendDirection) {
+                shouldEnter = false;
+                entryReason = `trend is ${trend}`;
+                logState({
+                  botId,
+                  message: `Reverse-trend: skipping ${direction} entry (trend is ${trend})`,
+                  metadata: { trend, direction, price: lastPrice },
+                });
+              }
+            }
+          }
+
+          if (!shouldEnter) {
+            logState({
+              botId,
+              message: `Base order skipped: ${entryReason}`,
+              metadata: { reason: entryReason, price: lastPrice, trend, direction },
+            });
+            continue;
+          }
+
+          await placeBaseOrder({ botId, symbol, orderType, leverage, connector, cfg, direction, lastPrice });
         }
 
         // Must have base order to proceed
@@ -530,6 +727,18 @@ export async function startDcaLoop(botId: string): Promise<void> {
         // --- Position sync ---
         if (currentState.tickCount % POSITION_SYNC_INTERVAL === 0 && connector.fetchPositions) {
           await syncPosition({ botId, symbol, connector, state: currentState });
+
+          // Risk: liquidation proximity + account concentration (run every sync)
+          const liqRisk = await riskManager.checkLiquidationProximity(symbol, connector, currentState);
+          if (liqRisk.action === "stop") {
+            logAlert({ botId, message: liqRisk.reason, metadata: liqRisk.metadata });
+            await emergencyExit(botId);
+            return;
+          }
+          const acctRisk = await riskManager.checkAccountRisk(symbol, connector, currentState);
+          if (acctRisk.action !== "allow") {
+            logAlert({ botId, message: acctRisk.reason, metadata: acctRisk.metadata });
+          }
         }
 
         // --- Funding rate check ---
@@ -548,64 +757,42 @@ export async function startDcaLoop(botId: string): Promise<void> {
           }
         }
 
-        // --- Risk limits ---
-        const unrealizedPnl = getUnrealizedPnl(lastPrice, currentState);
-        const currentEquity = currentState.totalCost.toNumber() + unrealizedPnl;
-        if (currentEquity > currentState.peakEquity) {
-          currentState.peakEquity = currentEquity;
-        }
-
-        if (cfg.max_session_loss_usdt && getTotalSessionPnl(botState) < -cfg.max_session_loss_usdt) {
-          logAlert({
-            botId,
-            message: `Session loss limit reached: $${currentState.sessionRealizedPnl.toFixed(2)} < -$${cfg.max_session_loss_usdt}. Stopping bot.`,
-            metadata: { sessionRealizedPnl: currentState.sessionRealizedPnl, maxSessionLoss: cfg.max_session_loss_usdt },
-          });
+        // --- Risk: session loss / drawdown / daily loss / holding time / consecutive losses ---
+        const sessionPnl = getTotalSessionPnl(botState);
+        const preTradeRisk = riskManager.evaluateDirection(lastPrice, currentState, sessionPnl);
+        if (preTradeRisk.action === "stop") {
+          logAlert({ botId, message: preTradeRisk.reason, metadata: preTradeRisk.metadata });
           await emergencyExit(botId);
           return;
         }
+        // pause = waterfall/guard already handled above; skip safety orders but allow TP/SL
+        const isPaused = preTradeRisk.action === "pause";
 
-        if (cfg.max_drawdown_pct && currentState.peakEquity > 0) {
-          const drawdown = ((currentState.peakEquity - currentEquity) / currentState.peakEquity) * 100;
-          if (drawdown >= cfg.max_drawdown_pct) {
-            logAlert({
-              botId,
-              message: `Max drawdown reached: ${drawdown.toFixed(2)}% ≥ ${cfg.max_drawdown_pct}%. Stopping bot.`,
-              metadata: { drawdown, maxDrawdown: cfg.max_drawdown_pct, peakEquity: currentState.peakEquity, currentEquity },
-            });
-            await emergencyExit(botId);
-            return;
-          }
-        }
-
-        // --- Waterfall prevention ---
-        if (cfg.waterfall_prevention) {
-          if (currentState.waterfallPausedTicks > 0) {
-            currentState.waterfallPausedTicks--;
-            logState({
-              botId,
-              message: `Waterfall pause active: ${currentState.waterfallPausedTicks} ticks remaining`,
-              metadata: { waterfallPausedTicks: currentState.waterfallPausedTicks },
-            });
-          } else if (checkWaterfall(currentState, cfg.waterfall_prevention_ratio || 3)) {
-            currentState.waterfallPausedTicks = WATERFALL_PAUSE_TICKS;
-            logAlert({
-              botId,
-              message: `Waterfall detected! Volatility exceeded ${cfg.waterfall_prevention_ratio}%. Pausing safety orders for ${WATERFALL_PAUSE_TICKS} ticks.`,
-              metadata: { priceHistory: currentState.priceHistory.slice(-5) },
-            });
-          }
+        // --- Risk: waterfall (managed by risk manager, decrements ticks internally) ---
+        const waterfallRisk = riskManager.checkWaterfall(currentState);
+        if (waterfallRisk.action === "pause" && currentState.waterfallPausedTicks > 0) {
+          currentState.waterfallPausedTicks--;
         }
 
         // --- Safety orders ---
-        const nextDeviation = getNextDeviationTrigger(
+        const roundIndex = currentState.safetyOrdersFilled;
+        const rounds = cfg.rounds && cfg.rounds.length > 0 ? cfg.rounds : undefined;
+        let nextDeviation = getNextDeviationTrigger(
           cfg.price_deviation_initial,
           cfg.safety_order_step_scale,
-          currentState.safetyOrdersFilled
+          currentState.safetyOrdersFilled,
+          rounds,
+          roundIndex
         );
 
+        // Trend DCA: adjust deviation based on trend
+        if (cfg.trend_dca_enabled && trend !== "neutral") {
+          const adjustment = trend === "uptrend" ? 0.8 : 1.2;
+          nextDeviation = nextDeviation * adjustment;
+        }
+
         const canPlaceSafety =
-          currentState.waterfallPausedTicks <= 0 &&
+          !isPaused &&
           currentState.tickCount - currentState.lastSafetyTick >= SAFETY_COOLDOWN_TICKS &&
           currentState.safetyOrdersFilled < cfg.safety_order_max_count &&
           shouldTriggerSafetyOrder(lastPrice, currentState.vwap, nextDeviation, direction);
@@ -619,7 +806,7 @@ export async function startDcaLoop(botId: string): Promise<void> {
                 cfg.indicator_timeframe || "1h",
                 100
               );
-              const closes = candles.map((c) => c.close);
+              const closes = candles.map((c: any) => c.close);
               const result = checkIndicatorSignal(cfg.cover_indicator_type, closes, {
                 rsiPeriod: cfg.rsi_period,
                 rsiThreshold: cfg.rsi_threshold,
@@ -648,6 +835,9 @@ export async function startDcaLoop(botId: string): Promise<void> {
             cfg,
             state: currentState,
             lastPrice,
+            nextDeviation,
+            roundIndex,
+            rounds,
           });
         }
 
@@ -681,6 +871,7 @@ export async function startDcaLoop(botId: string): Promise<void> {
 
               currentState.divisionTiersHit.push(i);
               currentState.sessionRealizedPnl += pnl;
+              riskManager?.onTradeClosed(pnl);
 
               // Recalculate VWAP on remaining position
               const remainingAmount = currentState.totalAmount.minus(sellAmount);
@@ -775,6 +966,7 @@ export async function startDcaLoop(botId: string): Promise<void> {
                 direction
               );
               currentState.sessionRealizedPnl += pnl;
+              riskManager?.onTradeClosed(pnl);
 
               logTrade({
                 botId,
@@ -815,6 +1007,7 @@ export async function startDcaLoop(botId: string): Promise<void> {
               direction
             );
             currentState.sessionRealizedPnl += pnl;
+            riskManager?.onTradeClosed(pnl);
 
             logTrade({
               botId,
@@ -834,47 +1027,17 @@ export async function startDcaLoop(botId: string): Promise<void> {
           }
         }
 
-        // --- Breakeven stop-loss ---
-        if (
-          cfg.breakeven_after_safety_orders > 0 &&
-          currentState.safetyOrdersFilled >= cfg.breakeven_after_safety_orders &&
-          !currentState.breakevenTriggered
-        ) {
-          const bePrice = getBreakevenPrice(currentState.vwap, BREAKEVEN_BUFFER_PCT, direction);
-          const hitBreakeven = direction === "long"
-            ? new Decimal(lastPrice).gte(bePrice)
-            : new Decimal(lastPrice).lte(bePrice);
-
-          if (hitBreakeven) {
-            currentState.breakevenTriggered = true;
-            logState({
-              botId,
-              message: `Breakeven SL armed at ${currentState.vwap.toFixed(2)} + ${BREAKEVEN_BUFFER_PCT}% buffer`,
-              metadata: { breakevenPrice: currentState.vwap.toString(), bufferPct: BREAKEVEN_BUFFER_PCT },
-            });
-          }
+        // --- Risk: breakeven arm + stop-loss (fixed + breakeven triggered) ---
+        const beArm = riskManager.checkBreakevenStopLoss(lastPrice, currentState);
+        if (beArm.reason) {
+          logState({ botId, message: beArm.reason, metadata: beArm.metadata });
         }
 
-        // --- Stop loss check (fixed + breakeven) ---
-        let slTriggered = false;
-        let slReason = "";
-        if (cfg.stop_loss && cfg.stop_loss > 0) {
-          if (shouldTriggerStopLoss(lastPrice, currentState.vwap, cfg.stop_loss, direction)) {
-            slTriggered = true;
-            slReason = `fixed SL ${cfg.stop_loss}%`;
-          }
-        }
-        if (currentState.breakevenTriggered) {
-          const beTrigger = direction === "long"
-            ? new Decimal(lastPrice).lte(currentState.vwap)
-            : new Decimal(lastPrice).gte(currentState.vwap);
-          if (beTrigger) {
-            slTriggered = true;
-            slReason = "breakeven SL";
-          }
-        }
+        const slRisk = riskManager.checkStopLoss(lastPrice, currentState);
+        const beSlRisk = riskManager.checkBreakevenTriggered(lastPrice, currentState);
+        const exitRisk = slRisk.action === "stop" ? slRisk : beSlRisk;
 
-        if (slTriggered) {
+        if (exitRisk.action === "stop") {
           const sellAmount = currentState.totalAmount.toNumber();
           const sellOrder = await connector.placeOrder({
             symbol,
@@ -893,17 +1056,17 @@ export async function startDcaLoop(botId: string): Promise<void> {
             direction
           );
           currentState.sessionRealizedPnl += pnl;
+          riskManager.onTradeClosed(pnl);
 
           logAlert({
             botId,
-            message: `Stop loss triggered (${slReason}) at ${lastPrice}. Realized PnL: $${pnl.toFixed(4)}`,
+            message: `${exitRisk.reason} at ${lastPrice}. Realized PnL: $${pnl.toFixed(4)}`,
             metadata: {
               exitPrice: lastPrice,
-              slPrice: currentState.vwap.toString(),
               vwap: currentState.vwap.toString(),
               pnl,
               fees: currentState.totalFees.plus(sellFee).toString(),
-              reason: slReason,
+              ...exitRisk.metadata,
             },
           });
 
@@ -911,82 +1074,139 @@ export async function startDcaLoop(botId: string): Promise<void> {
           anyStopped = true;
         }
 
-        // --- Chop-loss (partial stop-loss) ---
-        if (cfg.chop_loss_enabled && cfg.chop_loss_pct > 0 && cfg.chop_sell_pct > 0) {
-          const unrealizedPct = Math.abs(getUnrealizedPct(lastPrice, currentState));
-          if (unrealizedPct >= cfg.chop_loss_pct) {
-            const sellAmount = currentState.totalAmount.toNumber() * (cfg.chop_sell_pct / 100);
-            if (sellAmount > 0) {
-              const sellOrder = await connector.placeOrder({
-                symbol,
-                side: getExitSide(direction),
-                type: "market",
-                amount: sellAmount,
-                reduceOnly: true,
-              });
-              const sellProceeds = sellOrder.cost || sellAmount * lastPrice;
-              const sellFee = estimateFee(sellProceeds);
-              const pnl = calculateRealizedPnl(
-                lastPrice,
-                sellAmount,
-                currentState.vwap,
-                currentState.totalFees.plus(sellFee),
-                direction
-              );
-              currentState.chopCount++;
-              currentState.sessionRealizedPnl += pnl;
+        // --- Risk: chop-loss (partial stop-loss) ---
+        const chopRisk = riskManager.checkChopLoss(lastPrice, currentState);
+        if (chopRisk.action === "reduce") {
+          const sellAmount = currentState.totalAmount.toNumber() * (cfg.chop_sell_pct / 100);
+          if (sellAmount > 0) {
+            const sellOrder = await connector.placeOrder({
+              symbol,
+              side: getExitSide(direction),
+              type: "market",
+              amount: sellAmount,
+              reduceOnly: true,
+            });
+            const sellProceeds = sellOrder.cost || sellAmount * lastPrice;
+            const sellFee = estimateFee(sellProceeds);
+            const pnl = calculateRealizedPnl(
+              lastPrice,
+              sellAmount,
+              currentState.vwap,
+              currentState.totalFees.plus(sellFee),
+              direction
+            );
+            currentState.chopCount++;
+            currentState.sessionRealizedPnl += pnl;
+            riskManager.onTradeClosed(pnl);
 
-              const remainingAmount = currentState.totalAmount.minus(sellAmount);
-              const remainingCost = currentState.totalCost.minus(currentState.vwap.mul(sellAmount));
-              currentState.totalAmount = remainingAmount;
-              currentState.totalCost = remainingCost;
-              currentState.vwap = calculateVwap(remainingAmount, remainingCost);
-              currentState.totalFees = currentState.totalFees.plus(sellFee);
+            const remainingAmount = currentState.totalAmount.minus(sellAmount);
+            const remainingCost = currentState.totalCost.minus(currentState.vwap.mul(sellAmount));
+            currentState.totalAmount = remainingAmount;
+            currentState.totalCost = remainingCost;
+            currentState.vwap = calculateVwap(remainingAmount, remainingCost);
+            currentState.totalFees = currentState.totalFees.plus(sellFee);
 
-              logAlert({
-                botId,
-                message: `Chop-loss #${currentState.chopCount} executed (${cfg.chop_sell_pct}% @ ${cfg.chop_loss_pct}% loss). Realized PnL: $${pnl.toFixed(4)}`,
-                metadata: {
-                  chopCount: currentState.chopCount,
-                  exitPrice: lastPrice,
-                  pnl,
-                  remainingAmount: remainingAmount.toString(),
-                },
-              });
+            logAlert({
+              botId,
+              message: `Chop-loss #${currentState.chopCount} executed (${cfg.chop_sell_pct}% @ ${cfg.chop_loss_pct}% loss). Realized PnL: $${pnl.toFixed(4)}`,
+              metadata: {
+                chopCount: currentState.chopCount,
+                exitPrice: lastPrice,
+                pnl,
+                remainingAmount: remainingAmount.toString(),
+              },
+            });
 
-              if (cfg.max_chop_count && currentState.chopCount >= cfg.max_chop_count) {
-                logAlert({
-                  botId,
-                  message: `Max chop count (${cfg.max_chop_count}) reached. Stopping bot.`,
-                });
-                await stopDcaLoop(botId);
-                return;
-              }
-
-              if (currentState.totalAmount.lessThanOrEqualTo(0)) {
-                logAlert({ botId, message: `[${direction}] Position fully chopped.` });
-                currentState.baseOrderFilled = false;
-                anyStopped = true;
-              }
+            if (currentState.totalAmount.lessThanOrEqualTo(0)) {
+              logAlert({ botId, message: `[${direction}] Position fully chopped.` });
+              currentState.baseOrderFilled = false;
+              anyStopped = true;
             }
           }
         }
 
-        // --- Max levels reached ---
-        if (currentState.safetyOrdersFilled >= cfg.safety_order_max_count) {
-          logAlert({
-            botId,
-            message: `[${direction}] Max safety orders reached without profit`,
-            metadata: {
-              maxSafetyOrders: cfg.safety_order_max_count,
-              totalAmount: currentState.totalAmount.toString(),
-              vwap: currentState.vwap.toString(),
-            },
-          });
+        const maxChop = riskManager.checkMaxChopCount(currentState);
+        if (maxChop.action === "stop") {
+          logAlert({ botId, message: maxChop.reason, metadata: maxChop.metadata });
+          await stopDcaLoop(botId);
+          return;
+        }
+
+        // --- Risk: max safety orders reached ---
+        const maxSoRisk = riskManager.checkMaxSafetyOrders(currentState);
+        if (maxSoRisk.action === "stop") {
+          logAlert({ botId, message: maxSoRisk.reason, metadata: maxSoRisk.metadata });
           currentState.baseOrderFilled = false;
           anyStopped = true;
         }
       } // end for direction loop
+
+        // --- Risk: two-way loss (dual-mode emergency exit) ---
+        const twoWay = riskManager.checkTwoWayLoss(
+          lastPrice,
+          botState.mode === "dual" ? botState.long : undefined,
+          botState.mode === "dual" ? botState.short : undefined
+        );
+        if (twoWay.action === "stop") {
+          logAlert({ botId, message: twoWay.reason, metadata: twoWay.metadata });
+          // Exit long
+          if (botState.mode === "dual" && botState.long.totalAmount.greaterThan(0)) {
+            const longOrder = await connector.placeOrder({
+              symbol,
+              side: getExitSide("long"),
+              type: orderType,
+              amount: botState.long.totalAmount.toNumber(),
+              reduceOnly: true,
+            });
+            const longProceeds = longOrder.cost || botState.long.totalAmount.toNumber() * lastPrice;
+            const longFee = estimateFee(longProceeds);
+            const longPnl = calculateRealizedPnl(
+              lastPrice,
+              botState.long.totalAmount.toNumber(),
+              botState.long.vwap,
+              botState.long.totalFees.plus(longFee),
+              "long"
+            );
+            botState.long.sessionRealizedPnl += longPnl;
+            riskManager.onTradeClosed(longPnl);
+            logTrade({
+              botId,
+              message: `Two-way loss exit LONG. Realized PnL: $${longPnl.toFixed(4)}`,
+              metadata: { price: lastPrice, pnl: longPnl, direction: "long" },
+            });
+          }
+          // Exit short
+          if (botState.mode === "dual" && botState.short.totalAmount.greaterThan(0)) {
+            const shortOrder = await connector.placeOrder({
+              symbol,
+              side: getExitSide("short"),
+              type: orderType,
+              amount: botState.short.totalAmount.toNumber(),
+              reduceOnly: true,
+            });
+            const shortProceeds = shortOrder.cost || botState.short.totalAmount.toNumber() * lastPrice;
+            const shortFee = estimateFee(shortProceeds);
+            const shortPnl = calculateRealizedPnl(
+              lastPrice,
+              botState.short.totalAmount.toNumber(),
+              botState.short.vwap,
+              botState.short.totalFees.plus(shortFee),
+              "short"
+            );
+            botState.short.sessionRealizedPnl += shortPnl;
+            riskManager.onTradeClosed(shortPnl);
+            logTrade({
+              botId,
+              message: `Two-way loss exit SHORT. Realized PnL: $${shortPnl.toFixed(4)}`,
+              metadata: { price: lastPrice, pnl: shortPnl, direction: "short" },
+            });
+          }
+          if (botState.mode === "dual") {
+            botState.long.baseOrderFilled = false;
+            botState.short.baseOrderFilled = false;
+          }
+          anyStopped = true;
+        }
 
         if (anyStopped) {
           const bs = botStates.get(botId)!;
@@ -1082,13 +1302,25 @@ async function placeBaseOrder(opts: {
     }
   }
 
-  const baseAmount = usdtToAmount(cfg.base_order_size, execPrice);
+  let baseOrderSize = cfg.base_order_size;
 
-  if (cfg.max_position_size && baseAmount > cfg.max_position_size) {
-    logAlert({
-      botId,
-      message: `Base order skipped: ${baseAmount} exceeds max position size ${cfg.max_position_size}`,
-    });
+  // Double first order
+  if (cfg.double_fo_enabled) {
+    baseOrderSize = baseOrderSize * 2;
+  }
+
+  // Long-short ratio in dual mode
+  if (cfg.direction === "both" && cfg.long_short_ratio && cfg.long_short_ratio !== 50) {
+    const ratio = direction === "long" ? (cfg.long_short_ratio / 100) : (1 - cfg.long_short_ratio / 100);
+    baseOrderSize = baseOrderSize * ratio;
+  }
+
+  const baseAmount = usdtToAmount(baseOrderSize, execPrice);
+
+  const riskManager = botRiskManagers.get(botId);
+  const sizeRisk = riskManager?.evaluateOrderSize(baseAmount);
+  if (sizeRisk && sizeRisk.action !== "allow") {
+    logAlert({ botId, message: sizeRisk.reason, metadata: sizeRisk.metadata });
     return;
   }
 
@@ -1128,6 +1360,14 @@ async function placeBaseOrder(opts: {
     breakevenTriggered: false,
     waterfallPausedTicks: 0,
     activeTrailingTier: -1,
+    guardPriceHistory: [],
+    guardPausedUntil: 0,
+    emaFastHistory: [],
+    emaSlowHistory: [],
+    rsiValue: null,
+    lastMacdSignalTime: 0,
+    lastRsiSignalTime: 0,
+    lastEmaSignalTime: 0,
   };
 
   if (orderType === "limit" && baseOrder.status !== "closed") {
@@ -1163,6 +1403,8 @@ async function placeBaseOrder(opts: {
       : `Base order placed: ${baseAmount.toFixed(6)} @ ${execPrice} (cost $${orderCost.toFixed(2)}, fee $${orderFee.toFixed(4)})`,
     metadata: { price: execPrice, amount: baseAmount, cost: orderCost, fee: orderFee, leverage, direction },
   });
+
+  riskManager?.onPositionEntry();
 }
 
 // ============================================================
@@ -1178,35 +1420,32 @@ async function placeSafetyOrder(opts: {
   cfg: any;
   state: DirectionalState;
   lastPrice: number;
+  nextDeviation: number;
+  roundIndex: number;
+  rounds?: any[];
 }) {
-  const { botId, symbol, orderType, leverage, connector, cfg, state, lastPrice } = opts;
+  const { botId, symbol, orderType, leverage, connector, cfg, state, lastPrice, nextDeviation, roundIndex, rounds } = opts;
 
   const safetyUsdt = getNextSafetyOrderSize(
     cfg.safety_order_size,
     cfg.safety_order_volume_scale,
-    state.safetyOrdersFilled
+    state.safetyOrdersFilled,
+    rounds,
+    roundIndex
   );
   const safetyAmount = usdtToAmount(safetyUsdt, lastPrice);
 
-  // Enforce max position size
-  if (cfg.max_position_size) {
-    const projectedAmount = state.totalAmount.toNumber() + safetyAmount;
-    if (projectedAmount > cfg.max_position_size) {
-      logAlert({
-        botId,
-        message: `Safety order #${state.safetyOrdersFilled + 1} skipped: projected size ${projectedAmount.toFixed(6)} exceeds max ${cfg.max_position_size}`,
-      });
-      return;
-    }
+  // Risk: enforce max position size
+  const riskManager = botRiskManagers.get(botId);
+  const projectedAmount = state.totalAmount.toNumber() + safetyAmount;
+  const sizeRisk = riskManager?.evaluateOrderSize(projectedAmount);
+  if (sizeRisk && sizeRisk.action !== "allow") {
+    logAlert({ botId, message: sizeRisk.reason, metadata: sizeRisk.metadata });
+    return;
   }
 
   let price: number | undefined;
   if (orderType === "limit") {
-    const nextDeviation = getNextDeviationTrigger(
-      cfg.price_deviation_initial,
-      cfg.safety_order_step_scale,
-      state.safetyOrdersFilled
-    );
     if (state.direction === "long") {
       price = lastPrice * (1 - nextDeviation / 100);
     } else {
@@ -1372,7 +1611,7 @@ async function syncPosition(opts: {
       }
     }
 
-    // Liquidation proximity check
+    // Liquidation proximity warning (emergency exit is handled by risk manager in main loop)
     if (pos.liquidationPrice && pos.entryPrice > 0) {
       const liqDistance = Math.abs((pos.liquidationPrice - pos.entryPrice) / pos.entryPrice) * 100;
       if (liqDistance < 15) {
@@ -1438,6 +1677,7 @@ export async function emergencyExit(botId: string): Promise<{ success: boolean; 
     );
     state.sessionRealizedPnl += pnl;
     totalPnl += pnl;
+    botRiskManagers.get(botId)?.onTradeClosed(pnl);
 
     logAlert({
       botId,
@@ -1459,6 +1699,7 @@ export async function emergencyExit(botId: string): Promise<{ success: boolean; 
   });
 
   botStates.delete(botId);
+  botRiskManagers.delete(botId);
   await unregisterBot(botId);
 
   const interval = botIntervals.get(botId);
@@ -1489,6 +1730,7 @@ export async function stopDcaLoop(botId: string): Promise<void> {
     botPersistIntervals.delete(botId);
   }
   botStates.delete(botId);
+  botRiskManagers.delete(botId);
   await prisma.bot.update({
     where: { id: botId },
     data: { status: "stopped", stateJson: null as any },
@@ -1523,6 +1765,14 @@ function createEmptyState(direction: "long" | "short"): DirectionalState {
     breakevenTriggered: false,
     waterfallPausedTicks: 0,
     activeTrailingTier: -1,
+    guardPriceHistory: [],
+    guardPausedUntil: 0,
+    emaFastHistory: [],
+    emaSlowHistory: [],
+    rsiValue: null,
+    lastMacdSignalTime: 0,
+    lastRsiSignalTime: 0,
+    lastEmaSignalTime: 0,
   };
 }
 
@@ -1549,6 +1799,14 @@ function hydrateDirectionalState(persisted: any): DirectionalState {
     breakevenTriggered: persisted.breakevenTriggered ?? false,
     waterfallPausedTicks: persisted.waterfallPausedTicks || 0,
     activeTrailingTier: persisted.activeTrailingTier ?? -1,
+    guardPriceHistory: persisted.guardPriceHistory || [],
+    guardPausedUntil: persisted.guardPausedUntil || 0,
+    emaFastHistory: persisted.emaFastHistory || [],
+    emaSlowHistory: persisted.emaSlowHistory || [],
+    rsiValue: persisted.rsiValue ?? null,
+    lastMacdSignalTime: persisted.lastMacdSignalTime || 0,
+    lastRsiSignalTime: persisted.lastRsiSignalTime || 0,
+    lastEmaSignalTime: persisted.lastEmaSignalTime || 0,
   };
 }
 
@@ -1575,6 +1833,9 @@ function buildDirectionalStateJson(s: DirectionalState): object {
     breakevenTriggered: s.breakevenTriggered,
     waterfallPausedTicks: s.waterfallPausedTicks,
     activeTrailingTier: s.activeTrailingTier,
+    lastMacdSignalTime: s.lastMacdSignalTime,
+    lastRsiSignalTime: s.lastRsiSignalTime,
+    lastEmaSignalTime: s.lastEmaSignalTime,
   };
 }
 

@@ -4,6 +4,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { useRankings } from "../hooks/use-api";
 import { PageWrapper } from "../components/layout/page-wrapper";
+import { useI18n } from "../hooks/use-i18n";
 import {
   Tabs,
   TabsList,
@@ -29,37 +30,32 @@ export const Route = createFileRoute("/rankings")({
 
 type Period = "daily" | "weekly" | "monthly" | "overall";
 
-const TIER_CONFIG: Record<string, { label: string; color: string; glow: string; bg: string; icon: React.ElementType }> = {
+const TIER_CONFIG: Record<string, { color: string; glow: string; bg: string; icon: React.ElementType }> = {
   S: {
-    label: "S-Tier",
     color: "#f59e0b",
     glow: "rgba(245, 158, 11, 0.45)",
     bg: "rgba(245, 158, 11, 0.08)",
     icon: Crown,
   },
   A: {
-    label: "A-Tier",
     color: "#a855f7",
     glow: "rgba(168, 85, 247, 0.4)",
     bg: "rgba(168, 85, 247, 0.08)",
     icon: Trophy,
   },
   B: {
-    label: "B-Tier",
     color: "#3b82f6",
     glow: "rgba(59, 130, 246, 0.35)",
     bg: "rgba(59, 130, 246, 0.08)",
     icon: Medal,
   },
   C: {
-    label: "C-Tier",
     color: "#10b981",
     glow: "rgba(16, 185, 129, 0.35)",
     bg: "rgba(16, 185, 129, 0.08)",
     icon: Award,
   },
   D: {
-    label: "D-Tier",
     color: "#64748b",
     glow: "rgba(100, 116, 139, 0.3)",
     bg: "rgba(100, 116, 139, 0.06)",
@@ -68,6 +64,7 @@ const TIER_CONFIG: Record<string, { label: string; color: string; glow: string; 
 };
 
 function TierBadge({ tier }: { tier: string }) {
+  const { t } = useI18n();
   const config = TIER_CONFIG[tier] || TIER_CONFIG.D;
   const Icon = config.icon;
   return (
@@ -80,7 +77,7 @@ function TierBadge({ tier }: { tier: string }) {
       }}
     >
       <Icon className="w-3 h-3" />
-      {config.label}
+      {t(`rankings.tier${tier}` as const)}
     </span>
   );
 }
@@ -121,6 +118,7 @@ function PodiumCard({
   entry: any;
   place: number;
 }) {
+  const { t } = useI18n();
   const ref = useRef<HTMLDivElement>(null);
 
   const heightClass = place === 1 ? "h-40" : place === 2 ? "h-32" : "h-28";
@@ -149,13 +147,14 @@ function PodiumCard({
         <TierBadge tier={entry.tier} />
       </div>
       <div className="mt-2 text-xs text-[var(--text-muted)]">
-        Score: <span className="font-mono font-semibold text-[var(--accent)]">{Math.round(entry.score).toLocaleString()}</span>
+        {t("rankings.podiumScore")}: <span className="font-mono font-semibold text-[var(--accent)]">{Math.round(entry.score).toLocaleString()}</span>
       </div>
     </div>
   );
 }
 
 function RankRow({ entry, index }: { entry: any; index: number }) {
+  const { t } = useI18n();
   const ref = useRef<HTMLDivElement>(null);
 
   return (
@@ -179,7 +178,7 @@ function RankRow({ entry, index }: { entry: any; index: number }) {
           {entry.showcasePaperTrades && (
             <span className="inline-flex items-center gap-1 rounded-md border border-[var(--accent)]/20 bg-[var(--accent)]/5 px-2 py-[1px] text-[10px] font-medium text-[var(--accent)]">
               <Zap className="w-2.5 h-2.5" />
-              Paper
+              {t("rankings.paper")}
             </span>
           )}
         </div>
@@ -187,21 +186,21 @@ function RankRow({ entry, index }: { entry: any; index: number }) {
 
       <div className="hidden sm:flex items-center gap-6">
         <div className="flex flex-col items-end">
-          <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">Score</span>
+          <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">{t("rankings.score")}</span>
           <span className="font-mono text-xs font-semibold text-[var(--accent)]">{Math.round(entry.score).toLocaleString()}</span>
         </div>
         <div className="flex flex-col items-end">
-          <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">P/L</span>
+          <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">{t("rankings.pnl")}</span>
           <span className={`font-mono text-xs font-semibold ${entry.paperPnl >= 0 ? "text-[var(--success)]" : "text-[var(--danger)]"}`}>
             {entry.paperPnl >= 0 ? "+" : ""}{Number(entry.paperPnl).toFixed(2)}
           </span>
         </div>
         <div className="flex flex-col items-end">
-          <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">Win Rate</span>
+          <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">{t("rankings.winRate")}</span>
           <span className="font-mono text-xs font-semibold text-[var(--text-primary)]">{entry.winRate.toFixed(1)}%</span>
         </div>
         <div className="flex flex-col items-end">
-          <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">Trades</span>
+          <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">{t("rankings.trades")}</span>
           <span className="font-mono text-xs font-semibold text-[var(--text-primary)]">{entry.paperTradeCount + entry.liveOrderCount}</span>
         </div>
       </div>
@@ -217,6 +216,7 @@ function RankRow({ entry, index }: { entry: any; index: number }) {
 }
 
 function RankingsPage() {
+  const { t } = useI18n();
   const [period, setPeriod] = useState<Period>("overall");
   const { data, isLoading } = useRankings(period);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -287,11 +287,11 @@ function RankingsPage() {
           <div className="flex items-center gap-2">
             <Trophy className="w-5 h-5 text-[var(--warning)]" />
             <h1 className="text-xl font-bold tracking-tight text-[var(--text-primary)] font-['Space_Grotesk']">
-              Leaderboard
+              {t("rankings.title")}
             </h1>
           </div>
           <p className="text-xs text-[var(--text-muted)] max-w-md">
-            Top performers ranked by trading score. Paper results are showcased for selected traders.
+            {t("rankings.description")}
           </p>
         </div>
 
@@ -300,16 +300,16 @@ function RankingsPage() {
           <Tabs value={period} onValueChange={(v) => setPeriod(v as Period)}>
             <TabsList className="bg-[var(--bg-elevated)] border border-[var(--border-subtle)]">
               <TabsTrigger value="daily" className="data-[state=active]:bg-[var(--bg-hover)] data-[state=active]:text-[var(--text-primary)] text-[11px]">
-                Daily
+                {t("rankings.daily")}
               </TabsTrigger>
               <TabsTrigger value="weekly" className="data-[state=active]:bg-[var(--bg-hover)] data-[state=active]:text-[var(--text-primary)] text-[11px]">
-                Weekly
+                {t("rankings.weekly")}
               </TabsTrigger>
               <TabsTrigger value="monthly" className="data-[state=active]:bg-[var(--bg-hover)] data-[state=active]:text-[var(--text-primary)] text-[11px]">
-                Monthly
+                {t("rankings.monthly")}
               </TabsTrigger>
               <TabsTrigger value="overall" className="data-[state=active]:bg-[var(--bg-hover)] data-[state=active]:text-[var(--text-primary)] text-[11px]">
-                Overall
+                {t("rankings.overall")}
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -319,12 +319,12 @@ function RankingsPage() {
         {isLoading ? (
           <div className="flex flex-col items-center justify-center gap-3 py-16">
             <div className="w-6 h-6 rounded-full border-2 border-[var(--primary)] border-t-transparent animate-spin" />
-            <span className="text-xs text-[var(--text-muted)]">Loading rankings...</span>
+            <span className="text-xs text-[var(--text-muted)]">{t("rankings.loading")}</span>
           </div>
         ) : entries.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-3 py-16">
             <Activity className="w-8 h-8 text-[var(--text-muted)]" />
-            <p className="text-xs text-[var(--text-muted)]">No rankings available yet.</p>
+            <p className="text-xs text-[var(--text-muted)]">{t("rankings.noRankings")}</p>
           </div>
         ) : (
           <div className="space-y-6">
@@ -352,10 +352,10 @@ function RankingsPage() {
 
             {/* Stats bar */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-[var(--border-subtle)] rounded-xl overflow-hidden border border-[var(--border-subtle)]">
-              <StatPill icon={TrendingUp} label="Top Score" value={Math.round(entries[0]?.score || 0).toLocaleString()} color="var(--accent)" />
-              <StatPill icon={Target} label="Avg Win Rate" value={`${(entries.reduce((s: number, e: any) => s + e.winRate, 0) / entries.length || 0).toFixed(1)}%`} color="var(--success)" />
-              <StatPill icon={Flame} label="Total Trades" value={entries.reduce((s: number, e: any) => s + e.paperTradeCount + e.liveOrderCount, 0).toLocaleString()} color="var(--warning)" />
-              <StatPill icon={ChevronUp} label="S-Tiers" value={entries.filter((e: any) => e.tier === "S").length.toString()} color="var(--danger)" />
+              <StatPill icon={TrendingUp} label={t("rankings.topScore")} value={Math.round(entries[0]?.score || 0).toLocaleString()} color="var(--accent)" />
+              <StatPill icon={Target} label={t("rankings.avgWinRate")} value={`${(entries.reduce((s: number, e: any) => s + e.winRate, 0) / entries.length || 0).toFixed(1)}%`} color="var(--success)" />
+              <StatPill icon={Flame} label={t("rankings.totalTrades")} value={entries.reduce((s: number, e: any) => s + e.paperTradeCount + e.liveOrderCount, 0).toLocaleString()} color="var(--warning)" />
+              <StatPill icon={ChevronUp} label={t("rankings.sTiers")} value={entries.filter((e: any) => e.tier === "S").length.toString()} color="var(--danger)" />
             </div>
 
             {/* List */}

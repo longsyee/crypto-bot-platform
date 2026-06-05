@@ -14,6 +14,7 @@ import {
   useBotLivePrice,
 } from "../../hooks/use-api";
 import { useToast } from "../../hooks/use-toast";
+import { useI18n } from "../../hooks/use-i18n";
 import { Badge } from "../../components/ui/badge";
 import { ConfirmModal } from "../../components/ui/confirm-modal";
 import {
@@ -94,6 +95,7 @@ function CapitalCard({
   stateJson: any;
   configJson: any;
 }) {
+  const { t } = useI18n();
   const { data: livePriceData, isLoading: priceLoading } = useBotLivePrice(botId);
   const livePrice = livePriceData?.lastPrice || 0;
   const leverage = Number(paperBalance.leverage || configJson?.leverage || 1);
@@ -149,12 +151,12 @@ function CapitalCard({
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-base text-[var(--text-primary)]">
           <Wallet className="w-4 h-4 text-[var(--primary)]" />
-          {isPaper ? "Paper Capital Breakdown" : "Live Capital Breakdown"}
+          {isPaper ? t("botDetail.paperCapitalBreakdown") : t("botDetail.liveCapitalBreakdown")}
         </CardTitle>
         <CardDescription className="text-[var(--text-muted)]">
           {isPaper
-            ? "Simulated balance, margin used, and open positions."
-            : "Exchange wallet balance for this bot's connection."}
+            ? t("botDetail.simulatedBalance")
+            : t("botDetail.exchangeWallet")}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -163,18 +165,18 @@ function CapitalCard({
             {/* Available */}
             <div className="bg-[var(--bg-card)] px-4 py-3 flex flex-col gap-1.5 border-t-2 border-[var(--primary)]">
               <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold flex items-center gap-1.5">
-                <Unlock className="w-3.5 h-3.5" /> Available Balance
+                <Unlock className="w-3.5 h-3.5" /> {t("botDetail.availableBalance")}
               </span>
               <span className="font-['Space_Grotesk'] text-xl font-semibold tracking-tight text-[var(--text-primary)]">
                 {availableUSDT.toFixed(2)} <span className="text-sm font-normal text-[var(--text-muted)]">USDT</span>
               </span>
-              <span className="font-mono text-[11px] text-[var(--text-muted)]">Free margin not in positions</span>
+              <span className="font-mono text-[11px] text-[var(--text-muted)]">{t("botDetail.freeMargin")}</span>
             </div>
 
             {/* Margin On Hold */}
             <div className="bg-[var(--bg-card)] px-4 py-3 flex flex-col gap-1.5 border-t-2 border-[var(--warning)]">
               <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold flex items-center gap-1.5">
-                <Lock className="w-3.5 h-3.5" /> Margin On Hold
+                <Lock className="w-3.5 h-3.5" /> {t("botDetail.marginOnHold")}
               </span>
               <span className="font-['Space_Grotesk'] text-xl font-semibold tracking-tight text-[var(--text-primary)]">
                 {marginUsed.toFixed(2)} <span className="text-sm font-normal text-[var(--text-muted)]">USDT</span>
@@ -185,33 +187,33 @@ function CapitalCard({
             {/* Fees */}
             <div className="bg-[var(--bg-card)] px-4 py-3 flex flex-col gap-1.5 border-t-2 border-[var(--danger)]">
               <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold flex items-center gap-1.5">
-                <DollarSign className="w-3.5 h-3.5" /> Fees Paid
+                <DollarSign className="w-3.5 h-3.5" /> {t("botDetail.feesPaid")}
               </span>
               <span className="font-['Space_Grotesk'] text-xl font-semibold tracking-tight text-[var(--text-primary)]">
                 {totalFees.toFixed(4)} <span className="text-sm font-normal text-[var(--text-muted)]">USDT</span>
               </span>
-              <span className="font-mono text-[11px] text-[var(--text-muted)]">Cumulative trading fees</span>
+              <span className="font-mono text-[11px] text-[var(--text-muted)]">{t("botDetail.cumulativeTradingFees")}</span>
             </div>
 
             {/* Realized */}
             <div className={`bg-[var(--bg-card)] px-4 py-3 flex flex-col gap-1.5 border-t-2 ${realizedPnl >= 0 ? "border-[var(--success)]" : "border-[var(--danger)]"}`}>
               <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold flex items-center gap-1.5">
-                <TrendingUp className="w-3.5 h-3.5" /> Realized PnL
+                <TrendingUp className="w-3.5 h-3.5" /> {t("botDetail.realizedPnl")}
               </span>
               <span className={`font-['Space_Grotesk'] text-xl font-semibold tracking-tight ${realizedPnl >= 0 ? "text-[var(--success)]" : "text-[var(--danger)]"}`}>
                 {realizedPnl >= 0 ? "+" : ""}{realizedPnl.toFixed(4)} <span className="text-sm font-normal text-[var(--text-muted)]">USDT</span>
               </span>
-              <span className="font-mono text-[11px] text-[var(--text-muted)]">Closed trade profit / loss</span>
+              <span className="font-mono text-[11px] text-[var(--text-muted)]">{t("botDetail.closedTradeProfitLoss")}</span>
             </div>
 
             {/* Live Market Price */}
             <div className="bg-[var(--bg-card)] px-4 py-3 flex flex-col gap-1.5 border-t-2 border-[var(--primary)]">
               <span className="text-[10px] uppercase tracking-widest text-[var(--primary)] font-semibold flex items-center gap-1.5">
-                <Activity className="w-3.5 h-3.5" /> Live Market Price
+                <Activity className="w-3.5 h-3.5" /> {t("botDetail.liveMarketPrice")}
               </span>
               <span className="font-['Space_Grotesk'] text-xl font-semibold tracking-tight text-[var(--text-primary)]">
                 {priceLoading ? (
-                  <span className="text-sm text-[var(--text-muted)] animate-pulse">Fetching…</span>
+                  <span className="text-sm text-[var(--text-muted)] animate-pulse">{t("botDetail.fetching")}</span>
                 ) : livePrice > 0 ? (
                   <>
                     {livePrice.toFixed(2)} <span className="text-sm font-normal text-[var(--text-muted)]">USDT</span>
@@ -220,18 +222,18 @@ function CapitalCard({
                   <span className="text-sm text-[var(--text-muted)]">—</span>
                 )}
               </span>
-              <span className="font-mono text-[11px] text-[var(--text-muted)]">Real-time CCXT ticker</span>
+              <span className="font-mono text-[11px] text-[var(--text-muted)]">{t("botDetail.liveMarketPrice")}</span>
             </div>
 
             {/* Floating PnL */}
             <div className={`bg-[var(--bg-card)] px-4 py-3 flex flex-col gap-1.5 border-t-2 ${totalFloating >= 0 ? "border-[var(--success)]" : "border-[var(--danger)]"}`}>
               <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold flex items-center gap-1.5">
-                <TrendingUp className="w-3.5 h-3.5" /> Floating PnL
+                <TrendingUp className="w-3.5 h-3.5" /> {t("botDetail.floatingPnl")}
               </span>
               <span className={`font-['Space_Grotesk'] text-xl font-semibold tracking-tight ${totalFloating >= 0 ? "text-[var(--success)]" : "text-[var(--danger)]"}`}>
                 {totalFloating >= 0 ? "+" : ""}{totalFloating.toFixed(4)} <span className="text-sm font-normal text-[var(--text-muted)]">USDT</span>
               </span>
-              <span className="font-mono text-[11px] text-[var(--text-muted)]">Unrealized (Live Price − VWAP) × Size</span>
+              <span className="font-mono text-[11px] text-[var(--text-muted)]">{t("botDetail.unrealized")}</span>
             </div>
 
             {/* Positions section - full width if any */}
@@ -241,33 +243,33 @@ function CapitalCard({
                   <div className="rounded-xl border border-[var(--success)]/20 bg-[var(--success-glow)] p-4 space-y-2 sm:col-span-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5 text-xs text-[var(--success)] font-medium">
-                        <TrendingUp className="w-3.5 h-3.5" /> Long Position
+                        <TrendingUp className="w-3.5 h-3.5" /> {t("botDetail.longPosition")}
                       </div>
-                      <span className="inline-flex items-center rounded-full border border-[var(--border-subtle)] px-2 py-0.5 text-[10px] font-medium text-[var(--text-muted)]">Open</span>
+                      <span className="inline-flex items-center rounded-full border border-[var(--border-subtle)] px-2 py-0.5 text-[10px] font-medium text-[var(--text-muted)]">{t("botDetail.open")}</span>
                     </div>
                     <div className="grid grid-cols-3 gap-2 text-sm">
                       <div>
-                        <span className="text-[var(--text-muted)] text-xs">Size</span>
+                        <span className="text-[var(--text-muted)] text-xs">{t("botDetail.size")}</span>
                         <div className="font-medium text-[var(--text-primary)]">{effLongPos.toFixed(6)}</div>
                       </div>
                       <div>
-                        <span className="text-[var(--text-muted)] text-xs">Entry</span>
+                        <span className="text-[var(--text-muted)] text-xs">{t("botDetail.entry")}</span>
                         <div className="font-medium text-[var(--text-primary)]">{effLongEntry.toFixed(2)} USDT</div>
                       </div>
                       <div>
-                        <span className="text-[var(--text-muted)] text-xs">Notional</span>
+                        <span className="text-[var(--text-muted)] text-xs">{t("botDetail.notional")}</span>
                         <div className="font-medium text-[var(--text-primary)]">{longNotional.toFixed(2)} USDT</div>
                       </div>
                       <div>
-                        <span className="text-[var(--text-muted)] text-xs">Engine VWAP</span>
+                        <span className="text-[var(--text-muted)] text-xs">{t("botDetail.engineVwap")}</span>
                         <div className="font-medium text-[var(--text-primary)]">{engineLongVwap > 0 ? engineLongVwap.toFixed(2) : "—"} USDT</div>
                       </div>
                       <div>
-                        <span className="text-[var(--text-muted)] text-xs">Live Price</span>
+                        <span className="text-[var(--text-muted)] text-xs">{t("botDetail.liveMarketPrice")}</span>
                         <div className="font-medium text-[var(--text-primary)]">{livePrice > 0 ? livePrice.toFixed(2) : "—"} USDT</div>
                       </div>
                       <div>
-                        <span className="text-[var(--text-muted)] text-xs">Floating PnL</span>
+                        <span className="text-[var(--text-muted)] text-xs">{t("botDetail.floatingPnl")}</span>
                         <div className={`font-medium ${longFloating >= 0 ? "text-[var(--success)]" : "text-[var(--danger)]"}`}>
                           {longFloating >= 0 ? "+" : ""}{longFloating.toFixed(4)} USDT
                         </div>
@@ -279,33 +281,33 @@ function CapitalCard({
                   <div className="rounded-xl border border-[var(--danger)]/20 bg-[var(--danger-glow)] p-4 space-y-2 sm:col-span-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5 text-xs text-[var(--danger)] font-medium">
-                        <TrendingDown className="w-3.5 h-3.5" /> Short Position
+                        <TrendingDown className="w-3.5 h-3.5" /> {t("botDetail.shortPosition")}
                       </div>
-                      <span className="inline-flex items-center rounded-full border border-[var(--border-subtle)] px-2 py-0.5 text-[10px] font-medium text-[var(--text-muted)]">Open</span>
+                      <span className="inline-flex items-center rounded-full border border-[var(--border-subtle)] px-2 py-0.5 text-[10px] font-medium text-[var(--text-muted)]">{t("botDetail.open")}</span>
                     </div>
                     <div className="grid grid-cols-3 gap-2 text-sm">
                       <div>
-                        <span className="text-[var(--text-muted)] text-xs">Size</span>
+                        <span className="text-[var(--text-muted)] text-xs">{t("botDetail.size")}</span>
                         <div className="font-medium text-[var(--text-primary)]">{effShortPos.toFixed(6)}</div>
                       </div>
                       <div>
-                        <span className="text-[var(--text-muted)] text-xs">Entry</span>
+                        <span className="text-[var(--text-muted)] text-xs">{t("botDetail.entry")}</span>
                         <div className="font-medium text-[var(--text-primary)]">{effShortEntry.toFixed(2)} USDT</div>
                       </div>
                       <div>
-                        <span className="text-[var(--text-muted)] text-xs">Notional</span>
+                        <span className="text-[var(--text-muted)] text-xs">{t("botDetail.notional")}</span>
                         <div className="font-medium text-[var(--text-primary)]">{shortNotional.toFixed(2)} USDT</div>
                       </div>
                       <div>
-                        <span className="text-[var(--text-muted)] text-xs">Engine VWAP</span>
+                        <span className="text-[var(--text-muted)] text-xs">{t("botDetail.engineVwap")}</span>
                         <div className="font-medium text-[var(--text-primary)]">{engineShortVwap > 0 ? engineShortVwap.toFixed(2) : "—"} USDT</div>
                       </div>
                       <div>
-                        <span className="text-[var(--text-muted)] text-xs">Live Price</span>
+                        <span className="text-[var(--text-muted)] text-xs">{t("botDetail.liveMarketPrice")}</span>
                         <div className="font-medium text-[var(--text-primary)]">{livePrice > 0 ? livePrice.toFixed(2) : "—"} USDT</div>
                       </div>
                       <div>
-                        <span className="text-[var(--text-muted)] text-xs">Floating PnL</span>
+                        <span className="text-[var(--text-muted)] text-xs">{t("botDetail.floatingPnl")}</span>
                         <div className={`font-medium ${shortFloating >= 0 ? "text-[var(--success)]" : "text-[var(--danger)]"}`}>
                           {shortFloating >= 0 ? "+" : ""}{shortFloating.toFixed(4)} USDT
                         </div>
@@ -319,16 +321,16 @@ function CapitalCard({
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-[var(--border-subtle)] rounded-xl overflow-hidden">
             {exchangeBalanceLoading ? (
-              <div className="col-span-full text-sm text-[var(--text-muted)]">Loading exchange balance…</div>
+              <div className="col-span-full text-sm text-[var(--text-muted)]">{t("common.loading")}…</div>
             ) : !exchangeBalance || Object.keys(exchangeBalance).length === 0 ? (
-              <div className="col-span-full text-sm text-[var(--text-muted)]">No exchange balance data.</div>
+              <div className="col-span-full text-sm text-[var(--text-muted)]">{t("botDetail.noExchangeBalance")}</div>
             ) : (
               <>
                 {usdtBalance && typeof usdtBalance === "object" && (
                   <>
                     <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-hover)]/40 p-4 space-y-2">
                       <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
-                        <Unlock className="w-3.5 h-3.5" /> Free (USDT)
+                        <Unlock className="w-3.5 h-3.5" /> {t("botDetail.availableBalance")}
                       </div>
                       <div className="text-xl font-semibold text-[var(--text-primary)]">
                         {liveFree.toFixed(2)} <span className="text-sm font-normal text-[var(--text-muted)]">USDT</span>
@@ -336,7 +338,7 @@ function CapitalCard({
                     </div>
                     <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-hover)]/40 p-4 space-y-2">
                       <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
-                        <Lock className="w-3.5 h-3.5" /> Used / On Hold
+                        <Lock className="w-3.5 h-3.5" /> {t("botDetail.marginOnHold")}
                       </div>
                       <div className="text-xl font-semibold text-[var(--text-primary)]">
                         {liveUsed.toFixed(2)} <span className="text-sm font-normal text-[var(--text-muted)]">USDT</span>
@@ -344,7 +346,7 @@ function CapitalCard({
                     </div>
                     <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-hover)]/40 p-4 space-y-2">
                       <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
-                        <Wallet className="w-3.5 h-3.5" /> Total (USDT)
+                        <Wallet className="w-3.5 h-3.5" /> {t("botDetail.availableBalance")}
                       </div>
                       <div className="text-xl font-semibold text-[var(--text-primary)]">
                         {liveTotal.toFixed(2)} <span className="text-sm font-normal text-[var(--text-muted)]">USDT</span>
@@ -379,10 +381,10 @@ function CapitalCard({
                 {engineLongAmt > 0 && (
                   <div className="rounded-xl border border-[var(--success)]/20 bg-[var(--success-glow)] p-4 space-y-2 sm:col-span-2">
                     <div className="flex items-center gap-1.5 text-xs text-[var(--success)] font-medium">
-                      <TrendingUp className="w-3.5 h-3.5" /> Engine Long Position
+                      <TrendingUp className="w-3.5 h-3.5" /> {t("botDetail.engineLongPosition")}
                     </div>
                     <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div><span className="text-[var(--text-muted)] text-xs">Size</span><div className="font-medium text-[var(--text-primary)]">{engineLongAmt.toFixed(6)}</div></div>
+                      <div><span className="text-[var(--text-muted)] text-xs">{t("botDetail.size")}</span><div className="font-medium text-[var(--text-primary)]">{engineLongAmt.toFixed(6)}</div></div>
                       <div><span className="text-[var(--text-muted)] text-xs">VWAP</span><div className="font-medium text-[var(--text-primary)]">{engineLongVwap.toFixed(2)} USDT</div></div>
                     </div>
                   </div>
@@ -390,10 +392,10 @@ function CapitalCard({
                 {engineShortAmt > 0 && (
                   <div className="rounded-xl border border-[var(--danger)]/20 bg-[var(--danger-glow)] p-4 space-y-2 sm:col-span-2">
                     <div className="flex items-center gap-1.5 text-xs text-[var(--danger)] font-medium">
-                      <TrendingDown className="w-3.5 h-3.5" /> Engine Short Position
+                      <TrendingDown className="w-3.5 h-3.5" /> {t("botDetail.engineShortPosition")}
                     </div>
                     <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div><span className="text-[var(--text-muted)] text-xs">Size</span><div className="font-medium text-[var(--text-primary)]">{engineShortAmt.toFixed(6)}</div></div>
+                      <div><span className="text-[var(--text-muted)] text-xs">{t("botDetail.size")}</span><div className="font-medium text-[var(--text-primary)]">{engineShortAmt.toFixed(6)}</div></div>
                       <div><span className="text-[var(--text-muted)] text-xs">VWAP</span><div className="font-medium text-[var(--text-primary)]">{engineShortVwap.toFixed(2)} USDT</div></div>
                     </div>
                   </div>
@@ -408,6 +410,7 @@ function CapitalCard({
 }
 
 function BotDetailPage() {
+  const { t } = useI18n();
   const { botId } = Route.useParams();
   const { data: bot, isLoading: botLoading } = useBot(botId);
   const { data: orders, isLoading: ordersLoading } = useBotOrders(botId);
@@ -479,6 +482,13 @@ function BotDetailPage() {
       webhook_secret: cfg.webhook_secret || "",
       stop_loss_pct: cfg.stop_loss_pct ?? "",
       take_profit_pct: cfg.take_profit_pct ?? "",
+      macd_signal_enabled: cfg.macd_signal_enabled ?? false,
+      rsi_signal_enabled: cfg.rsi_signal_enabled ?? false,
+      rsi_upper: cfg.rsi_upper ?? 70,
+      rsi_lower: cfg.rsi_lower ?? 30,
+      ema_entry_enabled: cfg.ema_entry_enabled ?? false,
+      ema_fast: cfg.ema_fast ?? 9,
+      ema_slow: cfg.ema_slow ?? 26,
     });
     setEditErrors({});
     setIsEditing(true);
@@ -491,16 +501,16 @@ function BotDetailPage() {
 
   const handleEditSave = () => {
     const errors: Record<string, string> = {};
-    if (!editForm.name?.trim()) errors.name = "Name is required";
+    if (!editForm.name?.trim()) errors.name = t("common.name") + " " + t("common.required");
     if (bot?.type === "dca") {
       if (!editForm.base_order_size || Number(editForm.base_order_size) <= 0)
-        errors.base_order_size = "Must be positive";
+        errors.base_order_size = t("common.mustBePositive");
       if (!editForm.safety_order_size || Number(editForm.safety_order_size) <= 0)
-        errors.safety_order_size = "Must be positive";
+        errors.safety_order_size = t("common.mustBePositive");
       if (!editForm.price_deviation_initial || Number(editForm.price_deviation_initial) <= 0)
-        errors.price_deviation_initial = "Must be positive";
+        errors.price_deviation_initial = t("common.mustBePositive");
       if (!editForm.take_profit || Number(editForm.take_profit) <= 0)
-        errors.take_profit = "Must be positive";
+        errors.take_profit = t("common.mustBePositive");
     }
     if (Object.keys(errors).length > 0) {
       setEditErrors(errors);
@@ -532,6 +542,10 @@ function BotDetailPage() {
       "chop_loss_pct",
       "chop_sell_pct",
       "max_chop_count",
+      "rsi_upper",
+      "rsi_lower",
+      "ema_fast",
+      "ema_slow",
     ];
     const optionalNumberFields = [
       "stop_loss",
@@ -558,9 +572,22 @@ function BotDetailPage() {
       "indicator_type",
       "indicator_timeframe",
       "webhook_secret",
+      "cover_indicator_type",
     ];
     stringFields.forEach((k) => {
       if (editForm[k] !== undefined) updatedConfig[k] = editForm[k] || undefined;
+    });
+
+    const boolFields = [
+      "post_only",
+      "waterfall_prevention",
+      "chop_loss_enabled",
+      "macd_signal_enabled",
+      "rsi_signal_enabled",
+      "ema_entry_enabled",
+    ];
+    boolFields.forEach((k) => {
+      if (editForm[k] !== undefined) updatedConfig[k] = !!editForm[k];
     });
 
     payload.configJson = updatedConfig;
@@ -569,11 +596,11 @@ function BotDetailPage() {
       { id: botId, payload },
       {
         onSuccess: () => {
-          toast.success("Bot parameters updated");
+          toast.success(t("botDetail.parametersUpdated"));
           setIsEditing(false);
         },
         onError: (err: any) => {
-          toast.error(err.message || "Failed to update bot");
+          toast.error(err.message || t("botDetail.updateFailed"));
         },
       }
     );
@@ -583,7 +610,7 @@ function BotDetailPage() {
     return (
       <PageWrapper>
         <div className="flex items-center justify-center h-64">
-          <div className="text-[var(--text-muted)]">Loading bot...</div>
+          <div className="text-[var(--text-muted)]">{t("botDetail.loadingBot")}</div>
         </div>
       </PageWrapper>
     );
@@ -598,9 +625,9 @@ function BotDetailPage() {
             className="inline-flex items-center gap-1 text-sm text-[var(--primary)] hover:underline"
           >
             <ChevronLeft className="w-4 h-4" />
-            Back to Bots
+            {t("botDetail.backToBots")}
           </Link>
-          <div className="text-[var(--text-muted)]">Bot not found.</div>
+          <div className="text-[var(--text-muted)]">{t("botDetail.botNotFound")}</div>
         </div>
       </PageWrapper>
     );
@@ -651,7 +678,8 @@ function BotDetailPage() {
     <PageWrapper>
       <div className="space-y-6">
         {/* Header */}
-        <div className="gsap-section flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="gsap-section space-y-4">
+          {/* Bot Title Row */}
           <div className="flex items-center gap-3">
             <Link
               to="/bots"
@@ -659,117 +687,129 @@ function BotDetailPage() {
             >
               <ChevronLeft className="w-4 h-4" />
             </Link>
-            <div>
-              <h1 className="text-2xl font-bold text-[var(--text-primary)] font-['Space_Grotesk']">{bot.name}</h1>
-              <div className="flex items-center gap-2 mt-1">
-                <Badge status={bot.status} size="sm" />
-                <span
-                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide border ${
-                    isPaper
-                      ? "bg-[var(--warning-glow)] text-[var(--warning)] border-[var(--warning)]/20"
-                      : "bg-[var(--success-glow)] text-[var(--success)] border-[var(--success)]/20"
-                  }`}
-                >
-                  <span
-                    className={`h-1.5 w-1.5 rounded-full ${
-                      isPaper ? "bg-[var(--warning)]" : "bg-[var(--success)]"
-                    }`}
-                  />
-                  {isPaper ? "Paper" : "Live"}
-                </span>
-                <span className="text-xs text-[var(--text-muted)] capitalize">
-                  {bot.type}
-                </span>
-                <span className="text-xs text-[var(--text-muted)]">|</span>
-                <span className="text-xs text-[var(--text-muted)]">
-                  {bot.connection?.exchangeId || "—"}
-                </span>
-              </div>
-            </div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)] font-['Space_Grotesk'] tracking-tight">
+              {bot.name}
+            </h1>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Mode Toggle */}
-            <div
-              className={`flex items-center rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-hover)] p-0.5 ${
-                isRunning ? "opacity-50 cursor-not-allowed" : ""
-              }`}
-              title={
-                isRunning ? "Stop the bot before switching mode" : undefined
-              }
-            >
-              <button
-                onClick={() => handleToggleMode("paper")}
-                disabled={isPaper || toggleMode.isPending || isRunning}
-                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+          {/* Meta + Actions Row */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge status={bot.status} size="sm" />
+              <span
+                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide border ${
                   isPaper
-                    ? "bg-[var(--warning)] text-[#09090b]"
-                    : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                    ? "bg-[var(--warning-glow)] text-[var(--warning)] border-[var(--warning)]/20"
+                    : "bg-[var(--success-glow)] text-[var(--success)] border-[var(--success)]/20"
                 }`}
               >
-                Paper
-              </button>
-              <button
-                onClick={() => handleToggleMode("live")}
-                disabled={!isPaper || toggleMode.isPending || isRunning}
-                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                  !isPaper
-                    ? "bg-[var(--success)] text-[#09090b]"
-                    : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                }`}
-              >
-                Live
-              </button>
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${
+                    isPaper ? "bg-[var(--warning)]" : "bg-[var(--success)]"
+                  }`}
+                />
+                {isPaper ? t("botDetail.paper") : t("botDetail.live")}
+              </span>
+              <span className="text-xs text-[var(--text-muted)] capitalize">
+                {bot.type}
+              </span>
+              <span className="text-xs text-[var(--text-muted)]">|</span>
+              <span className="text-xs text-[var(--text-muted)]">
+                {bot.connection?.exchangeId || "—"}
+              </span>
+              {bot.tradingPair && (
+                <>
+                  <span className="text-xs text-[var(--text-muted)]">|</span>
+                  <span className="text-xs text-[var(--primary)] font-medium">
+                    {bot.tradingPair}
+                  </span>
+                </>
+              )}
             </div>
 
-            {/* Start / Stop */}
-            {!isRunning ? (
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => startBot.mutate(botId)}
-                disabled={startBot.isPending}
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Mode Toggle */}
+              <div
+                className={`flex items-center rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-hover)] p-0.5 ${
+                  isRunning ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+                title={
+                  isRunning ? "Stop the bot before switching mode" : undefined
+                }
               >
-                <Play className="w-4 h-4" />
-                Start
-              </Button>
-            ) : (
-              <Button
-                variant="danger"
-                size="sm"
-                onClick={() => stopBot.mutate(botId)}
-                disabled={stopBot.isPending}
-              >
-                <Square className="w-4 h-4" />
-                Stop
-              </Button>
-            )}
+                <button
+                  onClick={() => handleToggleMode("paper")}
+                  disabled={isPaper || toggleMode.isPending || isRunning}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                    isPaper
+                      ? "bg-[var(--warning)] text-[#09090b]"
+                      : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                  }`}
+                >
+                  {t("botDetail.paper")}
+                </button>
+                <button
+                  onClick={() => handleToggleMode("live")}
+                  disabled={!isPaper || toggleMode.isPending || isRunning}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                    !isPaper
+                      ? "bg-[var(--success)] text-[#09090b]"
+                      : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                  }`}
+                >
+                  {t("botDetail.live")}
+                </button>
+              </div>
 
-            {/* DCA Manual Controls */}
-            {isRunning && bot?.type === "dca" && (
-              <>
-                <Tooltip content="Emergency market-sell all and stop">
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    className="bg-[var(--danger)] hover:bg-red-800 border-red-800"
-                    onClick={() => setConfirmExit(true)}
-                    disabled={exitBot.isPending}
-                  >
-                    <LogOut className="w-4 h-4" />
-                    Exit
-                  </Button>
-                </Tooltip>
-              </>
-            )}
+              {/* Start / Stop */}
+              {!isRunning ? (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => startBot.mutate(botId)}
+                  disabled={startBot.isPending}
+                >
+                  <Play className="w-4 h-4" />
+                  {t("botDetail.start")}
+                </Button>
+              ) : (
+                <Button
+                  variant="danger"
+                  size="sm"
+                  onClick={() => stopBot.mutate(botId)}
+                  disabled={stopBot.isPending}
+                >
+                  <Square className="w-4 h-4" />
+                  {t("botDetail.stop")}
+                </Button>
+              )}
+
+              {/* DCA Manual Controls */}
+              {isRunning && bot?.type === "dca" && (
+                <>
+                  <Tooltip content={t("botDetail.emergencyExitTooltip")}>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      className="bg-[var(--danger)] hover:bg-red-800 border-red-800"
+                      onClick={() => setConfirmExit(true)}
+                      disabled={exitBot.isPending}
+                    >
+                      <LogOut className="w-4 h-4" />
+                      {t("botDetail.exit")}
+                    </Button>
+                  </Tooltip>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
         <ConfirmModal
           open={!!confirmMode}
-          title={`Switch to ${confirmMode} mode?`}
-          message={`This will switch the bot to ${confirmMode} trading mode. Make sure you understand the implications before proceeding.`}
-          confirmLabel="Switch"
+          title={t("botDetail.switchToMode", { mode: confirmMode || "" })}
+          message={t("botDetail.switchModeConfirm", { mode: confirmMode || "" })}
+          confirmLabel={t("botDetail.switch")}
           destructive={confirmMode === "live"}
           onConfirm={confirmToggle}
           onCancel={() => setConfirmMode(null)}
@@ -777,14 +817,14 @@ function BotDetailPage() {
 
         <ConfirmModal
           open={confirmExit}
-          title="Emergency Exit?"
-          message="This will immediately market-sell your entire position and stop the bot. This action cannot be undone."
-          confirmLabel="Sell & Stop"
+          title={t("botDetail.emergencyExit")}
+          message={t("botDetail.emergencyExitConfirm")}
+          confirmLabel={t("botDetail.sellAndStop")}
           destructive
           onConfirm={() => {
             exitBot.mutate(botId, {
-              onSuccess: () => toast.success("Emergency exit command sent"),
-              onError: (err: any) => toast.error(err.message || "Exit failed"),
+              onSuccess: () => toast.success(t("botDetail.emergencyExitSent")),
+              onError: (err: any) => toast.error(err.message || t("botDetail.exitFailed")),
             });
             setConfirmExit(false);
           }}
@@ -797,25 +837,25 @@ function BotDetailPage() {
             <TabsList>
               <TabsTrigger value="overview">
                 <BarChart3 className="w-4 h-4 mr-1.5" />
-                Overview
+                {t("botDetail.overview")}
               </TabsTrigger>
               <TabsTrigger value="orders">
                 <ListOrdered className="w-4 h-4 mr-1.5" />
-                Orders
+                {t("botDetail.orders")}
               </TabsTrigger>
               {bot?.type === "signal" && (
                 <TabsTrigger value="signal">
                   <Signal className="w-4 h-4 mr-1.5" />
-                  Signal Setup
+                  {t("botDetail.signalSetup")}
                 </TabsTrigger>
               )}
               <TabsTrigger value="logs">
                 <ScrollText className="w-4 h-4 mr-1.5" />
-                Logs
+                {t("botDetail.logs")}
               </TabsTrigger>
               <TabsTrigger value="config">
                 <Settings className="w-4 h-4 mr-1.5" />
-                Config
+                {t("botDetail.config")}
               </TabsTrigger>
             </TabsList>
 
@@ -824,14 +864,14 @@ function BotDetailPage() {
                 <div className="bg-[var(--bg-card)] px-4 py-3 flex flex-col gap-1.5 border-t-2 border-[var(--primary)]">
                   <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold flex items-center gap-1.5">
                     <ListOrdered className="w-3.5 h-3.5" />
-                    Total {isPaper ? "Paper Trades" : "Orders"}
+                    {t("botDetail.totalTrades", { type: isPaper ? t("botDetail.paper") : t("botDetail.orders") })}
                   </span>
                   <span className="font-['Space_Grotesk'] text-xl font-semibold tracking-tight text-[var(--text-primary)]">{totalTrades}</span>
                 </div>
                 <div className="bg-[var(--bg-card)] px-4 py-3 flex flex-col gap-1.5 border-t-2 border-[var(--success)]">
                   <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold flex items-center gap-1.5">
                     <DollarSign className="w-3.5 h-3.5" />
-                    Total Realized PnL
+                    {t("botDetail.totalRealizedPnl")}
                   </span>
                   <span className={`font-['Space_Grotesk'] text-xl font-semibold tracking-tight ${pnl >= 0 ? "text-[var(--success)]" : "text-[var(--danger)]"}`}>
                     {pnl >= 0 ? "+" : ""}{pnl.toFixed(2)} <span className="text-sm font-normal text-[var(--text-muted)]">USDT</span>
@@ -840,7 +880,7 @@ function BotDetailPage() {
                 <div className="bg-[var(--bg-card)] px-4 py-3 flex flex-col gap-1.5 border-t-2 border-[var(--accent)]">
                   <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold flex items-center gap-1.5">
                     <Target className="w-3.5 h-3.5" />
-                    Avg Entry
+                    {t("botDetail.avgEntry")}
                   </span>
                   <span className="font-['Space_Grotesk'] text-xl font-semibold tracking-tight text-[var(--text-primary)]">
                     {avgEntry > 0 ? avgEntry.toFixed(4) : "—"}
@@ -849,7 +889,7 @@ function BotDetailPage() {
                 <div className="bg-[var(--bg-card)] px-4 py-3 flex flex-col gap-1.5 border-t-2 border-[var(--warning)]">
                   <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold flex items-center gap-1.5">
                     <Activity className="w-3.5 h-3.5" />
-                    Direction / Leverage
+                    {t("botDetail.directionLeverage")}
                   </span>
                   <span className="font-['Space_Grotesk'] text-xl font-semibold tracking-tight text-[var(--text-primary)] capitalize">
                     {(bot?.configJson as any)?.direction || "long"} / {(bot?.configJson as any)?.leverage || 1}×
@@ -899,7 +939,7 @@ function BotDetailPage() {
                       <button
                         onClick={handleCopyWebhook}
                         className="inline-flex items-center gap-1 px-3 py-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] text-xs font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors"
-                        title="Copy webhook URL"
+                        title={t("botDetail.copyWebhook")}
                       >
                         {copied ? (
                           <>Copied</>
@@ -921,7 +961,7 @@ function BotDetailPage() {
                         <button
                           onClick={() => setShowSecret((s) => !s)}
                           className="p-1.5 rounded hover:bg-[var(--bg-hover)] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
-                          title={showSecret ? "Hide secret" : "Show secret"}
+                          title={showSecret ? t("botDetail.hideSecret") : t("botDetail.showSecret")}
                         >
                           {showSecret ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                         </button>
@@ -955,12 +995,12 @@ function BotDetailPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-[var(--text-primary)]">
                     <TrendingUp className="w-5 h-5 text-[var(--primary)]" />
-                    Performance
+                    {t("botDetail.performance")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="h-64 bg-[var(--bg-hover)]/40 border border-[var(--border-subtle)] rounded-xl flex items-center justify-center text-[var(--text-muted)] text-sm">
-                    Performance chart will be rendered here
+                    {t("botDetail.performanceChartPlaceholder")}
                   </div>
                 </CardContent>
               </Card>
@@ -971,7 +1011,7 @@ function BotDetailPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-[var(--text-primary)]">
                     <ListOrdered className="w-5 h-5 text-[var(--primary)]" />
-                    {isPaper ? "Paper Trades" : "Orders"}
+                    {isPaper ? `${t("botDetail.paper")} ${t("botDetail.orders")}` : t("botDetail.orders")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -980,24 +1020,24 @@ function BotDetailPage() {
                       <thead>
                         <tr className="text-[var(--text-muted)] border-b border-[var(--border-subtle)]">
                           <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider font-semibold">
-                            Symbol
+                            {t("botDetail.symbol")}
                           </th>
                           <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider font-semibold">
-                            Side
+                            {t("botDetail.side")}
                           </th>
                           <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider font-semibold">
-                            Amount
+                            {t("botDetail.amount")}
                           </th>
                           {isPaper && (
                             <th className="text-left px-4 py-2 font-medium">
-                              Price
+                              {t("botDetail.price")}
                             </th>
                           )}
                           <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider font-semibold">
-                            {isPaper ? "PnL" : "Status"}
+                            {isPaper ? t("botDetail.floatingPnl") : t("botDetail.status")}
                           </th>
                           <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider font-semibold">
-                            Date
+                            {t("botDetail.date")}
                           </th>
                         </tr>
                       </thead>
@@ -1008,7 +1048,7 @@ function BotDetailPage() {
                               colSpan={isPaper ? 6 : 5}
                               className="px-4 py-6 text-center text-[var(--text-muted)]"
                             >
-                              Loading...
+                              {t("common.loading")}...
                             </td>
                           </tr>
                         )}
@@ -1020,8 +1060,8 @@ function BotDetailPage() {
                                 className="px-4 py-6 text-center text-[var(--text-muted)]"
                               >
                                 {isPaper
-                                  ? "No paper trades yet."
-                                  : "No orders yet."}
+                                  ? t("botDetail.noPaperTrades")
+                                  : t("botDetail.noOrders")}
                               </td>
                             </tr>
                           )}
@@ -1120,7 +1160,7 @@ function BotDetailPage() {
                         </div>
                         <div className="flex items-center gap-2">
                           <div className="flex-1 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-hover)] px-3 py-2 text-sm font-mono text-[var(--text-secondary)] truncate">
-                            {webhookUrl || "Loading..."}
+                            {webhookUrl || t("common.loading") + "..."}
                           </div>
                           <button
                             onClick={handleCopyWebhook}
@@ -1415,17 +1455,17 @@ plot(rsi, "RSI", color=color.blue)`}
                   <div>
                     <CardTitle className="flex items-center gap-2 text-[var(--text-primary)]">
                       <Settings className="w-5 h-5 text-[var(--primary)]" />
-                      Configuration
+                      {t("botDetail.configuration")}
                     </CardTitle>
                     <CardDescription className="text-[var(--text-muted)]">
-                      Current bot parameters. Stop the bot to make changes.
+                      {t("botDetail.currentParams")}
                     </CardDescription>
                   </div>
                   <Tooltip
                     content={
                       isRunning
-                        ? "Stop the bot before editing parameters"
-                        : "Edit bot parameters"
+                        ? t("botDetail.stopBeforeEdit")
+                        : t("botDetail.editParameters")
                     }
                   >
                     <Button
@@ -1435,7 +1475,7 @@ plot(rsi, "RSI", color=color.blue)`}
                       disabled={isRunning || updateBot.isPending}
                     >
                       <Pencil className="w-4 h-4" />
-                      Edit Parameters
+                      {t("botDetail.editParameters")}
                     </Button>
                   </Tooltip>
                 </CardHeader>
@@ -1443,34 +1483,46 @@ plot(rsi, "RSI", color=color.blue)`}
                   {(() => {
                     const cfg = (bot?.configJson as any) || {};
                     const rows: { label: string; value: string }[] = [
-                      { label: "Name", value: bot?.name || "—" },
-                      { label: "Type", value: bot?.type || "—" },
-                      { label: "Mode", value: bot?.mode || "—" },
-                      { label: "Trading Pair", value: bot?.tradingPair || cfg.default_symbol || "—" },
+                      { label: t("botDetail.name"), value: bot?.name || "—" },
+                      { label: t("botDetail.type"), value: bot?.type || "—" },
+                      { label: t("botDetail.mode"), value: bot?.mode || "—" },
+                      { label: t("botDetail.tradingPair"), value: bot?.tradingPair || cfg.default_symbol || "—" },
                     ];
                     if (bot?.type === "dca") {
                       rows.push(
-                        { label: "Direction", value: cfg.direction ? `${cfg.direction}` : "long" },
-                        { label: "Leverage", value: `${cfg.leverage ?? 1}× ${cfg.leverage_type || "cross"}` },
-                        { label: "Base Order Size", value: cfg.base_order_size ? `$${cfg.base_order_size} USDT` : "—" },
-                        { label: "Safety Order Size", value: cfg.safety_order_size ? `$${cfg.safety_order_size} USDT` : "—" },
-                        { label: "Max Safety Orders", value: String(cfg.safety_order_max_count ?? "—") },
-                        { label: "Volume Scale", value: cfg.safety_order_volume_scale ? `${cfg.safety_order_volume_scale}×` : "—" },
-                        { label: "Step Scale", value: cfg.safety_order_step_scale ? `${cfg.safety_order_step_scale}×` : "—" },
-                        { label: "First Safety Trigger", value: cfg.price_deviation_initial ? `${cfg.price_deviation_initial}%` : "—" },
-                        { label: "Take-Profit", value: cfg.take_profit ? `${cfg.take_profit}%` : "—" },
-                        { label: "Stop Loss", value: cfg.stop_loss ? `${cfg.stop_loss}%` : "Not set" },
-                        { label: "Max Position Size", value: cfg.max_position_size ? `$${cfg.max_position_size} USDT` : "Not set" },
-                        { label: "Order Type", value: cfg.order_type || "market" },
-                        { label: "Entry Signal", value: cfg.indicator_type && cfg.indicator_type !== "none" ? `${cfg.indicator_type.replace("_", " ")} (${cfg.indicator_timeframe || "1h"})` : "None (immediate)" }
+                        { label: t("botDetail.direction"), value: cfg.direction ? `${cfg.direction}` : "long" },
+                        { label: t("botDetail.leverage"), value: `${cfg.leverage ?? 1}× ${cfg.leverage_type || "cross"}` },
+                        { label: t("botDetail.baseOrderSize"), value: cfg.base_order_size ? `$${cfg.base_order_size} USDT` : "—" },
+                        { label: t("botDetail.safetyOrderSize"), value: cfg.safety_order_size ? `$${cfg.safety_order_size} USDT` : "—" },
+                        { label: t("botDetail.maxSafetyOrders"), value: String(cfg.safety_order_max_count ?? "—") },
+                        { label: t("botDetail.volumeScale"), value: cfg.safety_order_volume_scale ? `${cfg.safety_order_volume_scale}×` : "—" },
+                        { label: t("botDetail.stepScale"), value: cfg.safety_order_step_scale ? `${cfg.safety_order_step_scale}×` : "—" },
+                        { label: t("botDetail.firstSafetyTrigger"), value: cfg.price_deviation_initial ? `${cfg.price_deviation_initial}%` : "—" },
+                        { label: t("botDetail.takeProfit"), value: cfg.take_profit ? `${cfg.take_profit}%` : "—" },
+                        { label: t("botDetail.stopLoss"), value: cfg.stop_loss ? `${cfg.stop_loss}%` : t("botDetail.notSet") },
+                        { label: t("botDetail.maxPositionSize"), value: cfg.max_position_size ? `$${cfg.max_position_size} USDT` : t("botDetail.notSet") },
+                        { label: t("botDetail.orderType"), value: cfg.order_type || "market" },
+                        { label: t("botDetail.takeProfitMode"), value: cfg.take_profit_mode || "fixed" },
+                        { label: t("botDetail.activeSafetyOrders"), value: String(cfg.max_safety_orders_active ?? "—") },
+                        { label: t("botDetail.breakevenAfter"), value: String(cfg.breakeven_after_safety_orders ?? "—") },
+                        { label: t("botDetail.entrySignal"), value: cfg.indicator_type && cfg.indicator_type !== "none" ? cfg.indicator_type.replace("_", " ") : t("botDetail.auto") },
+                        { label: t("botDetail.timeframe"), value: cfg.indicator_timeframe || "1h" },
+                        { label: t("botDetail.coverIndicator"), value: cfg.cover_indicator_type || t("botDetail.none") },
+                        { label: t("botDetail.waterfallPrevention"), value: cfg.waterfall_prevention ? `${cfg.waterfall_prevention_ratio ?? 3}` : t("botDetail.disabled") },
+                        { label: t("botDetail.chopLoss"), value: cfg.chop_loss_enabled ? `${cfg.chop_loss_pct ?? 10}% / ${cfg.chop_sell_pct ?? 30}%` : t("botDetail.disabled") },
+                        { label: t("botDetail.maxSessionLoss"), value: cfg.max_session_loss_usdt ? `$${cfg.max_session_loss_usdt}` : t("botDetail.notSet") },
+                        { label: t("botDetail.maxDrawdown"), value: cfg.max_drawdown_pct ? `${cfg.max_drawdown_pct}%` : t("botDetail.notSet") },
+                        { label: t("botDetail.macdSignal"), value: cfg.macd_signal_enabled ? t("botDetail.enabled") : t("botDetail.disabled") },
+                        { label: t("botDetail.rsiSignal"), value: cfg.rsi_signal_enabled ? `${t("botDetail.enabled")} (${cfg.rsi_upper ?? 70}/${cfg.rsi_lower ?? 30})` : t("botDetail.disabled") },
+                        { label: t("botDetail.emaSignal"), value: cfg.ema_entry_enabled ? `${t("botDetail.enabled")} (${cfg.ema_fast ?? 9}/${cfg.ema_slow ?? 26})` : t("botDetail.disabled") }
                       );
                     } else {
                       rows.push(
-                        { label: "Default Symbol", value: cfg.default_symbol || "—" },
-                        { label: "Webhook Secret", value: cfg.webhook_secret ? "Configured" : "Not set" },
-                        { label: "Max Position Size", value: cfg.max_position_size ? `$${cfg.max_position_size} USDT` : "Not set" },
-                        { label: "Stop Loss", value: cfg.stop_loss_pct ? `${cfg.stop_loss_pct}%` : "Not set" },
-                        { label: "Take Profit", value: cfg.take_profit_pct ? `${cfg.take_profit_pct}%` : "Not set" }
+                        { label: t("botDetail.defaultSymbol"), value: cfg.default_symbol || "—" },
+                        { label: t("botDetail.webhookSecret"), value: cfg.webhook_secret ? t("botDetail.configured") : t("botDetail.notSet") },
+                        { label: t("botDetail.maxPositionSize"), value: cfg.max_position_size ? `$${cfg.max_position_size} USDT` : t("botDetail.notSet") },
+                        { label: t("botDetail.stopLoss"), value: cfg.stop_loss_pct ? `${cfg.stop_loss_pct}%` : t("botDetail.notSet") },
+                        { label: t("botDetail.takeProfit"), value: cfg.take_profit_pct ? `${cfg.take_profit_pct}%` : t("botDetail.notSet") }
                       );
                     }
                     return (
@@ -1498,13 +1550,13 @@ plot(rsi, "RSI", color=color.blue)`}
       <Dialog
         open={isEditing}
         onClose={handleEditClose}
-        title="Edit Bot Parameters"
-        description={`Update ${bot?.type?.toUpperCase()} bot settings. The bot must be stopped to save changes.`}
+        title={t("botDetail.editBotParameters")}
+        description={t("botDetail.updateSettings", { type: bot?.type?.toUpperCase() })}
         className="max-w-2xl max-h-[85vh] overflow-y-auto"
       >
         <div className="space-y-4">
           <Input
-            label="Bot Name"
+            label={t("botDetail.name")}
             value={editForm.name || ""}
             onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
             error={editErrors.name}
@@ -1513,7 +1565,7 @@ plot(rsi, "RSI", color=color.blue)`}
           {bot?.type === "dca" && (
             <>
               <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-hover)]/40 p-4 space-y-3">
-                <p className="text-sm font-semibold text-[var(--text-primary)]">Direction</p>
+                <p className="text-sm font-semibold text-[var(--text-primary)]">{t("botDetail.direction")}</p>
                 <div className="flex rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-hover)] p-1">
                   {(["long", "short", "both"] as const).map((d) => (
                     <button
@@ -1530,36 +1582,36 @@ plot(rsi, "RSI", color=color.blue)`}
                           : "text-[var(--text-muted)] hover:text-[var(--text-primary)]",
                       ].join(" ")}
                     >
-                      {d}
+                      {d === "long" ? t("botDetail.long") : d === "short" ? t("botDetail.short") : t("botDetail.both")}
                     </button>
                   ))}
                 </div>
                 <p className="text-[10px] text-[var(--text-muted)]">
                   {editForm.direction === "both"
-                    ? "Dual / Hedge mode opens independent long and short positions simultaneously. Each side has its own safety orders, VWAP, and exits."
+                    ? t("botDetail.directionBothHelper")
                     : editForm.direction === "long"
-                    ? "Long-only futures bot. Buys to open, sells to close."
-                    : "Short-only futures bot. Sells to open, buys to close."}
+                    ? t("botDetail.directionLongHelper")
+                    : t("botDetail.directionShortHelper")}
                 </p>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <Input
-                  label="Base Order Size (USDT)"
+                  label={t("botDetail.baseOrderSize")}
                   type="number"
                   value={editForm.base_order_size || ""}
                   onChange={(e) => setEditForm((prev) => ({ ...prev, base_order_size: e.target.value }))}
                   error={editErrors.base_order_size}
                 />
                 <Input
-                  label="Safety Order Size (USDT)"
+                  label={t("botDetail.safetyOrderSize")}
                   type="number"
                   value={editForm.safety_order_size || ""}
                   onChange={(e) => setEditForm((prev) => ({ ...prev, safety_order_size: e.target.value }))}
                   error={editErrors.safety_order_size}
                 />
                 <Input
-                  label="First Safety Trigger (%)"
+                  label={t("botDetail.firstSafetyTrigger")}
                   type="number"
                   step={0.1}
                   value={editForm.price_deviation_initial || ""}
@@ -1567,7 +1619,7 @@ plot(rsi, "RSI", color=color.blue)`}
                   error={editErrors.price_deviation_initial}
                 />
                 <Input
-                  label="Take-Profit Target (%)"
+                  label={t("botDetail.takeProfit")}
                   type="number"
                   step={0.1}
                   value={editForm.take_profit || ""}
@@ -1575,50 +1627,50 @@ plot(rsi, "RSI", color=color.blue)`}
                   error={editErrors.take_profit}
                 />
                 <Input
-                  label="Stop Loss (%)"
+                  label={t("botDetail.stopLoss")}
                   type="number"
                   step={0.1}
                   value={editForm.stop_loss || ""}
                   onChange={(e) => setEditForm((prev) => ({ ...prev, stop_loss: e.target.value }))}
-                  helperText="Leave empty to disable."
+                  helperText={t("botDetail.stopLossHelper")}
                 />
                 <Input
-                  label="Max Position Size (USDT)"
+                  label={t("botDetail.maxPositionSize")}
                   type="number"
                   value={editForm.max_position_size || ""}
                   onChange={(e) => setEditForm((prev) => ({ ...prev, max_position_size: e.target.value }))}
-                  helperText="Leave empty for no cap."
+                  helperText={t("botDetail.maxPositionSizeHelper")}
                 />
               </div>
 
               <div className="grid gap-4 sm:grid-cols-3">
                 <Input
-                  label="Max Safety Orders"
+                  label={t("botDetail.maxSafetyOrders")}
                   type="number"
                   value={editForm.safety_order_max_count || ""}
                   onChange={(e) => setEditForm((prev) => ({ ...prev, safety_order_max_count: e.target.value }))}
                 />
                 <Input
-                  label="Volume Scale"
+                  label={t("botDetail.volumeScale")}
                   type="number"
                   step={0.1}
                   value={editForm.safety_order_volume_scale || ""}
                   onChange={(e) => setEditForm((prev) => ({ ...prev, safety_order_volume_scale: e.target.value }))}
-                  helperText="e.g. 1.5×"
+                  helperText={t("botDetail.volumeScaleHelper")}
                 />
                 <Input
-                  label="Step Scale"
+                  label={t("botDetail.stepScale")}
                   type="number"
                   step={0.1}
                   value={editForm.safety_order_step_scale || ""}
                   onChange={(e) => setEditForm((prev) => ({ ...prev, safety_order_step_scale: e.target.value }))}
-                  helperText="e.g. 1.5×"
+                  helperText={t("botDetail.stepScaleHelper")}
                 />
               </div>
 
               <div className="grid gap-4 sm:grid-cols-3">
                 <Input
-                  label="Leverage"
+                  label={t("botDetail.leverage")}
                   type="number"
                   min={1}
                   max={125}
@@ -1626,20 +1678,20 @@ plot(rsi, "RSI", color=color.blue)`}
                   onChange={(e) => setEditForm((prev) => ({ ...prev, leverage: e.target.value }))}
                 />
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-[var(--text-secondary)]">Margin Type</label>
+                  <label className="text-sm font-medium text-[var(--text-secondary)]">{t("botDetail.marginType")}</label>
                   <div className="flex rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-hover)] p-1">
-                    {(["cross", "isolated", "exchange"] as const).map((t) => (
+                    {(["cross", "isolated", "exchange"] as const).map((lt) => (
                       <button
-                        key={t}
-                        onClick={() => setEditForm((prev) => ({ ...prev, leverage_type: t }))}
+                        key={lt}
+                        onClick={() => setEditForm((prev) => ({ ...prev, leverage_type: lt }))}
                         className={[
                           "flex-1 rounded-md px-2 py-1.5 text-xs font-medium capitalize transition-all",
-                          editForm.leverage_type === t
+                          editForm.leverage_type === lt
                             ? "bg-[var(--primary-glow)] text-[var(--primary)] border border-[var(--primary)]/20"
                             : "text-[var(--text-muted)] hover:text-[var(--text-primary)]",
                         ].join(" ")}
                       >
-                        {t}
+                        {lt === "cross" ? t("botDetail.cross") : lt === "isolated" ? t("botDetail.isolated") : t("botDetail.exchange")}
                       </button>
                     ))}
                   </div>
@@ -1648,11 +1700,19 @@ plot(rsi, "RSI", color=color.blue)`}
 
               <div className="rounded-xl border border-[var(--primary)]/20 bg-[var(--primary-glow)] p-3 space-y-3">
                 <p className="text-xs font-medium text-[var(--primary)] flex items-center gap-1.5">
-                  <Signal className="w-3.5 h-3.5" /> Entry Signal
+                  <Signal className="w-3.5 h-3.5" /> {t("botDetail.entrySignalSection")}
+                </p>
+                <p className="text-[10px] text-[var(--text-muted)]">
+                  {editForm.indicator_type === "none"
+                    ? t("botDetail.autoImmediate")
+                    : t("botDetail.entrySignalCurrent", {
+                        indicator: editForm.indicator_type?.replace("_", " ") ?? "",
+                        timeframe: editForm.indicator_timeframe || "1h",
+                      })}
                 </p>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <label className="text-xs text-[var(--text-muted)]">Indicator</label>
+                    <label className="text-xs text-[var(--text-muted)]">{t("botDetail.indicator")}</label>
                     <div className="flex flex-wrap gap-1.5">
                       {(["none", "rsi", "macd", "ema_cross"] as const).map((opt) => (
                         <button
@@ -1665,15 +1725,15 @@ plot(rsi, "RSI", color=color.blue)`}
                               : "bg-[var(--bg-hover)] text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-[var(--border-subtle)]",
                           ].join(" ")}
                         >
-                          {opt === "none" ? "None" : opt === "rsi" ? "RSI" : opt === "macd" ? "MACD" : "EMA Cross"}
+                          {opt === "none" ? t("botDetail.auto") : opt === "rsi" ? "RSI" : opt === "macd" ? "MACD" : "EMA Cross"}
                         </button>
                       ))}
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs text-[var(--text-muted)]">Timeframe</label>
+                    <label className="text-xs text-[var(--text-muted)]">{t("botDetail.timeframe")}</label>
                     <div className="flex flex-wrap gap-1.5">
-                      {(["5m", "15m", "1h", "4h", "1d"] as const).map((tf) => (
+                      {(["5m", "15m", "30m", "1h", "4h", "1d"] as const).map((tf) => (
                         <button
                           key={tf}
                           onClick={() => setEditForm((prev) => ({ ...prev, indicator_timeframe: tf }))}
@@ -1692,16 +1752,233 @@ plot(rsi, "RSI", color=color.blue)`}
                 </div>
                 {editForm.indicator_type === "rsi" && (
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <Input label="RSI Period" type="number" value={editForm.rsi_period || ""} onChange={(e) => setEditForm((prev) => ({ ...prev, rsi_period: e.target.value }))} />
-                    <Input label="RSI Threshold" type="number" value={editForm.rsi_threshold || ""} onChange={(e) => setEditForm((prev) => ({ ...prev, rsi_threshold: e.target.value }))} />
+                    <Input label={t("botDetail.rsiPeriod")} type="number" value={editForm.rsi_period || ""} onChange={(e) => setEditForm((prev) => ({ ...prev, rsi_period: e.target.value }))} />
+                    <Input label={t("botDetail.rsiThreshold")} type="number" value={editForm.rsi_threshold || ""} onChange={(e) => setEditForm((prev) => ({ ...prev, rsi_threshold: e.target.value }))} />
                   </div>
                 )}
                 {editForm.indicator_type === "ema_cross" && (
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <Input label="EMA Short" type="number" value={editForm.ema_short || ""} onChange={(e) => setEditForm((prev) => ({ ...prev, ema_short: e.target.value }))} />
-                    <Input label="EMA Long" type="number" value={editForm.ema_long || ""} onChange={(e) => setEditForm((prev) => ({ ...prev, ema_long: e.target.value }))} />
+                    <Input label={t("botDetail.emaShort")} type="number" value={editForm.ema_short || ""} onChange={(e) => setEditForm((prev) => ({ ...prev, ema_short: e.target.value }))} />
+                    <Input label={t("botDetail.emaLong")} type="number" value={editForm.ema_long || ""} onChange={(e) => setEditForm((prev) => ({ ...prev, ema_long: e.target.value }))} />
                   </div>
                 )}
+              </div>
+
+              {/* Order Type & TP Mode */}
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-[var(--text-secondary)]">{t("botDetail.orderType")}</label>
+                  <div className="flex rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-hover)] p-1">
+                    {(["market", "limit"] as const).map((ot) => (
+                      <button
+                        key={ot}
+                        onClick={() => setEditForm((prev) => ({ ...prev, order_type: ot }))}
+                        className={[
+                          "flex-1 rounded-md px-2 py-1.5 text-xs font-medium capitalize transition-all",
+                          editForm.order_type === ot
+                            ? "bg-[var(--primary-glow)] text-[var(--primary)] border border-[var(--primary)]/20"
+                            : "text-[var(--text-muted)] hover:text-[var(--text-primary)]",
+                        ].join(" ")}
+                      >
+                        {ot === "market" ? t("botDetail.market") : t("botDetail.limit")}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-[var(--text-secondary)]">{t("botDetail.takeProfitMode")}</label>
+                  <div className="flex rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-hover)] p-1">
+                    {(["fixed", "trailing"] as const).map((m) => (
+                      <button
+                        key={m}
+                        onClick={() => setEditForm((prev) => ({ ...prev, take_profit_mode: m }))}
+                        className={[
+                          "flex-1 rounded-md px-2 py-1.5 text-xs font-medium capitalize transition-all",
+                          editForm.take_profit_mode === m
+                            ? "bg-[var(--primary-glow)] text-[var(--primary)] border border-[var(--primary)]/20"
+                            : "text-[var(--text-muted)] hover:text-[var(--text-primary)]",
+                        ].join(" ")}
+                      >
+                        {m === "fixed" ? t("botDetail.fixed") : t("botDetail.trailing")}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <label className="flex items-center gap-2 text-sm text-[var(--text-secondary)] cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={!!editForm.post_only}
+                    onChange={(e) => setEditForm((prev) => ({ ...prev, post_only: e.target.checked }))}
+                    className="h-4 w-4 rounded border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--accent)]"
+                  />
+                  {t("botDetail.postOnly")}
+                </label>
+              </div>
+
+              {/* Active Safety & Breakeven */}
+              <div className="grid gap-4 sm:grid-cols-3">
+                <Input
+                  label={t("botDetail.activeSafetyOrders")}
+                  type="number"
+                  value={editForm.max_safety_orders_active || ""}
+                  onChange={(e) => setEditForm((prev) => ({ ...prev, max_safety_orders_active: e.target.value }))}
+                />
+                <Input
+                  label={t("botDetail.breakevenAfter")}
+                  type="number"
+                  value={editForm.breakeven_after_safety_orders || ""}
+                  onChange={(e) => setEditForm((prev) => ({ ...prev, breakeven_after_safety_orders: e.target.value }))}
+                />
+                <Input
+                  label={t("botDetail.coverIndicator")}
+                  value={editForm.cover_indicator_type || ""}
+                  onChange={(e) => setEditForm((prev) => ({ ...prev, cover_indicator_type: e.target.value }))}
+                  helperText={t("botDetail.coverIndicatorHelper")}
+                />
+              </div>
+
+              {/* Risk Management */}
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Input
+                  label={t("botDetail.maxSessionLoss")}
+                  type="number"
+                  value={editForm.max_session_loss_usdt || ""}
+                  onChange={(e) => setEditForm((prev) => ({ ...prev, max_session_loss_usdt: e.target.value }))}
+                  helperText={t("botDetail.stopLossHelper")}
+                />
+                <Input
+                  label={t("botDetail.maxDrawdown")}
+                  type="number"
+                  step={0.1}
+                  value={editForm.max_drawdown_pct || ""}
+                  onChange={(e) => setEditForm((prev) => ({ ...prev, max_drawdown_pct: e.target.value }))}
+                  helperText={t("botDetail.stopLossHelper")}
+                />
+              </div>
+
+              {/* Chop-Loss */}
+              <div className="rounded-xl border border-[var(--danger)]/20 bg-[var(--danger-glow)]/30 p-3 space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-medium text-[var(--danger)] flex items-center gap-1.5">
+                    <AlertTriangle className="w-3.5 h-3.5" /> {t("botDetail.chopLoss")}
+                  </p>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={!!editForm.chop_loss_enabled}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, chop_loss_enabled: e.target.checked }))}
+                      className="sr-only peer"
+                    />
+                    <div className="w-9 h-5 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--danger)]" />
+                  </label>
+                </div>
+                {editForm.chop_loss_enabled && (
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <Input
+                      label={t("botDetail.chopLossPct")}
+                      type="number"
+                      step={0.1}
+                      value={editForm.chop_loss_pct || ""}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, chop_loss_pct: e.target.value }))}
+                    />
+                    <Input
+                      label={t("botDetail.chopSellPct")}
+                      type="number"
+                      step={0.1}
+                      value={editForm.chop_sell_pct || ""}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, chop_sell_pct: e.target.value }))}
+                    />
+                    <Input
+                      label={t("botDetail.maxChopCount")}
+                      type="number"
+                      value={editForm.max_chop_count || ""}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, max_chop_count: e.target.value }))}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Waterfall Prevention */}
+              <div className="flex items-center gap-4">
+                <label className="flex items-center gap-2 text-sm text-[var(--text-secondary)] cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={!!editForm.waterfall_prevention}
+                    onChange={(e) => setEditForm((prev) => ({ ...prev, waterfall_prevention: e.target.checked }))}
+                    className="h-4 w-4 rounded border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--accent)]"
+                  />
+                  {t("botDetail.waterfallPrevention")}
+                </label>
+                {editForm.waterfall_prevention && (
+                  <Input
+                    label={t("botDetail.waterfallRatio")}
+                    type="number"
+                    step={0.1}
+                    value={editForm.waterfall_prevention_ratio || ""}
+                    onChange={(e) => setEditForm((prev) => ({ ...prev, waterfall_prevention_ratio: e.target.value }))}
+                    className="w-32"
+                  />
+                )}
+              </div>
+
+              {/* Signal & Trend Filters */}
+              <div className="rounded-xl border border-[var(--primary)]/20 bg-[var(--primary-glow)] p-3 space-y-3">
+                <p className="text-xs font-medium text-[var(--primary)] flex items-center gap-1.5">
+                  <Signal className="w-3.5 h-3.5" /> {t("botDetail.signalTrendFilters")}
+                </p>
+                <div className="space-y-3">
+                  {/* MACD */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-[var(--text-secondary)]">{t("botDetail.macdSignal")}</span>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={!!editForm.macd_signal_enabled}
+                        onChange={(e) => setEditForm((prev) => ({ ...prev, macd_signal_enabled: e.target.checked }))}
+                        className="sr-only peer"
+                      />
+                      <div className="w-9 h-5 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--primary)]" />
+                    </label>
+                  </div>
+                  {/* RSI */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-[var(--text-secondary)]">{t("botDetail.rsiSignal")}</span>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={!!editForm.rsi_signal_enabled}
+                        onChange={(e) => setEditForm((prev) => ({ ...prev, rsi_signal_enabled: e.target.checked }))}
+                        className="sr-only peer"
+                      />
+                      <div className="w-9 h-5 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--primary)]" />
+                    </label>
+                  </div>
+                  {editForm.rsi_signal_enabled && (
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <Input label={t("botDetail.rsiUpper")} type="number" value={editForm.rsi_upper || ""} onChange={(e) => setEditForm((prev) => ({ ...prev, rsi_upper: e.target.value }))} />
+                      <Input label={t("botDetail.rsiLower")} type="number" value={editForm.rsi_lower || ""} onChange={(e) => setEditForm((prev) => ({ ...prev, rsi_lower: e.target.value }))} />
+                    </div>
+                  )}
+                  {/* EMA */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-[var(--text-secondary)]">{t("botDetail.emaSignal")}</span>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={!!editForm.ema_entry_enabled}
+                        onChange={(e) => setEditForm((prev) => ({ ...prev, ema_entry_enabled: e.target.checked }))}
+                        className="sr-only peer"
+                      />
+                      <div className="w-9 h-5 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--primary)]" />
+                    </label>
+                  </div>
+                  {editForm.ema_entry_enabled && (
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <Input label={t("botDetail.emaFast")} type="number" value={editForm.ema_fast || ""} onChange={(e) => setEditForm((prev) => ({ ...prev, ema_fast: e.target.value }))} />
+                      <Input label={t("botDetail.emaSlow")} type="number" value={editForm.ema_slow || ""} onChange={(e) => setEditForm((prev) => ({ ...prev, ema_slow: e.target.value }))} />
+                    </div>
+                  )}
+                </div>
               </div>
             </>
           )}
@@ -1709,34 +1986,34 @@ plot(rsi, "RSI", color=color.blue)`}
           {bot?.type === "signal" && (
             <>
               <Input
-                label="Default Symbol"
+                label={t("botDetail.defaultSymbol")}
                 value={editForm.default_symbol || ""}
                 onChange={(e) => setEditForm((prev) => ({ ...prev, default_symbol: e.target.value }))}
-                helperText="Fallback trading pair if the webhook payload doesn't include symbol."
+                helperText={t("botDetail.defaultSymbolHelper")}
               />
               <Input
-                label="Webhook Secret"
+                label={t("botDetail.webhookSecret")}
                 type="password"
                 value={editForm.webhook_secret || ""}
                 onChange={(e) => setEditForm((prev) => ({ ...prev, webhook_secret: e.target.value }))}
-                helperText="Leave empty to keep unchanged. HMAC-SHA256 secret for webhook security."
+                helperText={t("botDetail.webhookSecretHelper")}
               />
               <div className="grid gap-4 sm:grid-cols-3">
                 <Input
-                  label="Max Position Size (USDT)"
+                  label={t("botDetail.maxPositionSizeLabel")}
                   type="number"
                   value={editForm.max_position_size || ""}
                   onChange={(e) => setEditForm((prev) => ({ ...prev, max_position_size: e.target.value }))}
                 />
                 <Input
-                  label="Stop Loss (%)"
+                  label={t("botDetail.stopLossPct")}
                   type="number"
                   step={0.1}
                   value={editForm.stop_loss_pct || ""}
                   onChange={(e) => setEditForm((prev) => ({ ...prev, stop_loss_pct: e.target.value }))}
                 />
                 <Input
-                  label="Take Profit (%)"
+                  label={t("botDetail.takeProfitPct")}
                   type="number"
                   step={0.1}
                   value={editForm.take_profit_pct || ""}
@@ -1748,7 +2025,7 @@ plot(rsi, "RSI", color=color.blue)`}
 
           <div className="flex items-center justify-end gap-3 pt-2">
             <Button variant="secondary" size="sm" onClick={handleEditClose}>
-              <X className="w-4 h-4" /> Cancel
+              <X className="w-4 h-4" /> {t("botDetail.cancel")}
             </Button>
             <Button
               variant="primary"
@@ -1761,7 +2038,7 @@ plot(rsi, "RSI", color=color.blue)`}
               ) : (
                 <Pencil className="w-4 h-4" />
               )}
-              Save Changes
+              {t("botDetail.saveChanges")}
             </Button>
           </div>
         </div>

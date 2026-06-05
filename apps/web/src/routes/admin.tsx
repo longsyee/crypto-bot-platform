@@ -15,6 +15,7 @@ import {
   useToggleShowcasePaperTrades,
 } from "../hooks/use-api";
 import { useAuth } from "../hooks/use-auth";
+import { useI18n } from "../hooks/use-i18n";
 import { PageWrapper } from "../components/layout/page-wrapper";
 import {
   Tabs,
@@ -65,6 +66,7 @@ function useCountUpStat(ref: React.RefObject<HTMLElement | null>, target: number
 type TabValue = "users" | "bots" | "health" | "company" | "referral-withdrawals";
 
 function AdminPage() {
+  const { t } = useI18n();
   const { user } = useAuth();
   const [tab, setTab] = useState<TabValue>("health");
 
@@ -93,9 +95,9 @@ function AdminPage() {
       <PageWrapper>
         <div className="flex h-[60vh] flex-col items-center justify-center gap-4 text-center">
           <ShieldAlert className="h-16 w-16 text-[var(--danger)]" />
-          <h2 className="text-2xl font-bold text-[var(--text-primary)]">Access Denied</h2>
+          <h2 className="text-2xl font-bold text-[var(--text-primary)]">{t("admin.accessDenied")}</h2>
           <p className="max-w-md text-[var(--text-muted)]">
-            You do not have permission to view this page. Admin access is required.
+            {t("admin.accessDeniedDesc")}
           </p>
         </div>
       </PageWrapper>
@@ -107,84 +109,84 @@ function AdminPage() {
       <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 md:px-6">
         <div className="gsap-section flex flex-col gap-1">
           <h1 className="text-3xl font-bold tracking-tight text-[var(--text-primary)]">
-            Admin Dashboard
+            {t("admin.title")}
           </h1>
           <p className="text-sm text-[var(--text-muted)]">
-            Manage users, monitor bots, view company finances, and approve referral withdrawals.
+            {t("admin.description")}
           </p>
         </div>
 
         <div className="gsap-section">
           <Tabs value={tab} onValueChange={(v) => setTab(v as TabValue)}>
             <TabsList className="w-full sm:w-auto">
-              <TabsTrigger value="users">Users</TabsTrigger>
-              <TabsTrigger value="bots">Bots</TabsTrigger>
-              <TabsTrigger value="health">Health</TabsTrigger>
-              <TabsTrigger value="company">Company</TabsTrigger>
-              <TabsTrigger value="referral-withdrawals">Withdrawals</TabsTrigger>
+              <TabsTrigger value="users">{t("admin.tabs.users")}</TabsTrigger>
+              <TabsTrigger value="bots">{t("admin.tabs.bots")}</TabsTrigger>
+              <TabsTrigger value="health">{t("admin.tabs.health")}</TabsTrigger>
+              <TabsTrigger value="company">{t("admin.tabs.company")}</TabsTrigger>
+              <TabsTrigger value="referral-withdrawals">{t("admin.tabs.withdrawals")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="health">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-[var(--border-subtle)] rounded-xl overflow-hidden">
                 <div className="bg-[var(--bg-card)] px-4 py-3 flex flex-col gap-1.5 relative overflow-hidden border-t-2 border-[var(--primary)]">
-                  <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">Total Users</span>
+                  <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">{t("admin.totalUsers")}</span>
                   <span ref={usersRef} className="font-['Space_Grotesk'] text-xl font-semibold tracking-tight text-[var(--text-primary)]">0</span>
-                  <span className="font-mono text-[11px] text-[var(--text-muted)]">{dash?.totalUsers ?? 0} registered</span>
+                  <span className="font-mono text-[11px] text-[var(--text-muted)]">{t("admin.registered", { count: dash?.totalUsers ?? 0 })}</span>
                 </div>
                 <div className="bg-[var(--bg-card)] px-4 py-3 flex flex-col gap-1.5 relative overflow-hidden border-t-2 border-[var(--success)]">
-                  <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">Active Bots</span>
+                  <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">{t("admin.activeBots")}</span>
                   <span ref={botsRef} className="font-['Space_Grotesk'] text-xl font-semibold tracking-tight text-[var(--text-primary)]">0</span>
-                  <span className="font-mono text-[11px] text-[var(--text-muted)]">{dash?.activeBots ?? 0} running</span>
+                  <span className="font-mono text-[11px] text-[var(--text-muted)]">{t("admin.running", { count: dash?.activeBots ?? 0 })}</span>
                 </div>
                 <div className="bg-[var(--bg-card)] px-4 py-3 flex flex-col gap-1.5 relative overflow-hidden border-t-2 border-[var(--warning)]">
-                  <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">Pending Withdrawals</span>
+                  <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">{t("admin.pendingWithdrawals")}</span>
                   <span ref={pendingRef} className="font-['Space_Grotesk'] text-xl font-semibold tracking-tight text-[var(--warning)]">0</span>
-                  <span className="font-mono text-[11px] text-[var(--text-muted)]">{Number(companyStats?.pendingWithdrawalAmount || 0).toFixed(2)} USDT</span>
+                  <span className="font-mono text-[11px] text-[var(--text-muted)]">{t("admin.usdtAmount", { amount: Number(companyStats?.pendingWithdrawalAmount || 0).toFixed(2) })}</span>
                 </div>
                 <div className="bg-[var(--bg-card)] px-4 py-3 flex flex-col gap-1.5 relative overflow-hidden border-t-2 border-[#a78bfa]">
-                  <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">Total Fees</span>
+                  <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">{t("admin.totalFees")}</span>
                   <span ref={feesRef} className="font-['Space_Grotesk'] text-xl font-semibold tracking-tight text-[var(--text-primary)]">0</span>
-                  <span className="font-mono text-[11px] text-[var(--text-muted)]">{Number(dash?.totalFees || 0).toFixed(2)} USDT</span>
+                  <span className="font-mono text-[11px] text-[var(--text-muted)]">{t("admin.usdtAmount", { amount: Number(dash?.totalFees || 0).toFixed(2) })}</span>
                 </div>
               </div>
 
               <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 mt-6">
                 <div className="flex justify-between items-center mb-3">
-                  <h3 className="text-sm font-semibold text-[var(--text-primary)]">Audit Log</h3>
-                  <span className="text-[11px] text-[var(--text-muted)] cursor-pointer hover:text-[var(--text-secondary)]">View All</span>
+                  <h3 className="text-sm font-semibold text-[var(--text-primary)]">{t("admin.auditLog")}</h3>
+                  <span className="text-[11px] text-[var(--text-muted)] cursor-pointer hover:text-[var(--text-secondary)]">{t("admin.viewAll")}</span>
                 </div>
                 <div className="flex items-center gap-2.5 py-2 border-b border-[var(--border-subtle)] last:border-b-0 text-[11px]">
                   <span className="h-1.5 w-1.5 rounded-full bg-[var(--success)] shrink-0" />
                   <span className="flex-1 text-[var(--text-secondary)]">
-                    <strong className="text-[var(--text-primary)] font-medium">Withdrawal approved</strong> — alex.morgan@protonmail.com · 1,250 USDT
+                    <strong className="text-[var(--text-primary)] font-medium">{t("admin.withdrawalApproved")}</strong> — alex.morgan@protonmail.com · 1,250 USDT
                   </span>
                   <span className="text-[10px] text-[var(--text-muted)] font-mono">2026-06-02 09:14</span>
                 </div>
                 <div className="flex items-center gap-2.5 py-2 border-b border-[var(--border-subtle)] last:border-b-0 text-[11px]">
                   <span className="h-1.5 w-1.5 rounded-full bg-[var(--warning)] shrink-0" />
                   <span className="flex-1 text-[var(--text-secondary)]">
-                    <strong className="text-[var(--text-primary)] font-medium">User suspended</strong> — jake.wright@outlook.com · spam violations
+                    <strong className="text-[var(--text-primary)] font-medium">{t("admin.userSuspended")}</strong> — jake.wright@outlook.com · {t("admin.spamViolations")}
                   </span>
                   <span className="text-[10px] text-[var(--text-muted)] font-mono">2026-06-02 08:41</span>
                 </div>
                 <div className="flex items-center gap-2.5 py-2 border-b border-[var(--border-subtle)] last:border-b-0 text-[11px]">
                   <span className="h-1.5 w-1.5 rounded-full bg-[var(--primary)] shrink-0" />
                   <span className="flex-1 text-[var(--text-secondary)]">
-                    <strong className="text-[var(--text-primary)] font-medium">Role changed</strong> — sarah.chen@enterprise.io · user → admin
+                    <strong className="text-[var(--text-primary)] font-medium">{t("admin.roleChanged")}</strong> — sarah.chen@enterprise.io · {t("admin.userToAdmin")}
                   </span>
                   <span className="text-[10px] text-[var(--text-muted)] font-mono">2026-06-01 22:03</span>
                 </div>
                 <div className="flex items-center gap-2.5 py-2 border-b border-[var(--border-subtle)] last:border-b-0 text-[11px]">
                   <span className="h-1.5 w-1.5 rounded-full bg-[var(--success)] shrink-0" />
                   <span className="flex-1 text-[var(--text-secondary)]">
-                    <strong className="text-[var(--text-primary)] font-medium">Bot started</strong> — DCA_BTC_01 · Binance · david.kim@trading.xyz
+                    <strong className="text-[var(--text-primary)] font-medium">{t("admin.botStarted")}</strong> — DCA_BTC_01 · Binance · david.kim@trading.xyz
                   </span>
                   <span className="text-[10px] text-[var(--text-muted)] font-mono">2026-06-01 19:27</span>
                 </div>
                 <div className="flex items-center gap-2.5 py-2 border-b border-[var(--border-subtle)] last:border-b-0 text-[11px]">
                   <span className="h-1.5 w-1.5 rounded-full bg-[var(--primary)] shrink-0" />
                   <span className="flex-1 text-[var(--text-secondary)]">
-                    <strong className="text-[var(--text-primary)] font-medium">Deposit confirmed</strong> — 5,000 USDT · maria.garcia@exchange.co
+                    <strong className="text-[var(--text-primary)] font-medium">{t("admin.depositConfirmed")}</strong> — 5,000 USDT · maria.garcia@exchange.co
                   </span>
                   <span className="text-[10px] text-[var(--text-muted)] font-mono">2026-06-01 14:55</span>
                 </div>
@@ -214,6 +216,7 @@ function AdminPage() {
 }
 
 function UsersTab({ users, total, isLoading, isError, error }: { users: any[]; total: number; isLoading?: boolean; isError?: boolean; error?: any }) {
+  const { t } = useI18n();
   const [search, setSearch] = useState("");
   const updateRole = useUpdateUserRole();
   const suspendUser = useSuspendUser();
@@ -232,7 +235,7 @@ function UsersTab({ users, total, isLoading, isError, error }: { users: any[]; t
   const columns: Column<any>[] = [
     {
       key: "email",
-      header: "Email",
+      header: t("admin.email"),
       sortable: true,
       render: (u) => (
         <span className="font-medium text-[var(--text-primary)]">{u.email}</span>
@@ -240,7 +243,7 @@ function UsersTab({ users, total, isLoading, isError, error }: { users: any[]; t
     },
     {
       key: "role",
-      header: "Role",
+      header: t("admin.role"),
       sortable: true,
       render: (u) => (
         <Badge
@@ -251,7 +254,7 @@ function UsersTab({ users, total, isLoading, isError, error }: { users: any[]; t
     },
     {
       key: "createdAt",
-      header: "Created",
+      header: t("admin.created"),
       sortable: true,
       render: (u) => (
         <span className="text-[var(--text-muted)]">
@@ -263,7 +266,7 @@ function UsersTab({ users, total, isLoading, isError, error }: { users: any[]; t
     },
     {
       key: "showcasePaperTrades",
-      header: "Showcase Paper",
+      header: t("admin.showcasePaper"),
       render: (u) => (
         <label className="flex items-center gap-2 cursor-pointer">
           <input
@@ -275,13 +278,13 @@ function UsersTab({ users, total, isLoading, isError, error }: { users: any[]; t
             disabled={toggleShowcase.isPending}
             className="h-4 w-4 rounded border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--accent)] focus:ring-[var(--accent)] focus:ring-offset-0"
           />
-          <span className="text-xs text-[var(--text-muted)]">{u.showcasePaperTrades ? "On" : "Off"}</span>
+          <span className="text-xs text-[var(--text-muted)]">{u.showcasePaperTrades ? t("admin.on") : t("admin.off")}</span>
         </label>
       ),
     },
     {
       key: "actions",
-      header: "Actions",
+      header: t("admin.actions"),
       render: (u) => (
         <div className="flex items-center gap-2">
           <select
@@ -303,7 +306,7 @@ function UsersTab({ users, total, isLoading, isError, error }: { users: any[]; t
               suspendUser.mutate({ id: u.id, suspended: !u.suspended })
             }
           >
-            {u.suspended ? "Unsuspend" : "Suspend"}
+            {u.suspended ? t("admin.unsuspend") : t("admin.suspend")}
           </Button>
         </div>
       ),
@@ -316,28 +319,28 @@ function UsersTab({ users, total, isLoading, isError, error }: { users: any[]; t
         <div className="relative w-full max-w-sm">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)] dark:text-[var(--text-muted)]" />
           <Input
-            placeholder="Search users by email or role..."
+            placeholder={t("admin.searchUsersPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9 bg-[var(--bg-base)] border-[var(--border-subtle)] rounded-lg text-xs"
           />
         </div>
         <span className="text-sm text-[var(--text-muted)]">
-          {total} total users
+          {t("admin.totalUsersCount", { count: total })}
         </span>
       </div>
 
       {isLoading && (
         <div className="flex flex-col items-center justify-center gap-3 py-12">
           <div className="w-8 h-8 rounded-full border-2 border-[var(--primary)] border-t-transparent animate-spin" />
-          <span className="text-sm text-[var(--text-muted)]">Loading users...</span>
+          <span className="text-sm text-[var(--text-muted)]">{t("admin.loadingUsers")}</span>
         </div>
       )}
 
       {isError && !isLoading && (
         <div className="rounded-xl border border-[var(--danger)]/20 bg-[var(--danger-glow)]/10 p-6 text-center">
-          <p className="text-sm font-medium text-[var(--danger)]">Failed to load users.</p>
-          <p className="text-xs text-[var(--text-muted)] mt-1">{error?.message || "Check your network connection or API server status."}</p>
+          <p className="text-sm font-medium text-[var(--danger)]">{t("admin.failedToLoadUsers")}</p>
+          <p className="text-xs text-[var(--text-muted)] mt-1">{error?.message || t("admin.usersNetworkError")}</p>
         </div>
       )}
 
@@ -353,7 +356,7 @@ function UsersTab({ users, total, isLoading, isError, error }: { users: any[]; t
 
       <div className="flex items-center justify-center py-4">
         <span className="text-xs text-[var(--text-muted)]">
-          Pagination controls placeholder — server-side pagination coming soon.
+          {t("admin.paginationPlaceholder")}
         </span>
       </div>
     </div>
@@ -361,6 +364,7 @@ function UsersTab({ users, total, isLoading, isError, error }: { users: any[]; t
 }
 
 function BotsTab({ bots }: { bots: any[] }) {
+  const { t } = useI18n();
   const [search, setSearch] = useState("");
 
   const filtered = useMemo(() => {
@@ -379,7 +383,7 @@ function BotsTab({ bots }: { bots: any[] }) {
   const columns: Column<any>[] = [
     {
       key: "name",
-      header: "Name",
+      header: t("admin.name"),
       sortable: true,
       render: (b) => (
         <span className="font-medium text-[var(--text-primary)]">{b.name}</span>
@@ -387,7 +391,7 @@ function BotsTab({ bots }: { bots: any[] }) {
     },
     {
       key: "userEmail",
-      header: "User Email",
+      header: t("admin.userEmail"),
       sortable: true,
       render: (b) => (
         <span className="text-[var(--text-secondary)]">
@@ -397,7 +401,7 @@ function BotsTab({ bots }: { bots: any[] }) {
     },
     {
       key: "exchange",
-      header: "Exchange",
+      header: t("admin.exchange"),
       sortable: true,
       render: (b) => (
         <span className="text-[var(--text-secondary)]">
@@ -407,7 +411,7 @@ function BotsTab({ bots }: { bots: any[] }) {
     },
     {
       key: "status",
-      header: "Status",
+      header: t("admin.status"),
       sortable: true,
       render: (b) => (
         <Badge
@@ -426,7 +430,7 @@ function BotsTab({ bots }: { bots: any[] }) {
     },
     {
       key: "mode",
-      header: "Mode",
+      header: t("admin.mode"),
       sortable: true,
       render: (b) => (
         <span className="capitalize text-[var(--text-secondary)]">{b.mode || "—"}</span>
@@ -440,14 +444,14 @@ function BotsTab({ bots }: { bots: any[] }) {
         <div className="relative w-full max-w-sm">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)] dark:text-[var(--text-muted)]" />
           <Input
-            placeholder="Search bots by name, user, exchange, status..."
+            placeholder={t("admin.searchBotsPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9 bg-[var(--bg-base)] border-[var(--border-subtle)] rounded-lg text-xs"
           />
         </div>
         <span className="text-sm text-[var(--text-muted)]">
-          {bots.length} total bots
+          {t("admin.totalBotsCount", { count: bots.length })}
         </span>
       </div>
 
@@ -463,33 +467,34 @@ function BotsTab({ bots }: { bots: any[] }) {
 }
 
 function CompanyTab({ stats }: { stats?: any }) {
+  const { t } = useI18n();
   return (
     <div className="space-y-6">
       <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4">
-        <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Company Finances</h3>
+        <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">{t("admin.companyFinances")}</h3>
         <div className="grid grid-cols-2 gap-px bg-[var(--border-subtle)] rounded-lg overflow-hidden mt-3">
           <div className="bg-[var(--bg-base)] p-3 flex flex-col gap-1">
-            <span className="text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">Total Deposits Received</span>
+            <span className="text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">{t("admin.totalDepositsReceived")}</span>
             <span className="font-['Space_Grotesk'] text-base font-semibold text-[var(--success)]">
-              {Number(stats?.totalDepositsReceived || 0).toFixed(2)} USDT
+              {t("admin.usdtAmount", { amount: Number(stats?.totalDepositsReceived || 0).toFixed(2) })}
             </span>
           </div>
           <div className="bg-[var(--bg-base)] p-3 flex flex-col gap-1">
-            <span className="text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">Total Referral Payouts</span>
+            <span className="text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">{t("admin.totalReferralPayouts")}</span>
             <span className="font-['Space_Grotesk'] text-base font-semibold text-[var(--danger)]">
-              {Number(stats?.totalReferralPayouts || 0).toFixed(2)} USDT
+              {t("admin.usdtAmount", { amount: Number(stats?.totalReferralPayouts || 0).toFixed(2) })}
             </span>
           </div>
           <div className="bg-[var(--bg-base)] p-3 flex flex-col gap-1">
-            <span className="text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">Net Company Balance</span>
+            <span className="text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">{t("admin.netCompanyBalance")}</span>
             <span className="font-['Space_Grotesk'] text-base font-semibold text-[var(--text-primary)]">
-              {Number(stats?.companyUsdtBalance || 0).toFixed(2)} USDT
+              {t("admin.usdtAmount", { amount: Number(stats?.companyUsdtBalance || 0).toFixed(2) })}
             </span>
           </div>
           <div className="bg-[var(--bg-base)] p-3 flex flex-col gap-1">
-            <span className="text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">Pending Withdrawals</span>
+            <span className="text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">{t("admin.pendingWithdrawalsAmount")}</span>
             <span className="font-['Space_Grotesk'] text-base font-semibold text-[var(--primary)]">
-              {Number(stats?.pendingWithdrawalAmount || 0).toFixed(2)} USDT
+              {t("admin.usdtAmount", { amount: Number(stats?.pendingWithdrawalAmount || 0).toFixed(2) })}
             </span>
           </div>
         </div>
@@ -499,6 +504,7 @@ function CompanyTab({ stats }: { stats?: any }) {
 }
 
 function ReferralWithdrawalsTab({ requests }: { requests: any[] }) {
+  const { t } = useI18n();
   const approve = useApproveReferralWithdrawal();
   const reject = useRejectReferralWithdrawal();
 
@@ -518,10 +524,10 @@ function ReferralWithdrawalsTab({ requests }: { requests: any[] }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-[var(--text-primary)]">
-          Pending Referral Withdrawals
+          {t("admin.pendingReferralWithdrawals")}
         </h3>
         <span className="text-sm text-[var(--text-muted)]">
-          {requests.length} pending
+          {t("admin.pendingCount", { count: requests.length })}
         </span>
       </div>
 
@@ -529,7 +535,7 @@ function ReferralWithdrawalsTab({ requests }: { requests: any[] }) {
         <Card className="p-8 bg-[var(--bg-card)] border-[var(--border-subtle)]">
           <div className="flex flex-col items-center justify-center text-center">
             <Gift className="h-12 w-12 text-[var(--text-muted)]" />
-            <p className="mt-3 text-[var(--text-muted)]">No pending withdrawal requests.</p>
+            <p className="mt-3 text-[var(--text-muted)]">{t("admin.noPendingWithdrawals")}</p>
           </div>
         </Card>
       ) : (
@@ -557,14 +563,14 @@ function ReferralWithdrawalsTab({ requests }: { requests: any[] }) {
                   disabled={approve.isPending}
                   className="px-2 py-1 text-[11px] rounded-md bg-[var(--success)] text-black font-semibold disabled:opacity-50"
                 >
-                  Approve
+                  {t("admin.approve")}
                 </button>
                 <button
                   onClick={() => reject.mutate({ id: req.id })}
                   disabled={reject.isPending}
                   className="px-2 py-1 text-[11px] rounded-md bg-[var(--danger)] text-white font-semibold disabled:opacity-50"
                 >
-                  Reject
+                  {t("admin.reject")}
                 </button>
               </div>
             </div>

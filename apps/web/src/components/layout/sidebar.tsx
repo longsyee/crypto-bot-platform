@@ -14,6 +14,8 @@ import {
   Trophy,
   Terminal,
   BookOpen,
+  PanelLeftOpen,
+  PanelLeftClose,
 } from "lucide-react";
 import { useAuth } from "../../hooks/use-auth";
 import { useI18n } from "../../hooks/use-i18n";
@@ -30,16 +32,33 @@ const nav = [
   { to: "/referrals", tKey: "nav.referrals", icon: Users },
 ];
 
+const SIDEBAR_WIDTH = 240;
+const MINI_WIDTH = 72;
+
+function Tooltip({ children, label }: { children: React.ReactNode; label: string }) {
+  return (
+    <div className="group/tooltip relative flex items-center justify-center">
+      {children}
+      <span className="absolute left-full ml-2 px-2 py-1 rounded-md bg-[var(--bg-card)] border border-[var(--border-subtle)] text-[11px] text-[var(--text-primary)] whitespace-nowrap opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-opacity duration-200 z-[1500] pointer-events-none shadow-lg">
+        {label}
+        <span className="absolute left-0 top-1/2 -translate-x-1 -translate-y-1/2 w-0 h-0 border-y-4 border-y-transparent border-r-4 border-r-[var(--border-subtle)]" />
+      </span>
+    </div>
+  );
+}
+
 function NavItem({
   item,
   active,
   onClick,
   label,
+  collapsed,
 }: {
   item: (typeof nav)[number];
   active: boolean;
   onClick?: () => void;
   label: string;
+  collapsed?: boolean;
 }) {
   const itemRef = useRef<HTMLAnchorElement>(null);
   const glowRef = useRef<HTMLSpanElement>(null);
@@ -47,35 +66,25 @@ function NavItem({
 
   const handleEnter = useCallback(() => {
     if (!itemRef.current || active) return;
-    gsap.to(itemRef.current, {
-      x: 4,
-      duration: 0.25,
-      ease: "power2.out",
-    });
-    if (glowRef.current) {
-      gsap.to(glowRef.current, {
-        opacity: 1,
-        duration: 0.25,
-      });
+    if (!collapsed) {
+      gsap.to(itemRef.current, { x: 4, duration: 0.25, ease: "power2.out" });
     }
-  }, [active]);
+    if (glowRef.current) {
+      gsap.to(glowRef.current, { opacity: 1, duration: 0.25 });
+    }
+  }, [active, collapsed]);
 
   const handleLeave = useCallback(() => {
     if (!itemRef.current || active) return;
-    gsap.to(itemRef.current, {
-      x: 0,
-      duration: 0.3,
-      ease: "power2.out",
-    });
-    if (glowRef.current) {
-      gsap.to(glowRef.current, {
-        opacity: 0,
-        duration: 0.3,
-      });
+    if (!collapsed) {
+      gsap.to(itemRef.current, { x: 0, duration: 0.3, ease: "power2.out" });
     }
-  }, [active]);
+    if (glowRef.current) {
+      gsap.to(glowRef.current, { opacity: 0, duration: 0.3 });
+    }
+  }, [active, collapsed]);
 
-  return (
+  const linkContent = (
     <Link
       ref={itemRef}
       to={item.to}
@@ -83,8 +92,9 @@ function NavItem({
       onMouseEnter={handleEnter}
       onMouseLeave={handleLeave}
       className={`
-        group relative flex items-center gap-3 px-3 py-2 rounded-md text-[11px] font-medium
+        group relative flex items-center rounded-md text-[11px] font-medium
         transition-colors duration-200
+        ${collapsed ? "justify-center px-2 py-2.5" : "gap-3 px-3 py-2"}
         ${
           active
             ? "bg-[var(--bg-hover)] text-[var(--text-primary)] border-l-2 border-[var(--primary)]"
@@ -96,10 +106,20 @@ function NavItem({
         ref={glowRef}
         className="absolute inset-0 rounded-md bg-gradient-to-r from-[var(--primary)]/10 to-transparent opacity-0 pointer-events-none"
       />
-      <Icon className="w-[16px] h-[16px] relative z-10 shrink-0" />
-      <span className="relative z-10 truncate">{label}</span>
+      <Icon className={`w-[16px] h-[16px] relative z-10 shrink-0 ${active ? "text-[var(--primary)]" : ""}`} />
+      {!collapsed && <span className="relative z-10 truncate">{label}</span>}
     </Link>
   );
+
+  if (collapsed) {
+    return (
+      <Tooltip label={label}>
+        {linkContent}
+      </Tooltip>
+    );
+  }
+
+  return linkContent;
 }
 
 export function Sidebar() {
@@ -107,27 +127,45 @@ export function Sidebar() {
   const user = useAuth((s) => s.user);
   const { t } = useI18n();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.localStorage.getItem("sidebar-collapsed") === "true";
+  });
   const sidebarRef = useRef<HTMLElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
+
+  // Persist collapsed state
+  useEffect(() => {
+    localStorage.setItem("sidebar-collapsed", String(collapsed));
+  }, [collapsed]);
 
   useGSAP(
     () => {
       if (!sidebarRef.current) return;
       // Only animate on desktop — on mobile the sidebar starts hidden (-translate-x-full)
-      // and GSAP's inline transform would override the CSS class, breaking the hamburger toggle
       if (window.innerWidth < 1024) return;
       gsap.fromTo(
         sidebarRef.current,
         { x: -40, opacity: 0 },
-        { x: 0, opacity: 1, duration: 0.6, ease: "power3.out", delay: 0.1 }
+        { x: 0, opacity: 1, duration: 0.6, ease: "power3.out", delay: 0.1, clearProps: "transform,opacity" }
       );
     },
     { scope: sidebarRef }
   );
 
-  // Unified overlay sync: overlay opacity + pointer-events always track mobileOpen.
-  // This fixes the bug where clicking a nav item (or Escape) closed the sidebar
-  // but left the overlay opaque and blocking pointer events.
+  // Mobile sidebar animation
+  useEffect(() => {
+    if (!sidebarRef.current || window.innerWidth >= 1024) return;
+    gsap.killTweensOf(sidebarRef.current);
+    gsap.to(sidebarRef.current, {
+      x: mobileOpen ? 0 : -240,
+      duration: 0.3,
+      ease: "power3.out",
+      overwrite: true,
+    });
+  }, [mobileOpen]);
+
+  // Unified overlay sync
   useEffect(() => {
     if (!overlayRef.current) return;
     gsap.to(overlayRef.current, {
@@ -170,6 +208,14 @@ export function Sidebar() {
     setMobileOpen((prev) => !prev);
   }, []);
 
+  const toggleCollapsed = useCallback(() => {
+    setCollapsed((prev) => !prev);
+  }, []);
+
+  const widthClass = collapsed
+    ? "w-[72px]"
+    : "w-[240px]";
+
   return (
     <>
       {/* Mobile hamburger */}
@@ -192,33 +238,48 @@ export function Sidebar() {
       <aside
         ref={sidebarRef}
         className={`
-          fixed lg:static inset-y-0 left-0 z-[1400] w-[240px] flex flex-col
+          fixed lg:static inset-y-0 left-0 z-[1400] flex flex-col
           bg-[var(--bg-elevated)]
           border-r border-[var(--border-subtle)]
-          transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
+          transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
           ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+          ${widthClass}
           will-change-transform overflow-hidden
         `}
       >
         {/* Logo */}
-        <div className="px-4 py-4 border-b border-[var(--border-subtle)] flex items-center gap-3">
-          <div className="w-7 h-7 rounded-sm bg-[var(--accent)] flex items-center justify-center">
+        <div className="px-3 py-4 border-b border-[var(--border-subtle)] flex items-center gap-2 relative">
+          <div className="w-7 h-7 rounded-sm bg-[var(--accent)] flex items-center justify-center shrink-0">
             <Zap className="w-3.5 h-3.5 text-white" />
           </div>
-          <div className="flex flex-col">
-            <span className="text-[13px] font-semibold tracking-tight text-[var(--text-primary)] leading-none font-['Space_Grotesk']">
-              NexusBot
-            </span>
-            <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold leading-none mt-0.5">
-              Trading Platform
-            </span>
-          </div>
+          {!collapsed && (
+            <div className="flex flex-col min-w-0">
+              <span className="text-[13px] font-semibold tracking-tight text-[var(--text-primary)] leading-none font-['Space_Grotesk'] truncate">
+                {t("auth.brandName")}
+              </span>
+              <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold leading-none mt-0.5">
+                {t("auth.brandSubtitle")}
+              </span>
+            </div>
+          )}
+          {/* Desktop collapse toggle */}
+          <button
+            onClick={toggleCollapsed}
+            className="hidden lg:flex absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors"
+            title={collapsed ? t("sidebar.expand") : t("sidebar.collapse")}
+          >
+            {collapsed ? (
+              <PanelLeftOpen className="w-3.5 h-3.5" />
+            ) : (
+              <PanelLeftClose className="w-3.5 h-3.5" />
+            )}
+          </button>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-2 space-y-px bg-[var(--border-subtle)] overflow-y-auto">
-          <div className="bg-[var(--bg-elevated)] px-3 py-2 text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">
-            {t("nav.platform") || "Platform"}
+        <nav className="flex-1 p-2 space-y-px bg-[var(--border-subtle)] overflow-y-auto overflow-x-hidden">
+          <div className={`bg-[var(--bg-elevated)] px-3 py-2 text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold ${collapsed ? "text-center px-1" : ""}`}>
+            {collapsed ? "—" : t("nav.platform")}
           </div>
           {nav.map((item) => (
             <NavItem
@@ -227,66 +288,116 @@ export function Sidebar() {
               label={t(item.tKey)}
               active={pathname === item.to || pathname.startsWith(`${item.to}/`)}
               onClick={() => setMobileOpen(false)}
+              collapsed={collapsed}
             />
           ))}
 
-          <div className="bg-[var(--bg-elevated)] px-3 py-2 text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">
-            {t("nav.developer")}
+          <div className={`bg-[var(--bg-elevated)] px-3 py-2 text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold ${collapsed ? "text-center px-1" : ""}`}>
+            {collapsed ? "—" : t("nav.developer")}
           </div>
-          <Link
-            to="/ai-integration"
-            onClick={() => setMobileOpen(false)}
-            className={`
-              flex items-center gap-3 px-3 py-2 rounded-md text-[11px] font-medium
-              transition-colors duration-200
-              ${
-                pathname === "/ai-integration"
-                  ? "bg-[var(--bg-hover)] text-[var(--text-primary)] border-l-2 border-[var(--primary)]"
-                  : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]/50 border-l-2 border-transparent"
-              }
-            `}
-          >
-            <Terminal className={`w-[16px] h-[16px] shrink-0 ${pathname === "/ai-integration" ? "text-[var(--primary)]" : ""}`} />
-            <span className="truncate">{t("nav.aiIntegration")}</span>
-          </Link>
-          <Link
-            to="/api-docs"
-            onClick={() => setMobileOpen(false)}
-            className={`
-              flex items-center gap-3 px-3 py-2 rounded-md text-[11px] font-medium
-              transition-colors duration-200
-              ${
-                pathname === "/api-docs"
-                  ? "bg-[var(--bg-hover)] text-[var(--text-primary)] border-l-2 border-[var(--primary)]"
-                  : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]/50 border-l-2 border-transparent"
-              }
-            `}
-          >
-            <BookOpen className={`w-[16px] h-[16px] shrink-0 ${pathname === "/api-docs" ? "text-[var(--primary)]" : ""}`} />
-            <span className="truncate">{t("nav.apiDocs")}</span>
-          </Link>
-
-          {user?.role === "admin" && (
+          {collapsed ? (
             <>
-              <div className="bg-[var(--bg-elevated)] px-3 py-2 text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">
-                {t("nav.admin")}
-              </div>
+              <Tooltip label={t("nav.aiIntegration")}>
+                <Link
+                  to="/ai-integration"
+                  onClick={() => setMobileOpen(false)}
+                  className={`flex items-center justify-center px-2 py-2.5 rounded-md text-[11px] font-medium transition-colors duration-200 ${
+                    pathname === "/ai-integration"
+                      ? "bg-[var(--bg-hover)] text-[var(--text-primary)] border-l-2 border-[var(--primary)]"
+                      : "text-[var(--text-muted)] hover:text-[var(--text-primary)] border-l-2 border-transparent"
+                  }`}
+                >
+                  <Terminal className={`w-[16px] h-[16px] ${pathname === "/ai-integration" ? "text-[var(--primary)]" : ""}`} />
+                </Link>
+              </Tooltip>
+              <Tooltip label={t("nav.apiDocs")}>
+                <Link
+                  to="/api-docs"
+                  onClick={() => setMobileOpen(false)}
+                  className={`flex items-center justify-center px-2 py-2.5 rounded-md text-[11px] font-medium transition-colors duration-200 ${
+                    pathname === "/api-docs"
+                      ? "bg-[var(--bg-hover)] text-[var(--text-primary)] border-l-2 border-[var(--primary)]"
+                      : "text-[var(--text-muted)] hover:text-[var(--text-primary)] border-l-2 border-transparent"
+                  }`}
+                >
+                  <BookOpen className={`w-[16px] h-[16px] ${pathname === "/api-docs" ? "text-[var(--primary)]" : ""}`} />
+                </Link>
+              </Tooltip>
+            </>
+          ) : (
+            <>
               <Link
-                to="/admin"
+                to="/ai-integration"
                 onClick={() => setMobileOpen(false)}
                 className={`
                   flex items-center gap-3 px-3 py-2 rounded-md text-[11px] font-medium
                   transition-colors duration-200
                   ${
-                    pathname === "/admin"
-                      ? "bg-[var(--bg-hover)] text-[var(--text-primary)] border-l-2 border-[var(--warning)]"
+                    pathname === "/ai-integration"
+                      ? "bg-[var(--bg-hover)] text-[var(--text-primary)] border-l-2 border-[var(--primary)]"
                       : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]/50 border-l-2 border-transparent"
                   }
                 `}
               >
-                <Shield className={`w-[16px] h-[16px] shrink-0 ${pathname === "/admin" ? "text-[var(--warning)]" : ""}`} />
-                <span className="truncate">{t("nav.admin")}</span>
+                <Terminal className={`w-[16px] h-[16px] shrink-0 ${pathname === "/ai-integration" ? "text-[var(--primary)]" : ""}`} />
+                <span className="truncate">{t("nav.aiIntegration")}</span>
               </Link>
+              <Link
+                to="/api-docs"
+                onClick={() => setMobileOpen(false)}
+                className={`
+                  flex items-center gap-3 px-3 py-2 rounded-md text-[11px] font-medium
+                  transition-colors duration-200
+                  ${
+                    pathname === "/api-docs"
+                      ? "bg-[var(--bg-hover)] text-[var(--text-primary)] border-l-2 border-[var(--primary)]"
+                      : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]/50 border-l-2 border-transparent"
+                  }
+                `}
+              >
+                <BookOpen className={`w-[16px] h-[16px] shrink-0 ${pathname === "/api-docs" ? "text-[var(--primary)]" : ""}`} />
+                <span className="truncate">{t("nav.apiDocs")}</span>
+              </Link>
+            </>
+          )}
+
+          {user?.role === "admin" && (
+            <>
+              <div className={`bg-[var(--bg-elevated)] px-3 py-2 text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold ${collapsed ? "text-center px-1" : ""}`}>
+                {collapsed ? "—" : t("nav.admin")}
+              </div>
+              {collapsed ? (
+                <Tooltip label={t("nav.admin")}>
+                  <Link
+                    to="/admin"
+                    onClick={() => setMobileOpen(false)}
+                    className={`flex items-center justify-center px-2 py-2.5 rounded-md text-[11px] font-medium transition-colors duration-200 ${
+                      pathname === "/admin"
+                        ? "bg-[var(--bg-hover)] text-[var(--text-primary)] border-l-2 border-[var(--warning)]"
+                        : "text-[var(--text-muted)] hover:text-[var(--text-primary)] border-l-2 border-transparent"
+                    }`}
+                  >
+                    <Shield className={`w-[16px] h-[16px] ${pathname === "/admin" ? "text-[var(--warning)]" : ""}`} />
+                  </Link>
+                </Tooltip>
+              ) : (
+                <Link
+                  to="/admin"
+                  onClick={() => setMobileOpen(false)}
+                  className={`
+                    flex items-center gap-3 px-3 py-2 rounded-md text-[11px] font-medium
+                    transition-colors duration-200
+                    ${
+                      pathname === "/admin"
+                        ? "bg-[var(--bg-hover)] text-[var(--text-primary)] border-l-2 border-[var(--warning)]"
+                        : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]/50 border-l-2 border-transparent"
+                    }
+                  `}
+                >
+                  <Shield className={`w-[16px] h-[16px] shrink-0 ${pathname === "/admin" ? "text-[var(--warning)]" : ""}`} />
+                  <span className="truncate">{t("nav.admin")}</span>
+                </Link>
+              )}
             </>
           )}
         </nav>

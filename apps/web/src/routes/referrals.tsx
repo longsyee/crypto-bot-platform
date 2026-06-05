@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useReferrals, useReferralWithdrawals } from "../hooks/use-api";
 import { useAuth } from "../hooks/use-auth";
+import { useI18n } from "../hooks/use-i18n";
 import {
   Copy,
   Check,
@@ -29,12 +30,17 @@ export const Route = createFileRoute("/referrals")({
 });
 
 const TIERS = [
-  { id: "bronze", label: "Bronze", rate: 5, icon: Medal, color: "text-[var(--warning)]", bg: "bg-[var(--warning)]", ring: "ring-[var(--warning)]/30", shadow: "shadow-[var(--warning)]/20", bar: "bg-[var(--warning)]" },
-  { id: "silver", label: "Silver", rate: 12, icon: Award, color: "text-[var(--text-muted)]", bg: "bg-[var(--bg-surface)]", ring: "ring-[var(--bg-surface)]/30", shadow: "shadow-[var(--bg-surface)]/20", bar: "bg-[var(--bg-surface)]" },
-  { id: "gold", label: "Gold", rate: 20, icon: Crown, color: "text-[var(--warning)]", bg: "bg-[var(--warning)]", ring: "ring-[var(--warning)]/30", shadow: "shadow-[var(--warning)]/20", bar: "bg-[var(--warning)]" },
-  { id: "platinum", label: "Platinum", rate: 28, icon: Gem, color: "text-[var(--accent)]", bg: "bg-[var(--accent)]", ring: "ring-[var(--accent)]/30", shadow: "shadow-[var(--accent)]/20", bar: "bg-[var(--accent)]" },
-  { id: "kol", label: "KOL", rate: 35, icon: Star, color: "text-[var(--primary)]", bg: "bg-[var(--primary)]", ring: "ring-[var(--primary)]/30", shadow: "shadow-[var(--primary)]/20", bar: "bg-[var(--primary)]" },
+  { id: "bronze", rate: 5, icon: Medal, color: "text-[var(--warning)]", bg: "bg-[var(--warning)]", ring: "ring-[var(--warning)]/30", shadow: "shadow-[var(--warning)]/20", bar: "bg-[var(--warning)]" },
+  { id: "silver", rate: 12, icon: Award, color: "text-[var(--text-muted)]", bg: "bg-[var(--bg-surface)]", ring: "ring-[var(--bg-surface)]/30", shadow: "shadow-[var(--bg-surface)]/20", bar: "bg-[var(--bg-surface)]" },
+  { id: "gold", rate: 20, icon: Crown, color: "text-[var(--warning)]", bg: "bg-[var(--warning)]", ring: "ring-[var(--warning)]/30", shadow: "shadow-[var(--warning)]/20", bar: "bg-[var(--warning)]" },
+  { id: "platinum", rate: 28, icon: Gem, color: "text-[var(--accent)]", bg: "bg-[var(--accent)]", ring: "ring-[var(--accent)]/30", shadow: "shadow-[var(--accent)]/20", bar: "bg-[var(--accent)]" },
+  { id: "kol", rate: 35, icon: Star, color: "text-[var(--primary)]", bg: "bg-[var(--primary)]", ring: "ring-[var(--primary)]/30", shadow: "shadow-[var(--primary)]/20", bar: "bg-[var(--primary)]" },
 ];
+
+function tierLabelKey(id: string) {
+  const key = id.charAt(0).toUpperCase() + id.slice(1);
+  return `referrals.tier${key}` as const;
+}
 
 function TierCard({
   tier,
@@ -47,6 +53,7 @@ function TierCard({
   currentIndex: number;
   isActive: boolean;
 }) {
+  const { t } = useI18n();
   const cardRef = useRef<HTMLDivElement>(null);
   const isReached = index <= currentIndex;
   const isNext = index === currentIndex + 1;
@@ -103,7 +110,7 @@ function TierCard({
           isActive ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"
         )}
       >
-        {tier.label}
+        {t(tierLabelKey(tier.id))}
       </p>
       <p
         className={cn(
@@ -135,6 +142,7 @@ function TierCard({
 }
 
 function ReferralsPage() {
+  const { t } = useI18n();
   const { data, isLoading } = useReferrals();
   const { data: withdrawals } = useReferralWithdrawals();
   const user = useAuth((s) => s.user);
@@ -174,12 +182,12 @@ function ReferralsPage() {
         {/* Header */}
         <div className="gsap-section flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <h1 className="font-['Space_Grotesk'] text-xl font-semibold tracking-tight text-[var(--text-primary)]">
-            Referrals
+            {t("referrals.title")}
           </h1>
           <span className="text-[10px] uppercase tracking-widest font-semibold text-[var(--text-muted)] bg-[var(--bg-card)] border border-[var(--border-subtle)] px-2 py-1 rounded-md self-start sm:self-auto">
-            Current Tier:{" "}
+            {t("referrals.currentTier")}:{" "}
             <span className={cn("font-['Space_Grotesk'] text-sm font-semibold tracking-tight", TIERS[safeCurrentIndex].color)}>
-              {TIERS[safeCurrentIndex].label}
+              {t(tierLabelKey(TIERS[safeCurrentIndex].id))}
             </span>
           </span>
         </div>
@@ -201,7 +209,7 @@ function ReferralsPage() {
         <div className="gsap-section grid grid-cols-1 md:grid-cols-4 gap-px bg-[var(--border-subtle)]">
           {/* Referral Code Cell */}
           <div className="md:col-span-2 bg-[var(--bg-card)] border-t-2 border-t-[var(--primary)] p-4 flex flex-col justify-between">
-            <p className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold mb-2">Your Referral Code</p>
+            <p className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold mb-2">{t("referrals.yourReferralCode")}</p>
             <div className="flex flex-col sm:flex-row items-stretch gap-2">
               <div className="flex-1 min-w-0 bg-[var(--bg-hover)] border border-[var(--border-subtle)] rounded-md px-3 py-2 text-sm font-mono font-bold tracking-wide text-[var(--text-primary)] flex items-center justify-center truncate">
                 {referralCode}
@@ -222,7 +230,7 @@ function ReferralsPage() {
                   ) : (
                     <Copy className="w-3.5 h-3.5" />
                   )}
-                  {copied ? "Copied" : "Copy"}
+                  {copied ? t("common.copied") : t("common.copy")}
                 </span>
               </button>
             </div>
@@ -232,7 +240,7 @@ function ReferralsPage() {
           <div className="bg-[var(--bg-card)] border-t-2 border-t-[var(--primary)] p-4 flex flex-col justify-between">
             <div className="flex items-center gap-1.5 text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-semibold mb-1">
               <Users className="w-3.5 h-3.5" />
-              Total Referred Users
+              {t("referrals.totalReferredUsers")}
             </div>
             <p className="font-['Space_Grotesk'] text-xl font-semibold tracking-tight text-[var(--text-primary)] font-mono">
               {referrals.length}
@@ -243,14 +251,14 @@ function ReferralsPage() {
           <div className="bg-[var(--bg-card)] border-t-2 border-t-[var(--primary)] p-4 flex flex-col justify-between">
             <div className="flex items-center gap-1.5 text-[var(--primary)] text-[10px] uppercase tracking-widest font-semibold mb-1">
               <Gift className="w-3.5 h-3.5" />
-              Reward Token
+              {t("referrals.rewardToken")}
             </div>
             <p className="font-['Space_Grotesk'] text-xl font-semibold tracking-tight text-[var(--primary)] font-mono">
               {Number(referralTokenBalance).toFixed(4)}
             </p>
             <div className="flex items-center gap-1.5 mt-2 text-[10px] text-[var(--text-muted)]">
               <Coins className="w-3 h-3" />
-              <span className="font-medium text-[var(--text-secondary)] font-mono">{Number(earnings).toFixed(4)}</span> total earned
+              <span className="font-medium text-[var(--text-secondary)] font-mono">{Number(earnings).toFixed(4)}</span> {t("referrals.totalEarned")}
             </div>
           </div>
         </div>
@@ -258,37 +266,37 @@ function ReferralsPage() {
         {/* Reward Token Withdrawal History */}
         <div className="gsap-section bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl overflow-hidden">
           <div className="px-4 py-2 border-b border-[var(--border-subtle)] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-            <h3 className="font-['Space_Grotesk'] text-sm font-semibold text-[var(--primary)]">Reward Token Withdrawals</h3>
+            <h3 className="font-['Space_Grotesk'] text-sm font-semibold text-[var(--primary)]">{t("referrals.rewardTokenWithdrawals")}</h3>
             <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold bg-[var(--bg-hover)] px-2 py-0.5 rounded border border-[var(--border-subtle)]">
-              {(withdrawals?.length || 0)} requests
+              {t("referrals.requests", { count: withdrawals?.length || 0 })}
             </span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
                 <tr className="text-[var(--text-muted)] border-b border-[var(--border-subtle)] bg-[var(--bg-hover)]/50">
-                  <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">Amount</th>
-                  <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">Status</th>
-                  <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">Requested</th>
-                  <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">Processed</th>
+                  <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">{t("common.amount")}</th>
+                  <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">{t("common.status")}</th>
+                  <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">{t("referrals.requested")}</th>
+                  <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">{t("referrals.processed")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--border-subtle)]">
                 {!withdrawals || withdrawals.length === 0 ? (
                   <tr>
                     <td colSpan={4} className="px-3 py-6 text-center text-[var(--text-muted)] text-xs">
-                      No withdrawal requests yet. Go to Wallet to request a withdrawal.
+                      {t("referrals.noWithdrawals")}
                     </td>
                   </tr>
                 ) : (
                   withdrawals.map((req: any) => {
                     const statusConfig: Record<
                       string,
-                      { icon: any; color: string; label: string }
+                      { icon: any; color: string; labelKey: string }
                     > = {
-                      pending: { icon: Clock, color: "text-[var(--warning)]", label: "Pending" },
-                      approved: { icon: CheckCircle, color: "text-[var(--success)]", label: "Approved" },
-                      rejected: { icon: XCircle, color: "text-[var(--danger)]", label: "Rejected" },
+                      pending: { icon: Clock, color: "text-[var(--warning)]", labelKey: "dashboard.pending" },
+                      approved: { icon: CheckCircle, color: "text-[var(--success)]", labelKey: "referrals.approved" },
+                      rejected: { icon: XCircle, color: "text-[var(--danger)]", labelKey: "referrals.rejected" },
                     };
                     const cfg = statusConfig[req.status] || statusConfig.pending;
                     const Icon = cfg.icon;
@@ -297,7 +305,7 @@ function ReferralsPage() {
                         <td className="px-3 py-2 text-[var(--primary)] font-medium font-mono">{Number(req.amount).toFixed(4)}</td>
                         <td className="px-3 py-2">
                           <span className={cn("inline-flex items-center gap-1 text-[10px] font-medium", cfg.color)}>
-                            <Icon className="w-3 h-3" /> {cfg.label}
+                            <Icon className="w-3 h-3" /> {t(cfg.labelKey as any)}
                           </span>
                         </td>
                         <td className="px-3 py-2 text-[var(--text-muted)] font-mono">
@@ -320,9 +328,9 @@ function ReferralsPage() {
         {/* Referred Users Table */}
         <div className="gsap-section bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl overflow-hidden">
           <div className="px-4 py-2 border-b border-[var(--border-subtle)] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-            <h3 className="font-['Space_Grotesk'] text-sm font-semibold text-[var(--text-primary)]">Referred Users</h3>
+            <h3 className="font-['Space_Grotesk'] text-sm font-semibold text-[var(--text-primary)]">{t("referrals.referredUsers")}</h3>
             <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold bg-[var(--bg-hover)] px-2 py-0.5 rounded border border-[var(--border-subtle)]">
-              {referrals.length} total
+              {referrals.length} {t("referrals.total")}
             </span>
           </div>
 
@@ -331,16 +339,16 @@ function ReferralsPage() {
               <thead>
                 <tr className="text-[var(--text-muted)] border-b border-[var(--border-subtle)] bg-[var(--bg-hover)]/50">
                   <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
-                    Email
+                    {t("auth.email")}
                   </th>
                   <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
-                    Tier
+                    {t("referrals.tier")}
                   </th>
                   <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
-                    Commission Rate
+                    {t("referrals.commissionRate")}
                   </th>
                   <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
-                    Joined Date
+                    {t("referrals.joinedDate")}
                   </th>
                 </tr>
               </thead>
@@ -348,7 +356,7 @@ function ReferralsPage() {
                 {isLoading ? (
                   <tr>
                     <td colSpan={4} className="px-3 py-6 text-center text-[var(--text-muted)] text-xs">
-                      Loading...
+                      {t("common.loading")}
                     </td>
                   </tr>
                 ) : referrals.length === 0 ? (
@@ -359,10 +367,10 @@ function ReferralsPage() {
                           <Users className="w-4 h-4 text-[var(--text-muted)]" />
                         </div>
                         <p className="text-[var(--text-secondary)] font-medium text-xs mb-0.5">
-                          No referred users yet
+                          {t("referrals.noReferredUsers")}
                         </p>
                         <p className="text-[var(--text-muted)] text-[10px] max-w-xs">
-                          Share your referral code to start earning commissions when new users join.
+                          {t("referrals.shareCodeDesc")}
                         </p>
                       </div>
                     </td>

@@ -5,12 +5,13 @@
 NexusBot supports the **Model Context Protocol (MCP)** — an open standard by Anthropic that lets AI agents (Claude Desktop, Cursor, Cline, OpenClaw, Hermes, etc.) connect to external tools and data sources.
 
 With our MCP server, an AI agent can:
-- Create and manage DCA / Signal bots
-- Send trading signals to signal bots
-- Start/stop bots
-- Check wallet balances and exchange balances
-- Read market data (tickers, trading pairs)
-- Monitor bot logs and order history
+- **Create and manage Signal bots** (event-driven, webhook/MCP-triggered)
+- **Send trading signals** (buy / sell / limit / stop / OCO / close / flip)
+- **Place, cancel, and monitor orders** directly on connected exchanges
+- **Query positions, open orders, orderbook, and funding rates**
+- **Check wallet and exchange balances**
+- **Read market data** (tickers, trading pairs, recent trades)
+- **Start/stop bots and monitor logs**
 
 The AI agent uses **your** NexusBot account as a secure bridge to crypto exchanges. You never share exchange API keys with the AI — only a NexusBot API key.
 
@@ -127,34 +128,57 @@ When you ask an AI agent to create a bot, it will use the **default trading mode
 
 ### How to Control It
 - **Set the default** in Profile → AI Agent Integration. We strongly recommend keeping it on **Paper** until your strategy is proven.
-- **Override per bot** by explicitly telling the AI: *"Create a LIVE DCA bot for BTC/USDT"* or *"Create a PAPER signal bot"*.
+- **Override per bot** by explicitly telling the AI: *"Create a LIVE signal bot for BTC/USDT"* or *"Create a PAPER signal bot"*.
 - **Switch after creation**: The AI can call `update_bot` to change the mode, but the bot must be stopped first.
 
 ### Safety Gates
 - Live bots require an active exchange connection with valid API keys.
 - Starting a live bot checks your token balance. If zero, the start is blocked.
 - All bots are created in **stopped** state. The AI must explicitly call `start_bot` to begin trading.
+- Signal bots enforce `maxPositionSizeUsdt`, `maxTotalExposureUsdt`, and cooldown between signals.
 
 ---
 
 ## Available Tools
+
+### Bot & Signal Management
 
 | Tool | What It Does | Example Prompt |
 |------|--------------|----------------|
 | `get_me` | Show user profile + wallet | "What's my balance?" |
 | `list_bots` | List all bots | "Show my bots" |
 | `get_bot` | Bot details and config | "Tell me about my BTC bot" |
-| `create_bot` | Create DCA or Signal bot | "Create a DCA bot for ETH/USDT" |
+| `create_bot` | Create a Signal bot | "Create a signal bot for ETH/USDT" |
 | `start_bot` | Start a stopped bot | "Start my signal bot" |
 | `stop_bot` | Stop a running bot | "Stop the BTC bot" |
 | `delete_bot` | Delete a bot | "Delete my old bot" |
+| `send_signal` | Send a trading signal to a signal bot | "BUY 0.5 BTC at market with bracket SL/TP" |
 | `list_bot_orders` | Order history | "Show orders for bot X" |
-| `list_bot_logs` | Recent logs | "Any errors on my DCA bot?" |
-| `send_signal` | Send signal to signal bot | "BUY 0.5 BTC at market" |
-| `get_wallet` | Wallet balances | "How much USDT do I have?" |
+| `list_bot_logs` | Recent logs | "Any errors on my signal bot?" |
+
+### Direct Exchange Operations
+
+| Tool | What It Does | Example Prompt |
+|------|--------------|----------------|
+| `place_order` | Place market / limit / stop / OCO orders | "Place a limit sell at $66,000" |
+| `cancel_order` | Cancel an open order by ID | "Cancel order abc-123" |
+| `get_open_orders` | List active unfilled orders | "What orders are open?" |
+| `get_position` | Current position size, entry, unrealized PnL | "What's my BTC position?" |
+| `set_bracket` | Attach SL/TP to an open position | "Set 2% stop-loss and 5% take-profit" |
+| `close_position` | Market or limit close, partial or full | "Close half my ETH position" |
+| `update_leverage` | Set isolated/cross leverage | "Set BTC leverage to 10x cross" |
+| `get_connection_balance` | Live exchange balance | "Check my Binance balance" |
+| `get_orderbook` | Current depth | "Show me the BTC orderbook" |
+| `get_recent_trades` | Recent fills for slippage estimate | "Recent BTC trades?" |
+| `get_funding_rate` | Funding rate for perp holds | "What's the funding rate on BTC?" |
+
+### Market & Account Data
+
+| Tool | What It Does | Example Prompt |
+|------|--------------|----------------|
+| `get_wallet` | Wallet balances (USDT + platform token) | "How much USDT do I have?" |
 | `list_transactions` | Transaction history | "Show my deposits" |
 | `list_connections` | Exchange connections | "Which exchanges are connected?" |
-| `get_connection_balance` | Live exchange balance | "Check my Binance balance" |
 | `get_markets` | Available pairs | "What can I trade on Bybit?" |
 | `get_ticker` | Current price | "What's the BTC price?" |
 
@@ -162,35 +186,43 @@ When you ask an AI agent to create a bot, it will use the **default trading mode
 
 ## Example Conversations
 
-### Create and Start a Paper DCA Bot (Safe Testing)
+### Create a Signal Bot with Bracket Strategy
 
-> **You**: Create a paper DCA bot called "BTC Accumulator" on my Binance connection for BTC/USDT with 10x cross leverage. Base order 100 USDT, safety order 50 USDT, take profit 3%.
+> **You**: Create a signal bot called "BTC Bracket" on my Bybit connection for BTCUSDT. Use bracket strategy with 2% stop-loss and 6% take-profit. Max position $500.
 
-> **AI**: *(calls `create_bot` with mode: "paper")* Done. Paper bot "BTC Accumulator" created with ID `abc-123`.
-
-> **You**: Start it.
-
-> **AI**: *(calls `start_bot`)* Bot started in paper mode. No real funds are being used.
-
-### Switch to Live After Paper Success
-
-> **You**: My paper bot performed well. Create the same bot but in live mode.
-
-> **AI**: *(calls `create_bot` with mode: "live")* Live bot "BTC Accumulator LIVE" created. Remember to start it only when ready.
+> **AI**: *(calls `create_bot` with strategy: "bracket", mode: "paper")* Done. Signal bot "BTC Bracket" created with ID `sig-123`.
 
 ### Send a Trading Signal
 
-> **You**: Send a BUY signal for 0.3 ETH to my signal bot.
+> **You**: Send a BUY signal for 0.01 BTC to my bracket bot.
 
-> **AI**: *(calls `send_signal`)* Signal queued: BUY ETH/USDT.
+> **AI**: *(calls `send_signal`)* Signal queued: market buy 0.01 BTC. SL/TP bracket will attach on fill.
+
+### Scaled Entry via MCP
+
+> **You**: BTC is breaking out. Place a scaled long: 40% at market, 30% limit at $65,000, 30% limit at $64,500. Attach 2% SL and 5% TP.
+
+> **AI**: *(calls `place_order` 3x, then `set_bracket`)*
+- Order 1: market buy 0.004 BTC — placed
+- Order 2: limit buy 0.003 BTC @ $65,000 — placed
+- Order 3: limit buy 0.003 BTC @ $64,500 — placed
+- Bracket SL/TP will attach on total fill.
+
+### Close / Flip Position
+
+> **You**: The trend reversed. Flip my BTC position to short.
+
+> **AI**: *(calls `close_position` reduce-only, then `place_order` sell)*
+- Closed 0.01 BTC long position
+- Opened 0.01 BTC short at market
 
 ### Monitor
 
 > **You**: Show me all running bots and their latest logs.
 
 > **AI**: *(calls `list_bots` then `list_bot_logs` for each)*
-- BTC Accumulator (DCA) | running | Pair: BTC/USDT | [3 logs...]
-- ETH Signal (SIGNAL) | running | Pair: ETH/USDT | [2 logs...]
+- BTC Bracket (SIGNAL) | running | Pair: BTC/USDT | [3 logs...]
+- ETH Scaled (SIGNAL) | running | Pair: ETH/USDT | [2 logs...]
 
 ---
 
@@ -215,6 +247,8 @@ When you ask an AI agent to create a bot, it will use the **default trading mode
 - Access your raw exchange API keys (they are encrypted at rest)
 - Change your password or email
 - Access admin functions
+- Exceed the bot's `maxPositionSizeUsdt` or `maxTotalExposureUsdt` limits
+- Place orders during cooldown or after a kill-switch trigger
 
 ---
 

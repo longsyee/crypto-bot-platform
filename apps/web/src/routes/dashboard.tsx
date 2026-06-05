@@ -3,6 +3,7 @@ import { useMe, useBots, useWallet, useTransactions } from "../hooks/use-api";
 import { PageWrapper } from "../components/layout/page-wrapper";
 import { ActivityFeed } from "../components/bots/activity-feed";
 import { useActivityStream } from "../hooks/use-activity";
+import { useI18n } from "../hooks/use-i18n";
 import {
   Bot,
   Wallet,
@@ -18,6 +19,7 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 function DashboardPage() {
+  const { t } = useI18n();
   const { data: me } = useMe();
   const { data: bots } = useBots();
   const { data: wallet } = useWallet();
@@ -30,7 +32,7 @@ function DashboardPage() {
 
   const stats = [
     {
-      label: "Token Balance",
+      label: t("dashboard.tokenBalance"),
       value: typeof wallet?.tokenBalance === "number" ? wallet.tokenBalance.toFixed(4) : "0.0000",
       icon: Wallet,
       accent: "border-t-[var(--primary)]",
@@ -38,7 +40,7 @@ function DashboardPage() {
       suffix: "",
     },
     {
-      label: "USDT Balance",
+      label: t("dashboard.usdtBalance"),
       value: typeof wallet?.usdtBalance === "number" ? wallet.usdtBalance.toFixed(4) : "0.0000",
       icon: ArrowRightLeft,
       accent: "border-t-[var(--success)]",
@@ -46,7 +48,7 @@ function DashboardPage() {
       suffix: " USDT",
     },
     {
-      label: "Active Bots",
+      label: t("dashboard.activeBots"),
       value: `${activeBots} / ${totalBots}`,
       icon: Bot,
       accent: "border-t-[var(--primary)]",
@@ -54,7 +56,7 @@ function DashboardPage() {
       suffix: "",
     },
     {
-      label: "Total Deposited",
+      label: t("dashboard.totalDeposited"),
       value: typeof wallet?.totalDeposited === "number" ? wallet.totalDeposited.toFixed(4) : "0.0000",
       icon: TrendingUp,
       accent: "border-t-[var(--accent)]",
@@ -69,10 +71,10 @@ function DashboardPage() {
         {/* Header */}
         <div className="gsap-section">
           <h1 className="text-xl font-semibold text-[var(--text-primary)] font-['Space_Grotesk'] tracking-tight">
-            Dashboard
+            {t("nav.dashboard")}
           </h1>
           <p className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold mt-1">
-            Overview of your trading activity
+            {t("dashboard.subtitle")}
           </p>
         </div>
 
@@ -105,11 +107,11 @@ function DashboardPage() {
             <div className="flex items-center gap-2">
               <Activity className="w-4 h-4 text-[var(--text-muted)]" />
               <h2 className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">
-                Recent Transactions
+                {t("dashboard.recentTransactions")}
               </h2>
             </div>
             <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">
-              {recentTx.length} shown
+              {recentTx.length} {t("dashboard.shown")}
             </span>
           </div>
 
@@ -118,19 +120,19 @@ function DashboardPage() {
               <thead>
                 <tr className="border-b border-[var(--border-subtle)]">
                   <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
-                    Type
+                    {t("common.type")}
                   </th>
                   <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
-                    Amount
+                    {t("dashboard.amount")}
                   </th>
                   <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
-                    Currency
+                    {t("dashboard.currency")}
                   </th>
                   <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
-                    Status
+                    {t("bots.status")}
                   </th>
                   <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold hidden sm:table-cell">
-                    Date
+                    {t("dashboard.date")}
                   </th>
                 </tr>
               </thead>
@@ -140,7 +142,7 @@ function DashboardPage() {
                     <td colSpan={5} className="px-3 py-6 text-center">
                       <div className="flex flex-col items-center gap-2">
                         <AlertCircle className="w-5 h-5 text-[var(--text-muted)]" />
-                        <p className="text-xs text-[var(--text-muted)]">No transactions yet.</p>
+                        <p className="text-xs text-[var(--text-muted)]">{t("dashboard.noTransactions")}</p>
                       </div>
                     </td>
                   </tr>
@@ -182,7 +184,7 @@ function DashboardPage() {
             <div className="flex items-center gap-2">
               <Radio className="w-4 h-4 text-[var(--text-muted)]" />
               <h2 className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">
-                Live Activity
+                {t("activity.live")}
               </h2>
             </div>
           </div>
@@ -198,8 +200,8 @@ function DashboardPage() {
         {/* Quick Actions */}
         <div className="gsap-section grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-[var(--border-subtle)]">
           <QuickActionCard
-            title="Create Trading Bot"
-            description="Set up a new DCA or signal bot"
+            title={t("dashboard.createBotCard")}
+            description={t("dashboard.createBotCardDesc")}
             icon={Bot}
             to="/bots/create"
             accent="text-[var(--primary)]"
@@ -207,8 +209,8 @@ function DashboardPage() {
             border="border-t-[var(--primary)]"
           />
           <QuickActionCard
-            title="Connect Exchange"
-            description="Link a new exchange API"
+            title={t("dashboard.connectExchangeCard")}
+            description={t("dashboard.connectExchangeCardDesc")}
             icon={ArrowRightLeft}
             to="/exchange-connections"
             accent="text-[var(--success)]"
@@ -216,8 +218,8 @@ function DashboardPage() {
             border="border-t-[var(--success)]"
           />
           <QuickActionCard
-            title="DCA Simulator"
-            description="Calculate your DCA strategy"
+            title={t("dashboard.dcaSimulatorCard")}
+            description={t("dashboard.dcaSimulatorCardDesc")}
             icon={TrendingUp}
             to="/calculator"
             accent="text-[var(--accent)]"
@@ -240,27 +242,28 @@ function TxBadge({ status }: { status: string }) {
       ? "failed"
       : "pending";
 
+  const { t } = useI18n();
   const map = {
     pending: {
       bg: "bg-[var(--warning-glow)]",
       text: "text-[var(--warning)]",
       border: "border-[var(--warning)]/20",
       dot: "bg-[var(--warning)]",
-      label: "Pending",
+      label: t("dashboard.pending"),
     },
     completed: {
       bg: "bg-[var(--success-glow)]",
       text: "text-[var(--success)]",
       border: "border-[var(--success)]/20",
       dot: "bg-[var(--success)]",
-      label: "Completed",
+      label: t("dashboard.completed"),
     },
     failed: {
       bg: "bg-[var(--danger-glow)]",
       text: "text-[var(--danger)]",
       border: "border-[var(--danger)]/20",
       dot: "bg-[var(--danger)]",
-      label: "Failed",
+      label: t("dashboard.failed"),
     },
   };
 

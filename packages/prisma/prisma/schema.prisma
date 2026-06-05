@@ -42,6 +42,7 @@ enum TransactionCurrency {
 enum BotType {
   signal
   dca
+  grid
 }
 
 enum BotStatus {
@@ -131,6 +132,7 @@ model User {
   totpVerified          Boolean  @default(false) @map("totp_verified")
   showcasePaperTrades  Boolean  @default(false) @map("showcase_paper_trades")
   suspended             Boolean  @default(false)
+  avatar                Bytes?   @db.ByteA
   createdAt             DateTime @default(now()) @map("created_at")
   updatedAt             DateTime @updatedAt @map("updated_at")
 
@@ -140,6 +142,7 @@ model User {
   referralsAsReferrer Referral[]        @relation("ReferrerRelation")
   referralsAsReferred Referral?         @relation("ReferredRelation")
   botComments         BotComment[]
+  botSubscriptions    BotSubscription[]
   adminAuditLogs      AdminAuditLog[]
   securityEvents      SecurityEvent[]
   commissionLedgers   CommissionLedger[] @relation("SourceUserRelation")
@@ -231,9 +234,41 @@ model Bot {
   leverage          Int      @default(1) @map("leverage")
   leverageType      String   @default("cross") @map("leverage_type")
 
+  // Community / Copy Trading
+  isShared          Boolean  @default(false) @map("is_shared")
+  sharedAt          DateTime? @map("shared_at")
+  sharedMode        BotMode? @map("shared_mode")
+  copyCount         Int      @default(0) @map("copy_count")
+  parentBotId       String?  @db.Uuid @map("parent_bot_id")
+
   // DCA tracking
   safetyOrdersPlaced Int     @default(0) @map("safety_orders_placed")
   maxSafetyOrdersActive Int  @default(3) @map("max_safety_orders_active")
+
+  // Guard
+  guardEnabled       Boolean @default(false) @map("guard_enabled")
+  guardDuration      Int     @default(2) @map("guard_duration")
+  guardTriggerPct    Decimal? @db.Decimal(5,2) @default(3) @map("guard_trigger_pct")
+  guardPauseMinutes Int     @default(480) @map("guard_pause_minutes")
+
+  // Round engine
+  roundsJson         Json?   @db.JsonB @map("rounds_json")
+
+  // RSI signal
+  rsiSignalEnabled   Boolean @default(false) @map("rsi_signal_enabled")
+  rsiUpper           Int     @default(70) @map("rsi_upper")
+  rsiLower           Int     @default(30) @map("rsi_lower")
+
+  // EMA
+  emaFast            Int     @default(9) @map("ema_fast")
+  emaSlow            Int     @default(26) @map("ema_slow")
+
+  // Strategy toggles
+  doubleFoEnabled           Boolean @default(false) @map("double_fo_enabled")
+  trendDcaEnabled           Boolean @default(false) @map("trend_dca_enabled")
+  reverseTrendEntryEnabled  Boolean @default(false) @map("reverse_trend_entry_enabled")
+  trendFollowingMode        Boolean @default(false) @map("trend_following_mode")
+  longShortRatio            Int     @default(50) @map("long_short_ratio")
 
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
@@ -244,6 +279,9 @@ model Bot {
   botLogs     BotLog[]
   paperTrades PaperTrade[]
   botComments BotComment[]
+  childBots   Bot[]        @relation("BotCopyTree")
+  parentBot   Bot?         @relation("BotCopyTree", fields: [parentBotId], references: [id], onDelete: SetNull)
+  botSubscriptions BotSubscription[]
 
   @@index([userId, status])
   @@index([connectionId])
@@ -421,6 +459,23 @@ model SecurityEvent {
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@map("security_events")
+}
+
+model BotSubscription {
+  id          String   @id @default(uuid()) @db.Uuid
+  botId       String   @db.Uuid @map("bot_id")
+  subscriberId String  @db.Uuid @map("subscriber_id")
+  mode        BotMode
+  status      BotStatus @default(stopped)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  bot       Bot @relation(fields: [botId], references: [id], onDelete: Cascade)
+  subscriber User @relation(fields: [subscriberId], references: [id], onDelete: Cascade)
+
+  @@unique([botId, subscriberId])
+  @@index([subscriberId])
+  @@map("bot_subscriptions")
 }
 
 model ApiKey {

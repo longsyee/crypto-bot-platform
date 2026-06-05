@@ -5,6 +5,7 @@ import {
   useDeleteExchangeConnection,
 } from "../../hooks/use-api";
 import { useToast } from "../../hooks/use-toast";
+import { useI18n } from "../../hooks/use-i18n";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import {
@@ -30,6 +31,7 @@ const EXCHANGES = [
 ];
 
 export function ExchangeConnectionManager() {
+  const { t } = useI18n();
   const { data: connections, isLoading } = useExchangeConnections();
   const createConn = useCreateExchangeConnection();
   const deleteConn = useDeleteExchangeConnection();
@@ -52,13 +54,13 @@ export function ExchangeConnectionManager() {
         apiSecret,
         passphrase: passphrase || undefined,
       });
-      toast.success("Exchange connected successfully");
+      toast.success(t("exchanges.connectedSuccess"));
       setShowForm(false);
       setApiKey("");
       setApiSecret("");
       setPassphrase("");
     } catch (err: any) {
-      toast.error(err.message || "Failed to connect exchange");
+      toast.error(err.message || t("exchanges.connectFailed"));
     }
   };
 
@@ -67,16 +69,16 @@ export function ExchangeConnectionManager() {
       <div className="flex items-center justify-between">
         <h2 className="font-['Space_Grotesk'] text-xl font-semibold tracking-tight flex items-center gap-2">
           <Plug className="w-5 h-5 text-[var(--primary)]" />
-          Exchange Connections
+          {t("exchanges.title")}
         </h2>
         <Button
           onClick={() => setShowForm((s) => !s)}
           className="gap-1 px-2 py-1 text-[11px] rounded-md"
           variant={showForm ? "secondary" : "primary"}
         >
-          {showForm ? "Cancel" : (<>
+          {showForm ? t("common.cancel") : (<>
             <Plus className="w-3.5 h-3.5" />
-            Add Connection
+            {t("exchanges.addConnection")}
           </>)}
         </Button>
       </div>
@@ -86,7 +88,7 @@ export function ExchangeConnectionManager() {
           <form onSubmit={handleSubmit} className="space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-[var(--border-subtle)] rounded-lg overflow-hidden">
               <div className="bg-[var(--bg-card)] p-3">
-                <label className="block text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold mb-1.5">Exchange</label>
+                <label className="block text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold mb-1.5">{t("common.exchange")}</label>
                 <select
                   value={exchangeId}
                   onChange={(e) => setExchangeId(e.target.value)}
@@ -98,11 +100,11 @@ export function ExchangeConnectionManager() {
                 </select>
               </div>
               <div className="bg-[var(--bg-card)] p-3">
-                <label className="block text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold mb-1.5">Name (optional)</label>
+                <label className="block text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold mb-1.5">{t("exchanges.nameOptional")}</label>
                 <Input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="My Binance Main"
+                  placeholder={t("exchanges.namePlaceholder")}
                   className="text-sm"
                 />
               </div>
@@ -110,22 +112,22 @@ export function ExchangeConnectionManager() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-[var(--border-subtle)] rounded-lg overflow-hidden">
               <div className="bg-[var(--bg-card)] p-3">
-                <label className="block text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold mb-1.5">API Key</label>
+                <label className="block text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold mb-1.5">{t("exchanges.apiKey")}</label>
                 <Input
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
-                  placeholder="paste API key"
+                  placeholder={t("exchanges.apiKeyPlaceholder")}
                   required
                   className="text-sm"
                 />
               </div>
               <div className="bg-[var(--bg-card)] p-3">
-                <label className="block text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold mb-1.5">API Secret</label>
+                <label className="block text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold mb-1.5">{t("exchanges.apiSecret")}</label>
                 <Input
                   type="password"
                   value={apiSecret}
                   onChange={(e) => setApiSecret(e.target.value)}
-                  placeholder="paste API secret"
+                  placeholder={t("exchanges.apiSecretPlaceholder")}
                   required
                   className="text-sm"
                 />
@@ -134,11 +136,11 @@ export function ExchangeConnectionManager() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-[var(--border-subtle)] rounded-lg overflow-hidden">
               <div className="bg-[var(--bg-card)] p-3">
-                <label className="block text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold mb-1.5">Passphrase (if required)</label>
+                <label className="block text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold mb-1.5">{t("exchanges.passphrase")}</label>
                 <Input
                   value={passphrase}
                   onChange={(e) => setPassphrase(e.target.value)}
-                  placeholder="e.g. for KuCoin, OKX"
+                  placeholder={t("exchanges.passphrasePlaceholder")}
                   className="text-sm"
                 />
               </div>
@@ -146,7 +148,7 @@ export function ExchangeConnectionManager() {
 
             <div className="flex justify-end">
               <Button type="submit" disabled={createConn.isPending} className="px-2 py-1 text-[11px] rounded-md">
-                {createConn.isPending ? "Connecting..." : "Connect Exchange"}
+                {createConn.isPending ? t("exchanges.connecting") : t("exchanges.connectExchange")}
               </Button>
             </div>
           </form>
@@ -155,13 +157,13 @@ export function ExchangeConnectionManager() {
 
       {isLoading ? (
         <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4">
-          <p className="text-[var(--text-muted)] text-sm">Loading connections...</p>
+          <p className="text-[var(--text-muted)] text-sm">{t("exchanges.loadingConnections")}</p>
         </div>
       ) : connections?.length === 0 ? (
         <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-8 text-center">
           <Globe className="w-8 h-8 text-[var(--text-muted)] mx-auto mb-3" />
-          <p className="text-[var(--text-muted)] text-sm">No exchange connections yet.</p>
-          <p className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold mt-1">Add one to start trading.</p>
+          <p className="text-[var(--text-muted)] text-sm">{t("exchanges.noConnections")}</p>
+          <p className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold mt-1">{t("exchanges.addOneToStart")}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-[var(--border-subtle)] rounded-xl overflow-hidden">
@@ -177,7 +179,7 @@ export function ExchangeConnectionManager() {
                 <button
                   onClick={() => deleteConn.mutate(conn.id)}
                   className="px-2 py-1 rounded-md text-[11px] text-[var(--text-muted)] hover:text-[var(--danger)] transition-colors"
-                  title="Remove"
+                  title={t("exchanges.remove")}
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -187,12 +189,12 @@ export function ExchangeConnectionManager() {
                   {conn.isActive ? (
                     <>
                       <CheckCircle className="w-3 h-3 text-[var(--success)]" />
-                      <span className="text-[10px] uppercase tracking-widest text-[var(--success)] font-semibold">Active</span>
+                      <span className="text-[10px] uppercase tracking-widest text-[var(--success)] font-semibold">{t("common.active")}</span>
                     </>
                   ) : (
                     <>
                       <AlertCircle className="w-3 h-3 text-[var(--text-muted)]" />
-                      <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">Inactive</span>
+                      <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">{t("common.inactive")}</span>
                     </>
                   )}
                 </div>

@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { api } from "../lib/api-client";
 import { useToast } from "../hooks/use-toast";
+import { useI18n } from "../hooks/use-i18n";
 import { Send, CheckCircle, Zap } from "lucide-react";
 import { AuthBackground } from "../components/auth/auth-background";
 import { SpotlightCard } from "../components/auth/spotlight-card";
@@ -13,6 +14,7 @@ export const Route = createFileRoute("/forgot-password")({
 });
 
 function ForgotPasswordPage() {
+  const { t } = useI18n();
   const toast = useToast();
   const cardRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -43,7 +45,7 @@ function ForgotPasswordPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    if (!email.trim()) { setError("Email is required"); shakeCard(); return; }
+    if (!email.trim()) { setError(t("auth.emailRequired")); shakeCard(); return; }
     setIsLoading(true);
     try {
       await api<{ message: string }>("/auth/forgot-password", {
@@ -51,9 +53,9 @@ function ForgotPasswordPage() {
         body: JSON.stringify({ email }),
       });
       setSent(true);
-      toast.success("Reset link sent! Check your email.");
+      toast.success(t("auth.resetLinkSent"));
     } catch (err: any) {
-      toast.error(err.message || "Failed to send reset link");
+      toast.error(err.message || t("auth.resetLinkFailed"));
       shakeCard();
     } finally {
       setIsLoading(false);
@@ -71,18 +73,18 @@ function ForgotPasswordPage() {
               <Zap className="w-5 h-5 text-[#09090b]" />
             </div>
             <div>
-              <div className="text-[15px] font-semibold text-[var(--text-primary)] font-['Space_Grotesk'] tracking-tight">NexusBot</div>
-              <div className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider">Trading Platform</div>
+              <div className="text-[15px] font-semibold text-[var(--text-primary)] font-['Space_Grotesk'] tracking-tight">{t("auth.brandName")}</div>
+              <div className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider">{t("auth.brandSubtitle")}</div>
             </div>
           </div>
 
           <h2 className="auth-left-title">
-            Trade smarter.
+            {t("auth.leftTitleLine1")}
             <br />
-            <span className="text-[var(--accent)]">Automate everything.</span>
+            <span className="text-[var(--accent)]">{t("auth.leftTitleLine2")}</span>
           </h2>
           <p className="auth-left-subtitle">
-            Build, backtest, and deploy automated trading bots across top crypto exchanges — all from one powerful dashboard.
+            {t("auth.leftSubtitle")}
           </p>
         </div>
       </div>
@@ -94,21 +96,21 @@ function ForgotPasswordPage() {
           <div ref={cardRef}>
             <div ref={contentRef}>
               <p className="reveal font-['Geist'] text-[13px] font-medium text-[#2dd4bf] mb-2 uppercase tracking-wider">
-                {sent ? "Check your inbox" : "Password reset"}
+                {sent ? t("auth.checkInbox") : t("auth.passwordReset")}
               </p>
               <h1 className="reveal auth-form-title">
-                {sent ? "Email sent" : "Reset your password"}
+                {sent ? t("auth.emailSent") : t("auth.resetYourPassword")}
               </h1>
               <p className="reveal auth-form-subtitle">
                 {sent
-                  ? `We sent a reset link to ${email}`
-                  : "Enter your email and we'll send you a secure reset link."}
+                  ? t("auth.resetLinkSentTo", { email })
+                  : t("auth.resetDesc")}
               </p>
 
               {sent ? (
                 <div className="reveal">
                   <p className="font-['Geist'] text-[14px] text-[#71717a] text-center mb-5">
-                    Didn&apos;t receive it? Check your spam folder or try again.
+                    {t("auth.didntReceive")}
                   </p>
                   <button
                     type="button"
@@ -117,19 +119,19 @@ function ForgotPasswordPage() {
                   >
                     <span className="flex items-center gap-2">
                       <Send className="w-4 h-4" />
-                      Try Again
+                      {t("auth.tryAgain")}
                     </span>
                   </button>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="reveal">
                   <div className="auth-field">
-                    <label className="auth-field-label">Email Address</label>
+                    <label className="auth-field-label">{t("auth.emailAddress")}</label>
                     <input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="you@example.com"
+                      placeholder={t("auth.emailPlaceholder")}
                       className={`auth-field-input ${error ? "auth-field-error" : ""}`}
                       required
                     />
@@ -144,11 +146,11 @@ function ForgotPasswordPage() {
                     {isLoading ? (
                       <span className="flex items-center gap-2">
                         <span className="auth-spinner" />
-                        Sending...
+                        {t("auth.sending")}
                       </span>
                     ) : (
                       <span className="flex items-center gap-2">
-                        Send Reset Link
+                        {t("auth.sendResetLink")}
                         <Send className="w-4 h-4" />
                       </span>
                     )}
@@ -158,7 +160,7 @@ function ForgotPasswordPage() {
 
               <p className="reveal mt-6 text-center">
                 <Link to="/login" className="auth-text-link">
-                  Back to sign in
+                  {t("auth.backToLogin")}
                 </Link>
               </p>
             </div>

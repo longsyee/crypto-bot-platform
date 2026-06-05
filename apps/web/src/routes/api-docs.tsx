@@ -8,8 +8,6 @@ import {
   Terminal,
   Shield,
   Key,
-  Bot,
-  Plug,
   Wallet,
   Radio,
   ChevronRight,
@@ -36,8 +34,6 @@ interface Endpoint {
 }
 
 const SECTIONS = [
-  { id: "bots", labelKey: "sectionBots", icon: Bot },
-  { id: "exchange-connections", labelKey: "sectionConnections", icon: Plug },
   { id: "signals", labelKey: "sectionSignals", icon: Radio },
   { id: "api-keys", labelKey: "sectionApiKeys", icon: Key },
   { id: "wallets", labelKey: "sectionWallets", icon: Wallet },
@@ -49,80 +45,80 @@ const ENDPOINTS: Record<string, Endpoint[]> = {
       method: "GET",
       path: "/bots",
       auth: "Both",
-      description: "List your trading bots",
+      description: "List your signal trading bots",
       query: "?status=running",
-      response: JSON.stringify({ success: true, data: [{ id: "uuid", name: "BTC DCA", type: "dca", status: "running", mode: "paper", tradingPair: "BTC/USDT", connection: { exchangeId: "binance" } }] }, null, 2),
+      response: JSON.stringify({ success: true, data: [{ id: "uuid", name: "BTC Bracket", type: "signal", status: "running", mode: "paper", tradingPair: "BTC/USDT", connection: { exchangeId: "bybit" } }] }, null, 2),
     },
     {
       method: "POST",
       path: "/bots",
       auth: "Both",
-      description: "Create a new trading bot (DCA or Signal)",
+      description: "Create a new Signal bot with strategy config",
       request: JSON.stringify({
-        name: "BTC DCA",
+        name: "BTC Bracket",
         connectionId: "uuid",
         tradingPair: "BTC/USDT",
         mode: "paper",
         paperInitialBalance: { USDT: 10000 },
         config: {
-          type: "dca",
-          base_order_size: 10,
-          safety_order_size: 5,
-          safety_order_max_count: 5,
-          price_deviation_initial: 1.0,
-          leverage: 1,
-          leverage_type: "cross",
-          take_profit: 2,
-          take_profit_mode: "fixed",
-          direction: "long",
-          max_safety_orders_active: 3,
-          order_type: "market",
+          type: "signal",
+          strategy: "bracket",
+          symbol: "BTCUSDT",
+          leverage: 10,
+          marginMode: "cross",
+          bracket: {
+            stopLossPercent: 2.0,
+            takeProfitPercent: 6.0,
+            trailingStop: false,
+          },
+          risk: {
+            maxPositionSizeUsdt: 500,
+            maxTotalExposureUsdt: 2000,
+            maxDailyLossUsdt: 500,
+            maxOpenPositions: 5,
+            slippageMaxPercent: 0.5,
+            cooldownSeconds: 30,
+          },
+          webhook_secret: "whsec_xxxxxxxx",
         },
       }, null, 2),
-      response: JSON.stringify({ success: true, data: { id: "uuid", name: "BTC DCA", status: "stopped", mode: "paper" } }, null, 2),
+      response: JSON.stringify({ success: true, data: { id: "uuid", name: "BTC Bracket", status: "stopped", mode: "paper" } }, null, 2),
     },
     {
       method: "GET",
       path: "/bots/:id",
       auth: "Both",
-      description: "Get bot details including config and connection",
-      response: JSON.stringify({ success: true, data: { id: "uuid", name: "BTC DCA", type: "dca", status: "running", configJson: {}, mode: "paper", tradingPair: "BTC/USDT" } }, null, 2),
+      description: "Get signal bot details including strategy config and connection",
+      response: JSON.stringify({ success: true, data: { id: "uuid", name: "BTC Bracket", type: "signal", status: "running", configJson: { strategy: "bracket" }, mode: "paper", tradingPair: "BTC/USDT" } }, null, 2),
     },
     {
       method: "PATCH",
       path: "/bots/:id",
       auth: "Both",
-      description: "Update bot name or config",
-      request: JSON.stringify({ name: "Updated Name", configJson: { type: "dca", base_order_size: 20 } }, null, 2),
+      description: "Update bot name or strategy config",
+      request: JSON.stringify({ name: "Updated Name", configJson: { strategy: "scaled", bracket: { stopLossPercent: 1.5 } } }, null, 2),
       response: JSON.stringify({ success: true, data: { id: "uuid", name: "Updated Name" } }, null, 2),
     },
     {
       method: "POST",
       path: "/bots/:id/start",
       auth: "Both",
-      description: "Start a bot (checks token balance for live mode)",
+      description: "Start a signal bot (checks token balance and exchange connection for live mode)",
       response: JSON.stringify({ success: true, data: { status: "running" } }, null, 2),
     },
     {
       method: "POST",
       path: "/bots/:id/stop",
       auth: "Both",
-      description: "Stop a bot",
+      description: "Stop a signal bot (cancels open orders, preserves position)",
       response: JSON.stringify({ success: true, data: { status: "stopped" } }, null, 2),
     },
     {
       method: "POST",
       path: "/bots/:id/exit",
       auth: "Both",
-      description: "Emergency exit — close all positions immediately",
+      description: "Emergency exit — close all positions immediately with reduceOnly",
       response: JSON.stringify({ success: true, data: { message: "Emergency exit command sent to worker" } }, null, 2),
-    },
-    {
-      method: "POST",
-      path: "/bots/:id/sync",
-      auth: "Both",
-      description: "Manual position sync (DCA bots only)",
-      response: JSON.stringify({ success: true, data: { message: "Sync command sent to worker" } }, null, 2),
     },
     {
       method: "PATCH",
@@ -143,8 +139,8 @@ const ENDPOINTS: Record<string, Endpoint[]> = {
       method: "GET",
       path: "/bots/:id/orders",
       auth: "Both",
-      description: "Get order history for a bot",
-      response: JSON.stringify({ success: true, data: [{ id: "uuid", side: "buy", amount: 0.01, price: 50000, status: "filled", createdAt: "2024-01-01T00:00:00Z" }] }, null, 2),
+      description: "Get order history for a signal bot",
+      response: JSON.stringify({ success: true, data: [{ id: "uuid", side: "buy", type: "market", amount: 0.01, price: 50000, status: "filled", createdAt: "2024-01-01T00:00:00Z" }] }, null, 2),
     },
     {
       method: "GET",
@@ -152,7 +148,7 @@ const ENDPOINTS: Record<string, Endpoint[]> = {
       auth: "Both",
       description: "Get bot logs with optional filters",
       query: "?category=state&level=info&limit=200",
-      response: JSON.stringify({ success: true, data: [{ id: "uuid", level: "info", message: "Bot started", createdAt: "2024-01-01T00:00:00Z" }] }, null, 2),
+      response: JSON.stringify({ success: true, data: [{ id: "uuid", level: "info", message: "Signal executed: BUY BTC/USDT 0.01 @ market", createdAt: "2024-01-01T00:00:00Z" }] }, null, 2),
     },
     {
       method: "GET",
@@ -221,9 +217,49 @@ const ENDPOINTS: Record<string, Endpoint[]> = {
       method: "POST",
       path: "/webhooks/signal/:botId",
       auth: "Both",
-      description: "Send a trading signal to a Signal bot. Supports API key, JWT, or HMAC signature (TradingView).",
-      request: JSON.stringify({ side: "buy", symbol: "BTC/USDT", amount: 0.01, price: 50000 }, null, 2),
-      response: JSON.stringify({ success: true, data: { queued: true } }, null, 2),
+      description: "Send a trading signal to a Signal bot via webhook. Supports API key, JWT, or HMAC signature (TradingView).",
+      request: JSON.stringify({
+        symbol: "BTCUSDT",
+        direction: "long",
+        side: "buy",
+        amount: 500,
+        amountType: "fixed_usdt",
+        orderType: "market",
+        strategy: "bracket",
+        metadata: { source: "tradingview", alert_name: "EMA Cross 15m", interval: "15m" }
+      }, null, 2),
+      response: JSON.stringify({ success: true, data: { queued: true, jobId: "uuid" } }, null, 2),
+    },
+    {
+      method: "POST",
+      path: "/bots/:id/signal",
+      auth: "Both",
+      description: "Send a trading signal to a Signal bot via API (MCP / internal). Same payload format as webhook.",
+      request: JSON.stringify({
+        symbol: "ETHUSDT",
+        direction: "short",
+        amount: 300,
+        amountType: "fixed_usdt",
+        orderType: "limit",
+        price: 3200.00,
+        strategy: "scaled",
+        metadata: { source: "mcp_agent", message: "Bearish divergence on RSI" }
+      }, null, 2),
+      response: JSON.stringify({ success: true, data: { queued: true, jobId: "uuid" } }, null, 2),
+    },
+    {
+      method: "GET",
+      path: "/bots/:id/position",
+      auth: "Both",
+      description: "Get current position for the bot's symbol from the exchange",
+      response: JSON.stringify({ success: true, data: { symbol: "BTCUSDT", size: 0.01, side: "long", entryPrice: 50000, unrealizedPnl: 120.5, leverage: 10, marginMode: "cross" } }, null, 2),
+    },
+    {
+      method: "GET",
+      path: "/bots/:id/open-orders",
+      auth: "Both",
+      description: "Get active unfilled orders for the bot on the exchange",
+      response: JSON.stringify({ success: true, data: [{ id: "uuid", type: "limit", side: "buy", amount: 0.003, price: 65000, status: "open" }] }, null, 2),
     },
   ],
   "api-keys": [
@@ -388,7 +424,7 @@ function EndpointCard({ ep, t }: { ep: Endpoint; t: (k: string) => string }) {
 
 function ApiDocsPage() {
   const { t } = useI18n();
-  const [activeSection, setActiveSection] = useState("bots");
+  const [activeSection, setActiveSection] = useState("signals");
 
   useEffect(() => {
     const el = document.getElementById(`section-${activeSection}`);
@@ -535,7 +571,7 @@ function ApiDocsPage() {
               {ENDPOINTS[section.id]?.map((ep, i) => (
                 <EndpointCard key={i} ep={ep} t={t} />
               )) || (
-                <p className="text-xs text-[var(--text-muted)]">Documentation coming soon.</p>
+                <p className="text-xs text-[var(--text-muted)]">{t("apiDocs.comingSoon")}</p>
               )}
             </div>
           ))}

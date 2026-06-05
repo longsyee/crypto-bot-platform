@@ -14,6 +14,7 @@ import {
   Wifi,
   WifiOff,
 } from "lucide-react";
+import { useI18n } from "../../hooks/use-i18n";
 import type { ActivityLog } from "../../hooks/use-activity";
 
 /* ------------------------------------------------------------------ */
@@ -22,41 +23,41 @@ import type { ActivityLog } from "../../hooks/use-activity";
 
 const CATEGORY_META: Record<
   ActivityLog["category"],
-  { icon: React.ReactNode; label: string; color: string }
+  { icon: React.ReactNode; tKey: string; color: string }
 > = {
   order: {
     icon: <ListOrdered className="w-3 h-3" />,
-    label: "ORD",
+    tKey: "activity.orders",
     color: "text-[var(--accent)]",
   },
   signal: {
     icon: <Radio className="w-3 h-3" />,
-    label: "SIG",
+    tKey: "activity.signals",
     color: "text-[var(--primary)]",
   },
   state: {
     icon: <Activity className="w-3 h-3" />,
-    label: "STA",
+    tKey: "activity.state",
     color: "text-[var(--success)]",
   },
   system: {
     icon: <Settings className="w-3 h-3" />,
-    label: "SYS",
+    tKey: "activity.system",
     color: "text-[var(--text-muted)]",
   },
   trade: {
     icon: <DollarSign className="w-3 h-3" />,
-    label: "TRD",
+    tKey: "activity.trades",
     color: "text-[var(--success)]",
   },
   fee: {
     icon: <ArrowDownCircle className="w-3 h-3" />,
-    label: "FEE",
+    tKey: "activity.fees",
     color: "text-[var(--warning)]",
   },
   alert: {
     icon: <AlertTriangle className="w-3 h-3" />,
-    label: "ALR",
+    tKey: "activity.alerts",
     color: "text-[var(--danger)]",
   },
 };
@@ -72,6 +73,7 @@ const LEVEL_ACCENT: Record<ActivityLog["level"], string> = {
 /* ------------------------------------------------------------------ */
 
 function ActivityRow({ log }: { log: ActivityLog }) {
+  const { t } = useI18n();
   const [expanded, setExpanded] = useState(false);
   const meta = CATEGORY_META[log.category] ?? CATEGORY_META.system;
   const hasMeta = log.metadata && Object.keys(log.metadata).length > 0;
@@ -113,7 +115,7 @@ function ActivityRow({ log }: { log: ActivityLog }) {
             ].join(" ")}
           >
             {meta.icon}
-            {meta.label}
+            {t(meta.tKey)}
           </span>
         </div>
 
@@ -157,13 +159,13 @@ function ActivityRow({ log }: { log: ActivityLog }) {
 // Filter chips
 /* ------------------------------------------------------------------ */
 
-const CATEGORIES: { key: ActivityLog["category"] | "all"; label: string }[] = [
-  { key: "all", label: "ALL" },
-  { key: "order", label: "ORD" },
-  { key: "signal", label: "SIG" },
-  { key: "trade", label: "TRD" },
-  { key: "state", label: "STA" },
-  { key: "alert", label: "ALR" },
+const CATEGORIES: { key: ActivityLog["category"] | "all"; tKey: string }[] = [
+  { key: "all", tKey: "activity.all" },
+  { key: "order", tKey: "activity.orders" },
+  { key: "signal", tKey: "activity.signals" },
+  { key: "trade", tKey: "activity.trades" },
+  { key: "state", tKey: "activity.state" },
+  { key: "alert", tKey: "activity.alerts" },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -183,6 +185,7 @@ export const ActivityFeed: React.FC<ActivityFeedProps> = ({
   onClear,
   loading,
 }) => {
+  const { t } = useI18n();
   const [activeFilter, setActiveFilter] = useState<ActivityLog["category"] | "all">("all");
   const [autoScroll, setAutoScroll] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -214,45 +217,45 @@ export const ActivityFeed: React.FC<ActivityFeedProps> = ({
                   : "bg-[var(--bg-card)] text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-surface)]",
               ].join(" ")}
             >
-              {c.label}
+              {t(c.tKey)}
             </button>
           ))}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {connected !== undefined && (
             <span
               className={[
-                "inline-flex items-center gap-1 text-[10px] font-semibold font-mono",
+                "inline-flex items-center gap-1 text-[9px] font-semibold font-mono",
                 connected ? "text-[var(--success)]" : "text-[var(--danger)]",
               ].join(" ")}
             >
               {connected ? (
                 <>
-                  <Wifi className="w-3 h-3" /> LIVE
+                  <Wifi className="w-3 h-3" /> {t("activity.live")}
                 </>
               ) : (
                 <>
-                  <WifiOff className="w-3 h-3" /> OFF
+                  <WifiOff className="w-3 h-3" /> {t("activity.off")}
                 </>
               )}
             </span>
           )}
-          <label className="inline-flex items-center gap-1 text-[10px] text-[var(--text-muted)] cursor-pointer select-none font-semibold">
+          <label className="inline-flex items-center gap-1 text-[9px] text-[var(--text-muted)] cursor-pointer select-none font-semibold">
             <input
               type="checkbox"
               checked={autoScroll}
               onChange={(e) => setAutoScroll(e.target.checked)}
               className="rounded border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--primary)] focus:ring-0"
             />
-            AUTO-SCROLL
+            {t("activity.autoScroll")}
           </label>
           {onClear && (
             <button
               onClick={onClear}
-              className="text-[10px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors font-semibold uppercase tracking-wider"
+              className="text-[9px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors font-semibold uppercase tracking-wider"
             >
-              Clear
+              {t("activity.clear")}
             </button>
           )}
         </div>
@@ -266,7 +269,7 @@ export const ActivityFeed: React.FC<ActivityFeedProps> = ({
         {loading && filtered.length === 0 && (
           <div className="flex items-center justify-center h-full bg-[var(--bg-card)]">
             <span className="text-xs text-[var(--text-muted)] font-['Space_Grotesk'] font-semibold">
-              Loading activity...
+              {t("activity.loading")}
             </span>
           </div>
         )}
@@ -275,10 +278,10 @@ export const ActivityFeed: React.FC<ActivityFeedProps> = ({
           <div className="flex flex-col items-center justify-center h-full gap-1.5 bg-[var(--bg-card)]">
             <Bell className="w-5 h-5 text-[var(--text-muted)]" />
             <span className="text-xs text-[var(--text-muted)] font-['Space_Grotesk'] font-semibold">
-              No activity yet.
+              {t("activity.noActivity")}
             </span>
             <span className="text-[10px] text-[var(--text-muted)] font-mono">
-              Start or interact with a bot to see live activity.
+              {t("activity.noActivityHint")}
             </span>
           </div>
         )}

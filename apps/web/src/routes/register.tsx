@@ -8,6 +8,7 @@ import { AuthBackground } from "../components/auth/auth-background";
 import { SpotlightCard } from "../components/auth/spotlight-card";
 import { ParticleCanvas } from "../components/auth/particle-canvas";
 import { OtpInput } from "../components/auth/otp-input";
+import { useI18n } from "../hooks/use-i18n";
 import gsap from "gsap";
 
 export const Route = createFileRoute("/register")({
@@ -25,7 +26,8 @@ function FeatureItem({ icon, label }: { icon: React.ReactNode; label: string }) 
   );
 }
 
-export default function RegisterPage() {
+function RegisterPage() {
+  const { t } = useI18n();
   const setAuth = useAuth((s) => s.setAuth);
   const navigate = useNavigate();
   const toast = useToast();
@@ -79,11 +81,11 @@ export default function RegisterPage() {
 
   function validateStep1() {
     const next: Record<string, string> = {};
-    if (!email.trim()) next.email = "Email is required";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) next.email = "Invalid email";
-    if (!password) next.password = "Password is required";
-    else if (password.length < 8) next.password = "Min 8 characters";
-    if (password !== confirmPassword) next.confirmPassword = "Passwords do not match";
+    if (!email.trim()) next.email = t("auth.emailRequired");
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) next.email = t("auth.emailInvalid");
+    if (!password) next.password = t("auth.passwordRequired");
+    else if (password.length < 8) next.password = t("auth.passwordMinLength");
+    if (password !== confirmPassword) next.confirmPassword = t("auth.passwordsDoNotMatch");
     setErrors(next);
     return Object.keys(next).length === 0;
   }
@@ -98,11 +100,11 @@ export default function RegisterPage() {
         body: JSON.stringify({ email, password, referral_code: referralCode || undefined }),
       });
       setAuth(data.accessToken, data.refreshToken, data.user);
-      toast.success("Account created! Check your email for the OTP.");
+      toast.success(t("auth.registerSuccess"));
       setStep(2);
       setResendCountdown(60);
     } catch (err: any) {
-      toast.error(err.message || "Registration failed");
+      toast.error(err.message || t("auth.registerFailed"));
       shakeCard();
     } finally {
       setIsLoading(false);
@@ -120,7 +122,7 @@ export default function RegisterPage() {
     e?.preventDefault();
     const code = otp.join("");
     if (code.length !== 6) {
-      setOtpError("Enter the full 6-digit code");
+      setOtpError(t("auth.otpFullCodeRequired"));
       shakeCard();
       return;
     }
@@ -130,10 +132,10 @@ export default function RegisterPage() {
         method: "POST",
         body: JSON.stringify({ email, otp: code }),
       });
-      toast.success("Email verified!");
+      toast.success(t("auth.emailVerified"));
       navigate({ to: "/dashboard" });
     } catch (err: any) {
-      setOtpError(err.message || "Invalid OTP");
+      setOtpError(err.message || t("auth.invalidOtp"));
       shakeCard();
     } finally {
       setIsLoading(false);
@@ -148,10 +150,10 @@ export default function RegisterPage() {
         method: "POST",
         body: JSON.stringify({ email }),
       });
-      toast.success("OTP resent!");
+      toast.success(t("auth.otpResent"));
       setResendCountdown(60);
     } catch (err: any) {
-      toast.error(err.message || "Failed to resend OTP");
+      toast.error(err.message || t("auth.otpResendFailed"));
     } finally {
       setIsResending(false);
     }
@@ -174,25 +176,25 @@ export default function RegisterPage() {
               <Zap className="w-5 h-5 text-[#09090b]" />
             </div>
             <div>
-              <div className="text-[15px] font-semibold text-[var(--text-primary)] font-['Space_Grotesk'] tracking-tight">NexusBot</div>
-              <div className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider">Trading Platform</div>
+              <div className="text-[15px] font-semibold text-[var(--text-primary)] font-['Space_Grotesk'] tracking-tight">{t("auth.brandName")}</div>
+              <div className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider">{t("auth.brandSubtitle")}</div>
             </div>
           </div>
 
           <h2 className="auth-left-title">
-            Start trading
+            {t("auth.registerLeftTitle1")}
             <br />
-            <span className="text-[var(--accent)]">in minutes.</span>
+            <span className="text-[var(--accent)]">{t("auth.registerLeftTitle2")}</span>
           </h2>
           <p className="auth-left-subtitle">
-            Join thousands of traders who automate their strategies with DCA bots, signal trading, and paper trading.
+            {t("auth.registerLeftSubtitle")}
           </p>
 
           <div className="mt-8 space-y-3">
-            <FeatureItem icon={<Bot className="w-4 h-4" />} label="DCA & Signal Bots" />
-            <FeatureItem icon={<TrendingUp className="w-4 h-4" />} label="Real-time Market Data" />
-            <FeatureItem icon={<Shield className="w-4 h-4" />} label="Encrypted API Keys" />
-            <FeatureItem icon={<Zap className="w-4 h-4" />} label="Paper Trading Mode" />
+            <FeatureItem icon={<Bot className="w-4 h-4" />} label={t("auth.featureBots")} />
+            <FeatureItem icon={<TrendingUp className="w-4 h-4" />} label={t("auth.featureData")} />
+            <FeatureItem icon={<Shield className="w-4 h-4" />} label={t("auth.featureSecurity")} />
+            <FeatureItem icon={<Zap className="w-4 h-4" />} label={t("auth.featurePaper")} />
           </div>
         </div>
       </div>
@@ -204,29 +206,26 @@ export default function RegisterPage() {
           <div ref={cardRef}>
             <div ref={contentRef}>
               <p className="reveal font-['Geist'] text-[13px] font-medium text-[#2dd4bf] mb-2 uppercase tracking-wider">
-                {step === 1 ? "Get started" : "Verification"}
+                {step === 1 ? t("auth.registerStep1Label") : t("auth.registerStep2Label")}
               </p>
               <h1 className="reveal auth-form-title">
-                {step === 1 ? "Create your account" : "Verify your email"}
+                {step === 1 ? t("auth.registerTitle") : t("auth.verifyTitle")}
               </h1>
               <p className="reveal auth-form-subtitle">
                 {step === 1
-                  ? "Join thousands of traders automating their crypto strategies."
-                  : <>
-                      We sent a 6-digit code to{" "}
-                      <strong className="text-[var(--text-primary)]">{email}</strong>
-                    </>}
+                  ? t("auth.registerSubtitle")
+                  : t("auth.verifySubtitle", { email })}
               </p>
 
               {step === 1 ? (
                 <form onSubmit={handleRegister} className="reveal">
                   <div className="auth-field">
-                    <label className="auth-field-label">Email Address</label>
+                    <label className="auth-field-label">{t("auth.emailAddress")}</label>
                     <input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="you@example.com"
+                      placeholder={t("auth.emailPlaceholder")}
                       className={`auth-field-input ${errors.email ? "auth-field-error" : ""}`}
                       required
                     />
@@ -234,13 +233,13 @@ export default function RegisterPage() {
                   </div>
 
                   <div className="auth-field">
-                    <label className="auth-field-label">Password</label>
+                    <label className="auth-field-label">{t("auth.password")}</label>
                     <div className="relative">
                       <input
                         type={showPassword ? "text" : "password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Min 8 characters"
+                        placeholder={t("auth.passwordMinPlaceholder")}
                         className={`auth-field-input pr-10 ${errors.password ? "auth-field-error" : ""}`}
                         required
                       />
@@ -256,13 +255,13 @@ export default function RegisterPage() {
                   </div>
 
                   <div className="auth-field">
-                    <label className="auth-field-label">Confirm Password</label>
+                    <label className="auth-field-label">{t("auth.confirmPassword")}</label>
                     <div className="relative">
                       <input
                         type={showConfirm ? "text" : "password"}
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="Repeat password"
+                        placeholder={t("auth.confirmPasswordPlaceholder")}
                         className={`auth-field-input pr-10 ${errors.confirmPassword ? "auth-field-error" : ""}`}
                         required
                       />
@@ -279,20 +278,20 @@ export default function RegisterPage() {
 
                   <div className="auth-field">
                     <label className="auth-field-label">
-                      Referral Code{" "}
-                      <span className="text-[#52525b] font-normal">(optional)</span>
+                      {t("auth.referralCode")}{" "}
+                      <span className="text-[#52525b] font-normal">{t("common.optional")}</span>
                     </label>
                     <input
                       type="text"
                       value={referralCode}
                       onChange={(e) => setReferralCode(e.target.value)}
-                      placeholder="REF-XXXXXXXX"
+                      placeholder={t("auth.referralPlaceholder")}
                       className={`auth-field-input ${urlRef ? "border-[var(--accent)]/30 bg-[var(--accent)]/[0.04]" : ""}`}
                     />
                     {urlRef && (
                       <p className="text-xs text-[var(--accent)] mt-1.5 flex items-center gap-1">
                         <CheckCircle className="w-3 h-3" />
-                        Auto-filled from invitation link
+                        {t("auth.referralAutoFilled")}
                       </p>
                     )}
                   </div>
@@ -305,24 +304,24 @@ export default function RegisterPage() {
                     {isLoading ? (
                       <span className="flex items-center gap-2">
                         <span className="auth-spinner" />
-                        Creating account...
+                        {t("auth.creatingAccount")}
                       </span>
                     ) : (
                       <span className="flex items-center gap-2">
-                        Create Account
+                        {t("auth.createAccount")}
                         <ArrowRight className="w-4 h-4" />
                       </span>
                     )}
                   </button>
 
-                  <div className="auth-line">or</div>
+                  <div className="auth-line">{t("common.or")}</div>
 
                   <button
                     type="button"
                     onClick={() => navigate({ to: "/login" })}
                     className="auth-btn auth-btn-outline"
                   >
-                    Already have an account? Sign in
+                    {t("auth.alreadyHaveAccount")}
                   </button>
                 </form>
               ) : (
@@ -345,12 +344,12 @@ export default function RegisterPage() {
                     {isLoading ? (
                       <span className="flex items-center gap-2">
                         <span className="auth-spinner" />
-                        Verifying...
+                        {t("auth.verifying")}
                       </span>
                     ) : (
                       <span className="flex items-center gap-2">
                         <CheckCircle className="w-4 h-4" />
-                        Verify &amp; Sign In
+                        {t("auth.verifyAndSignIn")}
                       </span>
                     )}
                   </button>
@@ -363,13 +362,13 @@ export default function RegisterPage() {
                       className="flex items-center gap-1.5 font-['Geist'] text-[13px] text-[#2dd4bf] hover:text-[#5eead4] disabled:text-[#3f3f46] disabled:cursor-not-allowed transition-colors"
                     >
                       <RefreshCw className={`w-3.5 h-3.5 ${isResending ? "animate-spin" : ""}`} />
-                      {resendCountdown > 0 ? `Resend in ${resendCountdown}s` : "Resend OTP"}
+                      {resendCountdown > 0 ? t("auth.resendIn", { s: resendCountdown }) : t("auth.resendOtp")}
                     </button>
                   </div>
 
                   <div className="mt-4 text-center">
                     <button type="button" onClick={() => setStep(1)} className="auth-text-link">
-                      Back to registration
+                      {t("auth.backToRegistration")}
                     </button>
                   </div>
                 </form>

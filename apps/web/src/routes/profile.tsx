@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useRef, useState, useCallback } from "react";
 import { useAuth } from "../hooks/use-auth";
-import { useMe } from "../hooks/use-api";
+import { useMe, useAvatar, useUploadAvatar } from "../hooks/use-api";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import {
@@ -17,17 +17,28 @@ import {
   AlertCircle,
   Terminal,
   ChevronRight,
+  Camera,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { toast } from "sonner";
+import { useI18n } from "../hooks/use-i18n";
 
 export const Route = createFileRoute("/profile")({
   component: ProfilePage,
 });
 
+const MAX_AVATAR_SIZE = 2 * 1024 * 1024;
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+
 function ProfilePage() {
+  const { t } = useI18n();
   const user = useAuth((s) => s.user);
   const { data: profile, isLoading, error } = useMe();
+  const { data: avatarData } = useAvatar();
+  const uploadAvatar = useUploadAvatar();
   const [copied, setCopied] = useState(false);
+  const [preview, setPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
   useGSAP(
@@ -48,6 +59,39 @@ function ProfilePage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleFile = useCallback(
+    (file: File) => {
+      if (!ALLOWED_TYPES.includes(file.type)) {
+        toast.error(t("profile.imageTypeError"));
+        return;
+      }
+      if (file.size > MAX_AVATAR_SIZE) {
+        toast.error(t("profile.avatarSizeError"));
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => setPreview(e.target?.result as string);
+      reader.readAsDataURL(file);
+      uploadAvatar.mutate(file, {
+        onSuccess: () => {
+          toast.success(t("profile.avatarUpdated"));
+          setPreview(null);
+        },
+        onError: (err: any) => {
+          toast.error(err?.message || t("profile.avatarUploadFailed"));
+          setPreview(null);
+        },
+      });
+    },
+    [uploadAvatar]
+  );
+
+  const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleFile(file);
+  };
+
+
   const joinedDate = profile?.createdAt
     ? new Date(profile.createdAt).toLocaleDateString("en-US", {
         year: "numeric",
@@ -55,6 +99,9 @@ function ProfilePage() {
         day: "numeric",
       })
     : "—";
+
+  const displayAvatar = preview || (avatarData && avatarData.startsWith("data:") ? avatarData : null);
+  const initial = profile?.email?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || "U";
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -67,9 +114,9 @@ function ProfilePage() {
         </Link>
         <div>
           <h1 className="text-lg font-semibold text-[var(--text-primary)] font-['Space_Grotesk'] tracking-tight">
-            Profile
+            {t("profile.title")}
           </h1>
-          <p className="text-xs text-[var(--text-muted)]">Your account details</p>
+          <p className="text-xs text-[var(--text-muted)]">{t("profile.subtitle")}</p>
         </div>
       </div>
 
@@ -80,21 +127,44 @@ function ProfilePage() {
       ) : error ? (
         <div className="rounded-xl bg-[var(--danger)]/10 border border-[var(--danger)]/20 p-4 text-center">
           <AlertCircle className="w-6 h-6 text-[var(--danger)] mx-auto mb-2" />
-          <p className="text-sm text-[var(--danger)] font-medium">Failed to load profile</p>
+          <p className="text-sm text-[var(--danger)] font-medium">{t("profile.loadError")}</p>
           <p className="text-xs text-[var(--text-muted)] mt-1">{error instanceof Error ? error.message : "Unknown error"}</p>
-          <p className="text-xs text-[var(--text-muted)] mt-2">Make sure the API server is running on port 3010</p>
+          <p className="text-xs text-[var(--text-muted)] mt-2">{t("profile.loadErrorHint")}</p>
         </div>
       ) : (
         <div ref={cardRef} className="space-y-4">
+          {/* Avatar + Identity */}
           <div className="relative rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)] overflow-hidden">
             <div className="p-4">
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-lg bg-[var(--accent)] flex items-center justify-center text-base font-bold text-[var(--bg-base)] shrink-0">
-                  {profile?.email?.charAt(0).toUpperCase() || "U"}
+                <div className="relative shrink-0">
+                  <div className="w-16 h-16 rounded-xl overflow-hidden bg-[var(--accent)] flex items-center justify-center text-xl font-bold text-[var(--bg-base)] ring-2 ring-[var(--border-subtle)]"
+                  >
+                    {displayAvatar ? (
+                      <img src={displayAvatar} alt={t("profile.changeAvatar")} className="w-full h-full object-cover" />
+                    ) : (
+                      initial
+                    )}
+                  </div>
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="absolute -bottom-1.5 -right-1.5 w-7 h-7 rounded-full bg-[var(--primary)] text-white flex items-center justify-center shadow-lg hover:bg-[var(--primary)]/90 transition-colors"
+                    title={t("profile.changeAvatar")}
+                  >
+                    <Camera className="w-3.5 h-3.5" />
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    className="hidden"
+                    onChange={onInputChange}
+                  />
                 </div>
+
                 <div className="min-w-0 flex-1">
                   <h2 className="text-sm font-semibold text-[var(--text-primary)] truncate">
-                    {profile?.email || user?.email || "User"}
+                    {profile?.email || user?.email || t("profile.user")}
                   </h2>
                   <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                     <span
@@ -110,11 +180,11 @@ function ProfilePage() {
                     {profile?.emailVerified ? (
                       <span className="inline-flex items-center gap-1 px-2 py-[1px] rounded-md text-[11px] font-medium bg-[var(--success)]/10 text-[var(--success)] border border-[var(--success)]/20">
                         <Check className="w-3 h-3" />
-                        Verified
+                        {t("profile.verified")}
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 px-2 py-[1px] rounded-md text-[11px] font-medium bg-[var(--warning)]/10 text-[var(--warning)] border border-[var(--warning)]/20">
-                        Unverified
+                        {t("profile.unverified")}
                       </span>
                     )}
                   </div>
@@ -124,12 +194,12 @@ function ProfilePage() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-[var(--border-subtle)] rounded-xl overflow-hidden border border-[var(--border-subtle)] mt-4">
                 <StatItem
                   icon={<Calendar className="w-3.5 h-3.5" />}
-                  label="Member Since"
+                  label={t("profile.memberSince")}
                   value={joinedDate}
                 />
                 <StatItem
                   icon={<KeyRound className="w-3.5 h-3.5" />}
-                  label="Referral Code"
+                  label={t("profile.referralCode")}
                   value={profile?.referralCode || "—"}
                   onCopy={
                     profile?.referralCode
@@ -140,7 +210,7 @@ function ProfilePage() {
                 />
                 <StatItem
                   icon={<Mail className="w-3.5 h-3.5" />}
-                  label="Email"
+                  label={t("auth.email")}
                   value={profile?.email || "—"}
                 />
               </div>
@@ -153,12 +223,12 @@ function ProfilePage() {
                 <div className="flex items-center gap-2 mb-3">
                   <Wallet className="w-3.5 h-3.5 text-[var(--accent)]" />
                   <h3 className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">
-                    Wallet Summary
+                    {t("profile.walletSummary")}
                   </h3>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-[var(--border-subtle)] rounded-xl overflow-hidden border border-[var(--border-subtle)]">
                   <div className="bg-[var(--bg-card)] p-3 border-t-2 border-[var(--accent)]">
-                    <p className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">USDT Balance</p>
+                    <p className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">{t("profile.usdtBalance")}</p>
                     <p className="font-mono text-xl font-semibold text-[var(--text-primary)] mt-1">
                       {typeof profile.wallet.usdtBalance === "number"
                         ? profile.wallet.usdtBalance.toFixed(4)
@@ -169,7 +239,7 @@ function ProfilePage() {
                     </p>
                   </div>
                   <div className="bg-[var(--bg-card)] p-3 border-t-2 border-[var(--accent)]">
-                    <p className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">Token Balance</p>
+                    <p className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">{t("profile.tokenBalance")}</p>
                     <p className="font-mono text-xl font-semibold text-[var(--text-primary)] mt-1">
                       {typeof profile.wallet.tokenBalance === "number"
                         ? profile.wallet.tokenBalance.toFixed(4)
@@ -210,8 +280,8 @@ function ProfilePage() {
                   <Terminal className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-[var(--text-primary)] font-['Space_Grotesk'] tracking-tight">AI Agent Integration</h3>
-                  <p className="text-[11px] text-[var(--text-muted)] mt-0.5">Connect Claude, Cursor, or Cline to trade via MCP</p>
+                  <h3 className="text-sm font-semibold text-[var(--text-primary)] font-['Space_Grotesk'] tracking-tight">{t("profile.aiIntegration")}</h3>
+                  <p className="text-[11px] text-[var(--text-muted)] mt-0.5">{t("profile.aiIntegrationDesc")}</p>
                 </div>
               </div>
               <ChevronRight className="w-4 h-4 text-[var(--text-muted)]" />
@@ -222,22 +292,22 @@ function ProfilePage() {
             <div className="p-4">
               <h3 className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold mb-3 flex items-center gap-2">
                 <UserIcon className="w-3.5 h-3.5 text-[var(--text-muted)]" />
-                Account Security
+                {t("profile.accountSecurity")}
               </h3>
               <div className="divide-y divide-[var(--border-subtle)]">
                 <SecurityRow
-                  label="Password"
-                  status="Set"
+                  label={t("profile.password")}
+                  status={t("profile.statusSet")}
                   statusColor="emerald"
                 />
                 <SecurityRow
-                  label="Two-Factor Authentication"
-                  status="Not enabled"
+                  label={t("profile.twoFactorAuth")}
+                  status={t("profile.statusNotEnabled")}
                   statusColor="slate"
                 />
                 <SecurityRow
-                  label="Email Verification"
-                  status={profile?.emailVerified ? "Verified" : "Pending"}
+                  label={t("profile.emailVerification")}
+                  status={profile?.emailVerified ? t("profile.statusVerified") : t("profile.statusPending")}
                   statusColor={profile?.emailVerified ? "emerald" : "amber"}
                 />
               </div>

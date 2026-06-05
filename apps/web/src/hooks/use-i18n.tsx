@@ -1,4 +1,4 @@
-export type Lang = "en" | "zh";
+export type Lang = "en" | "zh" | "ms";
 
 import { createContext, useContext, useState, useCallback } from "react";
 import { dictionary } from "../i18n/dictionary";
@@ -6,7 +6,7 @@ import { dictionary } from "../i18n/dictionary";
 interface I18nContextValue {
   lang: Lang;
   setLang: (l: Lang) => void;
-  t: (key: string) => string;
+  t: (key: string, vars?: Record<string, string | number>) => string;
 }
 
 const I18nContext = createContext<I18nContextValue>({
@@ -31,7 +31,7 @@ function getNestedValue(obj: Record<string, unknown>, path: string): string {
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLangState] = useState<Lang>(() => {
     const saved = localStorage.getItem("lang") as Lang | null;
-    return saved && (saved === "en" || saved === "zh") ? saved : "en";
+    return saved && (saved === "en" || saved === "zh" || saved === "ms") ? saved : "en";
   });
 
   const setLang = useCallback((l: Lang) => {
@@ -40,9 +40,15 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const t = useCallback(
-    (key: string) => {
+    (key: string, vars?: Record<string, string | number>) => {
       const dict = dictionary[lang] as Record<string, unknown>;
-      return getNestedValue(dict, key);
+      let value = getNestedValue(dict, key);
+      if (vars) {
+        Object.entries(vars).forEach(([k, v]) => {
+          value = value.replace(new RegExp(`\\{${k}\\}`, "g"), String(v));
+        });
+      }
+      return value;
     },
     [lang]
   );

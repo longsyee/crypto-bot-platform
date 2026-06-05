@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from "react";
 import { Link, useNavigate, createFileRoute, useSearch } from "@tanstack/react-router";
 import { api } from "../lib/api-client";
 import { useToast } from "../hooks/use-toast";
+import { useI18n } from "../hooks/use-i18n";
 import { Eye, EyeOff, Lock, CheckCircle, Zap } from "lucide-react";
 import { AuthBackground } from "../components/auth/auth-background";
 import { SpotlightCard } from "../components/auth/spotlight-card";
@@ -13,6 +14,7 @@ export const Route = createFileRoute("/reset-password")({
 });
 
 function ResetPasswordPage() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const toast = useToast();
   const cardRef = useRef<HTMLDivElement>(null);
@@ -48,22 +50,22 @@ function ResetPasswordPage() {
   }
 
   useEffect(() => {
-    if (!token) toast.error("Invalid or missing reset token.");
+    if (!token) toast.error(t("auth.invalidResetToken"));
   }, [token]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErrors({});
     const next: typeof errors = {};
-    if (!password) next.password = "Password is required";
-    else if (password.length < 8) next.password = "Min 8 characters";
-    if (password !== confirmPassword) next.confirmPassword = "Passwords do not match";
+    if (!password) next.password = t("auth.passwordRequired");
+    else if (password.length < 8) next.password = t("auth.passwordMinLength");
+    if (password !== confirmPassword) next.confirmPassword = t("auth.passwordsDoNotMatch");
     if (Object.keys(next).length > 0) {
       setErrors(next);
       shakeCard();
       return;
     }
-    if (!token) { toast.error("Invalid reset token"); return; }
+    if (!token) { toast.error(t("auth.invalidResetToken")); return; }
 
     setIsLoading(true);
     try {
@@ -72,9 +74,9 @@ function ResetPasswordPage() {
         body: JSON.stringify({ token, newPassword: password }),
       });
       setDone(true);
-      toast.success("Password updated! You can now sign in.");
+      toast.success(t("auth.passwordUpdated"));
     } catch (err: any) {
-      toast.error(err.message || "Failed to reset password");
+      toast.error(err.message || t("auth.resetPasswordFailed"));
       shakeCard();
     } finally {
       setIsLoading(false);
@@ -92,18 +94,18 @@ function ResetPasswordPage() {
               <Zap className="w-5 h-5 text-[#09090b]" />
             </div>
             <div>
-              <div className="text-[15px] font-semibold text-[var(--text-primary)] font-['Space_Grotesk'] tracking-tight">NexusBot</div>
-              <div className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider">Trading Platform</div>
+              <div className="text-[15px] font-semibold text-[var(--text-primary)] font-['Space_Grotesk'] tracking-tight">{t("auth.brandName")}</div>
+              <div className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider">{t("auth.brandSubtitle")}</div>
             </div>
           </div>
 
           <h2 className="auth-left-title">
-            Trade smarter.
+            {t("auth.leftTitleLine1")}
             <br />
-            <span className="text-[var(--accent)]">Automate everything.</span>
+            <span className="text-[var(--accent)]">{t("auth.leftTitleLine2")}</span>
           </h2>
           <p className="auth-left-subtitle">
-            Build, backtest, and deploy automated trading bots across top crypto exchanges — all from one powerful dashboard.
+            {t("auth.leftSubtitle")}
           </p>
         </div>
       </div>
@@ -115,15 +117,15 @@ function ResetPasswordPage() {
           <div ref={cardRef}>
             <div ref={contentRef}>
               <p className="reveal font-['Geist'] text-[13px] font-medium text-[#2dd4bf] mb-2 uppercase tracking-wider">
-                {done ? "Success" : "New password"}
+                {done ? t("common.success") : t("auth.newPassword")}
               </p>
               <h1 className="reveal auth-form-title">
-                {done ? "Password updated" : "Set new password"}
+                {done ? t("auth.passwordUpdatedTitle") : t("auth.setNewPassword")}
               </h1>
               <p className="reveal auth-form-subtitle">
                 {done
-                  ? "Your password has been reset successfully."
-                  : "Enter your new password below."}
+                  ? t("auth.passwordResetSuccess")
+                  : t("auth.enterNewPassword")}
               </p>
 
               {done ? (
@@ -135,20 +137,20 @@ function ResetPasswordPage() {
                   >
                     <span className="flex items-center gap-2">
                       <CheckCircle className="w-4 h-4" />
-                      Go to Sign In
+                      {t("auth.goToSignIn")}
                     </span>
                   </button>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="reveal">
                   <div className="auth-field">
-                    <label className="auth-field-label">New Password</label>
+                    <label className="auth-field-label">{t("auth.newPassword")}</label>
                     <div className="relative">
                       <input
                         type={showPassword ? "text" : "password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Min 8 characters"
+                        placeholder={t("auth.passwordMinPlaceholder")}
                         className={`auth-field-input pr-10 ${errors.password ? "auth-field-error" : ""}`}
                         required
                       />
@@ -164,13 +166,13 @@ function ResetPasswordPage() {
                   </div>
 
                   <div className="auth-field">
-                    <label className="auth-field-label">Confirm Password</label>
+                    <label className="auth-field-label">{t("auth.confirmPassword")}</label>
                     <div className="relative">
                       <input
                         type={showConfirm ? "text" : "password"}
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="Repeat new password"
+                        placeholder={t("auth.confirmPasswordPlaceholder")}
                         className={`auth-field-input pr-10 ${errors.confirmPassword ? "auth-field-error" : ""}`}
                         required
                       />
@@ -193,10 +195,10 @@ function ResetPasswordPage() {
                     {isLoading ? (
                       <span className="flex items-center gap-2">
                         <span className="auth-spinner" />
-                        Updating...
+                        {t("common.updating")}
                       </span>
                     ) : (
-                      "Update Password"
+                      t("auth.updatePassword")
                     )}
                   </button>
                 </form>
@@ -204,7 +206,7 @@ function ResetPasswordPage() {
 
               <p className="reveal mt-6 text-center">
                 <Link to="/login" className="auth-text-link">
-                  Back to sign in
+                  {t("auth.backToLogin")}
                 </Link>
               </p>
             </div>

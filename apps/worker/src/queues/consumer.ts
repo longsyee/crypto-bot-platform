@@ -50,7 +50,8 @@ async function reconcile() {
   for (const botId of running) {
     try {
       const bot = await prisma.bot.findUnique({ where: { id: botId } });
-      if (bot && bot.type === "dca") {
+      if (!bot) continue;
+      if (bot.type === "dca") {
         await startDcaLoop(botId);
       }
     } catch (err: any) {

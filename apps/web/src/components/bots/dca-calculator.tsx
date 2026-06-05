@@ -11,6 +11,7 @@ import {
   formatRatio,
 } from "../../lib/dca-math";
 import { cn } from "../../lib/utils";
+import { useI18n } from "../../hooks/use-i18n";
 import {
   Calculator,
   TrendingUp,
@@ -106,6 +107,7 @@ function DirectionButton({
   dir: Direction;
   onClick: () => void;
 }) {
+  const { t } = useI18n();
   const colors = {
     long: active
       ? "bg-[var(--success)]/20 text-[var(--success)] border-[var(--success)]/30"
@@ -128,7 +130,7 @@ function DirectionButton({
       {dir === "long" && <TrendingUp className="w-3 h-3 inline mr-1" />}
       {dir === "short" && <TrendingDown className="w-3 h-3 inline mr-1" />}
       {dir === "both" && <ArrowRightLeft className="w-3 h-3 inline mr-1" />}
-      {dir}
+      {t(`common.${dir}`)}
     </button>
   );
 }
@@ -147,6 +149,7 @@ export const DCACalculator: React.FC<DCACalculatorProps> = ({
   onCreateBot,
   compact = false,
 }) => {
+  const { t } = useI18n();
   const [inputs, setInputs] = useState<DCACalculatorInputs>({
     ...defaultInputs,
     ...initialValues,
@@ -245,13 +248,13 @@ export const DCACalculator: React.FC<DCACalculatorProps> = ({
     min?: number;
     max?: number;
   }[] = [
-    { key: "currentPrice", label: "Current Price", suffix: "USDT", step: "0.01", min: 0.00000001 },
-    { key: "baseOrderSize", label: "Base Order Size", suffix: "USDT", step: "10", min: 0 },
-    { key: "safetyOrderSize", label: "Safety Order Size", suffix: "USDT", step: "10", min: 0 },
-    { key: "priceDeviationInitial", label: "First Safety Trigger", suffix: "%", step: "0.1", min: 0 },
-    { key: "takeProfit", label: "Take Profit", suffix: "%", step: "0.1", min: 0 },
-    { key: "stopLoss", label: "Stop Loss", suffix: "%", step: "0.1", min: 0 },
-    { key: "maxPositionSize", label: "Max Position Cap", suffix: "USDT", step: "10", min: 0 },
+    { key: "currentPrice", label: t("calculator.currentPrice"), suffix: "USDT", step: "0.01", min: 0.00000001 },
+    { key: "baseOrderSize", label: t("calculator.baseOrderSize"), suffix: "USDT", step: "10", min: 0 },
+    { key: "safetyOrderSize", label: t("calculator.safetyOrderSize"), suffix: "USDT", step: "10", min: 0 },
+    { key: "priceDeviationInitial", label: t("calculator.firstSafetyTrigger"), suffix: "%", step: "0.1", min: 0 },
+    { key: "takeProfit", label: t("calculator.takeProfit"), suffix: "%", step: "0.1", min: 0 },
+    { key: "stopLoss", label: t("calculator.stopLoss"), suffix: "%", step: "0.1", min: 0 },
+    { key: "maxPositionSize", label: t("calculator.maxPositionCap"), suffix: "USDT", step: "10", min: 0 },
   ];
 
   const scaleFields: {
@@ -261,8 +264,8 @@ export const DCACalculator: React.FC<DCACalculatorProps> = ({
     step: string;
     min: number;
   }[] = [
-    { key: "safetyOrderVolumeScale", label: "Volume Scale", suffix: "×", step: "0.01", min: 1 },
-    { key: "safetyOrderStepScale", label: "Step Scale", suffix: "×", step: "0.01", min: 1 },
+    { key: "safetyOrderVolumeScale", label: t("calculator.volumeScale"), suffix: "×", step: "0.01", min: 1 },
+    { key: "safetyOrderStepScale", label: t("calculator.stepScale"), suffix: "×", step: "0.01", min: 1 },
   ];
 
   const isShort = inputs.direction === "short";
@@ -274,13 +277,13 @@ export const DCACalculator: React.FC<DCACalculatorProps> = ({
         <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 flex flex-col gap-4 border-t-2 border-[var(--primary)]">
           <h3 className="font-['Space_Grotesk'] text-sm font-semibold tracking-tight flex items-center gap-2">
             <Calculator className="w-3.5 h-3.5 text-[var(--primary)]" />
-            PARAMETERS
+            {t("calculator.parameters")}
           </h3>
 
           {/* Direction */}
           <div className="flex flex-col gap-1">
             <label className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">
-              Direction
+              {t("calculator.direction")}
             </label>
             <div className="flex rounded-md border border-[var(--border-subtle)] bg-[var(--bg-elevated)] p-px">
               {(["long", "short", "both"] as Direction[]).map((d) => (
@@ -298,7 +301,7 @@ export const DCACalculator: React.FC<DCACalculatorProps> = ({
           <div className="grid grid-cols-2 gap-px bg-[var(--border-subtle)] rounded-md overflow-hidden border border-[var(--border-subtle)]">
             <div className="bg-[var(--bg-card)] p-3 flex flex-col gap-1">
               <label className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">
-                Leverage
+                {t("calculator.leverage")}
               </label>
               <div className="flex items-center gap-2">
                 <input
@@ -320,7 +323,7 @@ export const DCACalculator: React.FC<DCACalculatorProps> = ({
             </div>
             <div className="bg-[var(--bg-card)] p-3 flex flex-col gap-1">
               <label className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">
-                Margin Type
+                {t("calculator.marginType")}
               </label>
               <div className="flex rounded-md border border-[var(--border-subtle)] bg-[var(--bg-elevated)] p-px">
                 {(["cross", "isolated"] as const).map((t) => (
@@ -344,7 +347,7 @@ export const DCACalculator: React.FC<DCACalculatorProps> = ({
           {/* Order Type */}
           <div className="flex flex-col gap-1">
             <label className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">
-              Order Type
+              {t("calculator.orderType")}
             </label>
             <div className="flex rounded-md border border-[var(--border-subtle)] bg-[var(--bg-elevated)] p-px w-32">
               <button
@@ -356,7 +359,7 @@ export const DCACalculator: React.FC<DCACalculatorProps> = ({
                     : "text-[var(--text-muted)] border-transparent hover:text-[var(--text-secondary)]"
                 )}
               >
-                Market
+                {t("calculator.market")}
               </button>
             </div>
           </div>
@@ -431,7 +434,7 @@ export const DCACalculator: React.FC<DCACalculatorProps> = ({
 
           {/* Max Safety Orders Slider */}
           <Slider
-            label="Max Safety Orders"
+            label={t("calculator.maxSafetyOrders")}
             min={1}
             max={50}
             step={1}
@@ -460,20 +463,20 @@ export const DCACalculator: React.FC<DCACalculatorProps> = ({
           </span>
           <div className="h-3 w-px bg-[var(--border-subtle)]" />
           <div className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">
-            Break-even:{" "}
+            {t("calculator.breakEvenLabel")}{" "}
             <span className="text-[var(--text-secondary)] font-mono">
               ${result.breakEvenPrice.toFixed(2)}
             </span>
           </div>
           <div className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">
-            TP:{" "}
+            {t("calculator.tp")}{" "}
             <span className="text-[var(--success)] font-mono">
               ${result.tpPrice.toFixed(2)}
             </span>
           </div>
           {inputs.stopLoss > 0 && (
             <div className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">
-              SL:{" "}
+              {t("calculator.sl")}{" "}
               <span className="text-[var(--danger)] font-mono">
                 ${result.slPrice.toFixed(2)}
               </span>
@@ -486,13 +489,13 @@ export const DCACalculator: React.FC<DCACalculatorProps> = ({
           <div className="p-4 border-b border-[var(--border-subtle)]">
             <h3 className="font-['Space_Grotesk'] text-sm font-semibold tracking-tight flex items-center gap-2">
               <BarChart3 className="w-3.5 h-3.5 text-[var(--primary)]" />
-              ANALYTICS
+              {t("calculator.analytics")}
             </h3>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-[var(--border-subtle)]">
             <MetricCard
               icon={<Lock className="w-3 h-3" />}
-              label="Total Margin"
+              label={t("calculator.totalMargin")}
               value={result.totalCapitalRequired}
               prefix="$"
               decimals={2}
@@ -500,7 +503,7 @@ export const DCACalculator: React.FC<DCACalculatorProps> = ({
             />
             <MetricCard
               icon={<Scale className="w-3 h-3" />}
-              label="Total Notional"
+              label={t("calculator.totalNotional")}
               value={result.totalNotional}
               prefix="$"
               decimals={2}
@@ -508,7 +511,7 @@ export const DCACalculator: React.FC<DCACalculatorProps> = ({
             />
             <MetricCard
               icon={<Target className="w-3 h-3" />}
-              label="Break-even"
+              label={t("calculator.breakEven")}
               value={result.breakEvenPrice}
               prefix="$"
               decimals={2}
@@ -516,7 +519,7 @@ export const DCACalculator: React.FC<DCACalculatorProps> = ({
             />
             <MetricCard
               icon={<TrendingUp className="w-3 h-3" />}
-              label="Est. Profit @ TP"
+              label={t("calculator.estProfitAtTp")}
               value={result.estimatedProfitAtTP}
               prefix="$"
               decimals={2}
@@ -526,7 +529,7 @@ export const DCACalculator: React.FC<DCACalculatorProps> = ({
             {inputs.stopLoss > 0 && (
               <MetricCard
                 icon={<TrendingDown className="w-3 h-3" />}
-                label="Est. Loss @ SL"
+                label={t("calculator.estLossAtSl")}
                 value={result.estimatedLossAtSL}
                 prefix="$"
                 decimals={2}
@@ -536,7 +539,7 @@ export const DCACalculator: React.FC<DCACalculatorProps> = ({
             )}
             <MetricCard
               icon={<TrendingDown className="w-3 h-3" />}
-              label="Max Drawdown"
+              label={t("calculator.maxDrawdown")}
               value={result.maxDrawdownPct}
               suffix="%"
               decimals={2}
@@ -545,7 +548,7 @@ export const DCACalculator: React.FC<DCACalculatorProps> = ({
             />
             <MetricCard
               icon={<Info className="w-3 h-3" />}
-              label="Risk / Reward"
+              label={t("calculator.riskReward")}
               value={0}
               customText={formatRatio(result.riskRewardRatio)}
               decimals={2}
@@ -553,7 +556,7 @@ export const DCACalculator: React.FC<DCACalculatorProps> = ({
             />
             <MetricCard
               icon={<Settings2 className="w-3 h-3" />}
-              label="SO Levels"
+              label={t("calculator.soLevels")}
               value={result.levels.length - 1}
               suffix=""
               decimals={0}
@@ -567,13 +570,13 @@ export const DCACalculator: React.FC<DCACalculatorProps> = ({
           <div className="p-4 border-b border-[var(--border-subtle)]">
             <h3 className="font-['Space_Grotesk'] text-sm font-semibold tracking-tight flex items-center gap-2">
               <BarChart3 className="w-3.5 h-3.5 text-[var(--primary)]" />
-              CAPITAL ALLOCATION
+              {t("calculator.capitalAllocation")}
             </h3>
           </div>
           <div className="divide-y divide-[var(--border-subtle)]">
             {result.levels.map((level, idx) => {
               const isBase = level.level === 0;
-              const label = isBase ? "Base" : `SO ${level.level}`;
+              const label = isBase ? t("calculator.base") : `${t("calculator.so")} ${level.level}`;
               return (
                 <div key={level.level} className="flex items-center gap-3 px-4 py-2">
                   <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold w-12 text-right font-mono">
@@ -608,7 +611,7 @@ export const DCACalculator: React.FC<DCACalculatorProps> = ({
           <div className="p-4 border-b border-[var(--border-subtle)]">
             <h3 className="font-['Space_Grotesk'] text-sm font-semibold tracking-tight flex items-center gap-2">
               <Calculator className="w-3.5 h-3.5 text-[var(--primary)]" />
-              ORDER LEVELS
+              {t("calculator.orderLevels")}
             </h3>
           </div>
           <div className="overflow-x-auto">
@@ -616,35 +619,35 @@ export const DCACalculator: React.FC<DCACalculatorProps> = ({
               <thead>
                 <tr className="text-[var(--text-muted)] border-b border-[var(--border-subtle)] bg-[var(--bg-elevated)]">
                   <th className="text-left px-3 py-2 font-semibold text-[10px] uppercase tracking-widest whitespace-nowrap">
-                    Level
+                    {t("calculator.level")}
                   </th>
                   <th className="text-left px-3 py-2 font-semibold text-[10px] uppercase tracking-widest whitespace-nowrap">
-                    Deviation
+                    {t("calculator.deviation")}
                   </th>
                   <th className="text-left px-3 py-2 font-semibold text-[10px] uppercase tracking-widest whitespace-nowrap">
-                    Trigger
+                    {t("calculator.trigger")}
                   </th>
                   <th className="text-left px-3 py-2 font-semibold text-[10px] uppercase tracking-widest whitespace-nowrap">
-                    Order (USDT)
+                    {t("calculator.orderUsdt")}
                   </th>
                   <th className="text-left px-3 py-2 font-semibold text-[10px] uppercase tracking-widest whitespace-nowrap">
-                    Contracts
+                    {t("calculator.contracts")}
                   </th>
                   <th className="text-left px-3 py-2 font-semibold text-[10px] uppercase tracking-widest whitespace-nowrap">
-                    Margin
+                    {t("calculator.margin")}
                   </th>
                   <th className="text-left px-3 py-2 font-semibold text-[10px] uppercase tracking-widest whitespace-nowrap">
-                    Cum. Margin
+                    {t("calculator.cumMargin")}
                   </th>
                   <th className="text-left px-3 py-2 font-semibold text-[10px] uppercase tracking-widest whitespace-nowrap">
-                    VWAP
+                    {t("calculator.vwap")}
                   </th>
                   <th className="text-left px-3 py-2 font-semibold text-[10px] uppercase tracking-widest whitespace-nowrap">
-                    TP Price
+                    {t("calculator.tpPrice")}
                   </th>
                   {inputs.stopLoss > 0 && (
                     <th className="text-left px-3 py-2 font-semibold text-[10px] uppercase tracking-widest whitespace-nowrap">
-                      SL Price
+                      {t("calculator.slPrice")}
                     </th>
                   )}
                 </tr>
@@ -656,12 +659,12 @@ export const DCACalculator: React.FC<DCACalculatorProps> = ({
                       {level.level === 0 ? (
                         <span className="inline-flex items-center gap-1.5">
                           <span className="w-1.5 h-1.5 rounded-full bg-[var(--primary)]" />
-                          Base
+                          {t("calculator.base")}
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1.5">
                           <span className="w-1.5 h-1.5 rounded-full bg-[var(--success)]" />
-                          SO {level.level}
+                          {t("calculator.so")} {level.level}
                         </span>
                       )}
                     </td>
@@ -705,7 +708,7 @@ export const DCACalculator: React.FC<DCACalculatorProps> = ({
           <div className="flex justify-end">
             <Button onClick={() => onCreateBot(inputs)} className="gap-1.5 px-3 py-1.5 text-xs rounded-md">
               <Zap className="w-3.5 h-3.5" />
-              Create Bot
+              {t("wizard.createBot")}
               <ArrowRight className="w-3.5 h-3.5" />
             </Button>
           </div>

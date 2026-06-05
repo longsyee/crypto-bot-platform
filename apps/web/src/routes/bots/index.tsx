@@ -4,6 +4,7 @@ import { useBots, useStartBot, useStopBot, useDeleteBot } from "../../hooks/use-
 import { PageWrapper } from "../../components/layout/page-wrapper";
 import { Play, Square, Plus, Search, Bot, Trash2 } from "lucide-react";
 import ConfirmModal from "../../components/ui/confirm-modal";
+import { useI18n } from "../../hooks/use-i18n";
 
 export const Route = createFileRoute("/bots/")({
   component: BotsPage,
@@ -12,6 +13,7 @@ export const Route = createFileRoute("/bots/")({
 type TabValue = "all" | "running" | "stopped";
 
 function BotsPage() {
+  const { t } = useI18n();
   const { data: bots, isLoading } = useBots();
   const startBot = useStartBot();
   const stopBot = useStopBot();
@@ -34,9 +36,9 @@ function BotsPage() {
   }, [bots, searchQuery, activeTab]);
 
   const tabs: { value: TabValue; label: string }[] = [
-    { value: "all", label: "All" },
-    { value: "running", label: "Running" },
-    { value: "stopped", label: "Stopped" },
+    { value: "all", label: t("activity.all") },
+    { value: "running", label: t("bots.running") },
+    { value: "stopped", label: t("bots.stopped") },
   ];
 
   const statusClass = (status: string) => {
@@ -57,14 +59,14 @@ function BotsPage() {
       <div className="flex flex-col gap-4">
         <div className="gsap-section flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <h1 className="font-['Space_Grotesk'] text-2xl font-bold tracking-tight text-[var(--text-primary)]">
-            Bots
+            {t("nav.bots")}
           </h1>
           <Link
             to="/bots/create"
             className="inline-flex items-center gap-1.5 px-2 py-1 text-[11px] font-semibold rounded-md bg-[var(--primary)] text-[var(--text-invert)] hover:brightness-110 transition-all"
           >
             <Plus className="w-3.5 h-3.5" />
-            Create Bot
+            {t("bots.createBotTitle")}
           </Link>
         </div>
 
@@ -92,7 +94,7 @@ function BotsPage() {
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)]" />
             <input
               type="text"
-              placeholder="Search bots..."
+              placeholder={t("bots.searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full sm:w-56 pl-8 pr-3 py-2 rounded-md bg-[var(--bg-card)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)] focus:border-transparent"
@@ -102,7 +104,7 @@ function BotsPage() {
 
         {isLoading ? (
           <div className="gsap-section bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4 text-xs text-[var(--text-muted)]">
-            Loading bots...
+            {t("bots.loading")}
           </div>
         ) : (
           <div className="gsap-section bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl overflow-hidden">
@@ -111,22 +113,22 @@ function BotsPage() {
                 <thead>
                   <tr className="border-b border-[var(--border-subtle)]">
                     <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
-                      Name
+                      {t("common.name")}
                     </th>
                     <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
-                      Type
+                      {t("common.type")}
                     </th>
                     <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
-                      Mode
+                      {t("common.mode")}
                     </th>
                     <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
-                      Status
+                      {t("bots.status")}
                     </th>
                     <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
-                      Exchange
+                      {t("common.exchange")}
                     </th>
                     <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
-                      Actions
+                      {t("bots.actions")}
                     </th>
                   </tr>
                 </thead>
@@ -136,11 +138,11 @@ function BotsPage() {
                       <td colSpan={6} className="px-3 py-8 text-center">
                         <div className="flex flex-col items-center justify-center text-[var(--text-muted)]">
                           <Bot className="w-8 h-8 mb-2 opacity-50" />
-                          <p className="text-xs font-medium">No bots found</p>
+                          <p className="text-xs font-medium">{t("bots.noBotsFound")}</p>
                           <p className="text-[10px] mt-1 text-[var(--text-muted)]/60">
                             {searchQuery || activeTab !== "all"
-                              ? "Try adjusting your search or filters."
-                              : "Get started by creating your first bot."}
+                              ? t("bots.tryAdjustingFilters")
+                              : t("bots.getStartedCreateBot")}
                           </p>
                           {!searchQuery && activeTab === "all" && (
                             <Link
@@ -148,7 +150,7 @@ function BotsPage() {
                               className="mt-3 inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-semibold bg-[var(--primary)] hover:brightness-110 text-[var(--text-invert)] transition-all"
                             >
                               <Plus className="w-3 h-3" />
-                              Create Bot
+                              {t("bots.createBotTitle")}
                             </Link>
                           )}
                         </div>
@@ -193,7 +195,7 @@ function BotsPage() {
                               onClick={() => startBot.mutate(bot.id)}
                               disabled={startBot.isPending}
                               className="inline-flex items-center justify-center px-2 py-1 rounded-md bg-[var(--success)] hover:brightness-110 text-[var(--text-invert)] transition-all disabled:opacity-50"
-                              title="Start"
+                              title={t("bots.start")}
                             >
                               <Play className="w-3 h-3" />
                             </button>
@@ -203,7 +205,7 @@ function BotsPage() {
                               onClick={() => stopBot.mutate(bot.id)}
                               disabled={stopBot.isPending}
                               className="inline-flex items-center justify-center px-2 py-1 rounded-md bg-[var(--danger)] hover:brightness-110 text-[var(--text-invert)] transition-all disabled:opacity-50"
-                              title="Stop"
+                              title={t("bots.stop")}
                             >
                               <Square className="w-3 h-3" />
                             </button>
@@ -212,7 +214,7 @@ function BotsPage() {
                             onClick={() => setBotToDelete(bot)}
                             disabled={bot.status === "running" || deleteBot.isPending}
                             className="inline-flex items-center justify-center px-2 py-1 rounded-md bg-[var(--bg-hover)] hover:bg-[var(--danger-glow)] text-[var(--text-muted)] hover:text-[var(--danger)] transition-colors disabled:opacity-50 disabled:hover:bg-[var(--bg-hover)]"
-                            title={bot.status === "running" ? "Stop bot before deleting" : "Delete"}
+                            title={bot.status === "running" ? t("bots.stopBeforeDelete") : t("bots.delete")}
                           >
                             <Trash2 className="w-3 h-3" />
                           </button>
@@ -229,14 +231,14 @@ function BotsPage() {
 
       <ConfirmModal
         open={!!botToDelete}
-        title="Delete Bot"
+        title={t("bots.confirmDeleteTitle")}
         message={
           botToDelete
-            ? `Are you sure you want to delete "${botToDelete.name}"? This action cannot be undone and all associated orders, logs, and trades will be permanently removed.`
+            ? t("bots.confirmDeleteDesc", { name: botToDelete.name })
             : ""
         }
-        confirmLabel="Delete"
-        cancelLabel="Cancel"
+        confirmLabel={t("bots.delete")}
+        cancelLabel={t("common.cancel")}
         destructive
         onConfirm={() => {
           if (botToDelete) {

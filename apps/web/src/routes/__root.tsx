@@ -2,7 +2,9 @@ import { Outlet, createRootRoute, useLocation, useNavigate } from "@tanstack/rea
 import { useEffect } from "react";
 import { Sidebar } from "../components/layout/sidebar";
 import { Header } from "../components/layout/header";
+import { MobileNav } from "../components/layout/mobile-nav";
 import { useAuth } from "../hooks/use-auth";
+import { Toaster } from "sonner";
 
 export const Route = createRootRoute({
   component: RootComponent,
@@ -40,6 +42,17 @@ function RootComponent() {
         <main className="flex-1 p-4 sm:p-5 lg:p-6 overflow-x-hidden overflow-y-auto bg-[var(--bg-base)] text-[var(--text-primary)]">
           <Outlet />
         </main>
+        <MobileNav />
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            style: {
+              background: "var(--bg-elevated)",
+              border: "1px solid var(--border-subtle)",
+              color: "var(--text-primary)",
+            },
+          }}
+        />
       </div>
     </div>
   );

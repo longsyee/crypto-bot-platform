@@ -15,6 +15,67 @@ users.get("/me", requireAuth, async (c) => {
   return c.json({ success: true, data: fullUser });
 });
 
+// GET /users/me/avatar — return avatar as base64 data URL
+users.get("/me/avatar", requireAuth, async (c) => {
+  const user = c.get("user");
+  const dbUser = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { avatar: true },
+  });
+  if (!dbUser?.avatar) {
+    return c.json({ success: false, error: "No avatar set" }, 404);
+  }
+  // Detect MIME type from magic bytes
+  const buf = Buffer.from(dbUser.avatar);
+  let mime = "image/png";
+  if (buf[0] === 0xff && buf[1] === 0xd8) mime = "image/jpeg";
+  else if (buf[0] === 0x47 && buf[1] === 0x49) mime = "image/gif";
+  else if (buf[0] === 0x52 && buf[1] === 0x49) mime = "image/webp";
+  const base64 = buf.toString("base64");
+  return c.json({ success: true, data: `data:${mime};base64,${base64}` });
+});
+
+// POST /users/me/avatar — upload avatar (multipart/form-data)
+const MAX_AVATAR_SIZE = 2 * 1024 * 1024; // 2 MB
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+
+users.post("/me/avatar", requireAuth, async (c) => {
+  const user = c.get("user");
+  const body = await c.req.parseBody({ all: true });
+  const file = body.avatar;
+
+  if (!file || !(file instanceof File)) {
+    return c.json({ success: false, error: "No file uploaded" }, 400);
+  }
+
+  if (!ALLOWED_TYPES.includes(file.type)) {
+    return c.json({ success: false, error: "Invalid file type. Only JPEG, PNG, GIF, WebP allowed." }, 400);
+  }
+
+  if (file.size > MAX_AVATAR_SIZE) {
+    return c.json({ success: false, error: "File too large. Max 2 MB allowed." }, 400);
+  }
+
+  const buffer = Buffer.from(await file.arrayBuffer());
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { avatar: buffer },
+  });
+
+  return c.json({ success: true, data: { uploaded: true, size: file.size } });
+});
+
+// DELETE /users/me/avatar — remove avatar
+users.delete("/me/avatar", requireAuth, async (c) => {
+  const user = c.get("user");
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { avatar: null },
+  });
+  return c.json({ success: true });
+});
+
 users.get("/", authMiddleware, roleMiddleware("admin"), async (c) => {
   const page = parseInt(c.req.query("page") || "1");
   const limit = Math.min(parseInt(c.req.query("limit") || "20"), 100);

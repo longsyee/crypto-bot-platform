@@ -410,6 +410,48 @@ export function useGenerateAddress() {
 }
 
 // ------------------------------------------------------------------
+// Avatar
+// ------------------------------------------------------------------
+
+export function useAvatar() {
+  return useQuery({
+    queryKey: ["avatar"],
+    queryFn: () => api<string>("/users/me/avatar"),
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+}
+
+export function useUploadAvatar() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (file: File) => {
+      const fd = new FormData();
+      fd.append("avatar", file);
+      return api<any>("/users/me/avatar", {
+        method: "POST",
+        body: fd,
+      });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["avatar"] });
+      qc.invalidateQueries({ queryKey: ["me"] });
+    },
+  });
+}
+
+export function useDeleteAvatar() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => api<any>("/users/me/avatar", { method: "DELETE" }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["avatar"] });
+      qc.invalidateQueries({ queryKey: ["me"] });
+    },
+  });
+}
+
+// ------------------------------------------------------------------
 // API Keys
 // ------------------------------------------------------------------
 
@@ -423,7 +465,7 @@ export function useApiKeys() {
 export function useCreateApiKey() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (payload: { name: string; permissions?: string[]; expiresAt?: string }) =>
+    mutationFn: (payload: { name: string; permissions?: string[]; expiresInDays?: number | null; totpCode?: string }) =>
       api<any>("/api-keys", {
         method: "POST",
         body: JSON.stringify(payload),
@@ -449,6 +491,38 @@ export function useUpdateApiKey() {
         body: JSON.stringify(payload),
       }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["api-keys"] }),
+  });
+}
+
+// ------------------------------------------------------------------
+// Community / Copy Trading
+// ------------------------------------------------------------------
+
+export function useSharedBots(mode?: "paper" | "live") {
+  const params = mode ? `?mode=${mode}` : "";
+  return useQuery({
+    queryKey: ["shared-bots", mode],
+    queryFn: () => api<any[]>(`/bots/community/shared${params}`),
+  });
+}
+
+export function useCopyBot() {
+  return useMutation({
+    mutationFn: ({ botId, connectionId, mode }: { botId: string; connectionId: string; mode: "paper" | "live" }) =>
+      api<any>(`/bots/${botId}/copy`, {
+        method: "POST",
+        body: JSON.stringify({ connectionId, mode }),
+      }),
+  });
+}
+
+export function useShareBot() {
+  return useMutation({
+    mutationFn: ({ botId, mode }: { botId: string; mode: "paper" | "live" }) =>
+      api<any>(`/bots/${botId}/share`, {
+        method: "POST",
+        body: JSON.stringify({ mode }),
+      }),
   });
 }
 

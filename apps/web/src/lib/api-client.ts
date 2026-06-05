@@ -47,10 +47,11 @@ function logoutAndRedirect() {
 
 export async function api<T>(path: string, options?: RequestInit): Promise<T> {
   const token = localStorage.getItem("accessToken");
+  const isFormData = options?.body instanceof FormData;
   const res = await fetch(`${API_BASE}${path}`, {
     ...options,
     headers: {
-      "Content-Type": "application/json",
+      ...(isFormData ? {} : { "Content-Type": "application/json" }),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options?.headers,
     },
@@ -71,7 +72,7 @@ export async function api<T>(path: string, options?: RequestInit): Promise<T> {
         const retryRes = await fetch(`${API_BASE}${path}`, {
           ...options,
           headers: {
-            "Content-Type": "application/json",
+            ...(isFormData ? {} : { "Content-Type": "application/json" }),
             Authorization: `Bearer ${newToken}`,
             ...options?.headers,
           },

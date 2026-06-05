@@ -4,6 +4,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { useRef } from "react";
 import { PageWrapper } from "../components/layout/page-wrapper";
+import { useI18n } from "../hooks/use-i18n";
 import {
   useWallet,
   useTransactions,
@@ -36,33 +37,6 @@ export const Route = createFileRoute("/wallet")({
 
 type TxStatus = "pending" | "completed" | "failed";
 
-const txStatusConfig: Record<
-  TxStatus,
-  { label: string; bg: string; text: string; border: string; dot: string }
-> = {
-  pending: {
-    label: "Pending",
-    bg: "bg-[var(--warning-glow)]",
-    text: "text-[var(--warning)]",
-    border: "border-[var(--warning)]/20",
-    dot: "bg-[var(--warning)]",
-  },
-  completed: {
-    label: "Completed",
-    bg: "bg-[var(--success-glow)]",
-    text: "text-[var(--success)]",
-    border: "border-[var(--success)]/20",
-    dot: "bg-[var(--success)]",
-  },
-  failed: {
-    label: "Failed",
-    bg: "bg-[var(--danger-glow)]",
-    text: "text-[var(--danger)]",
-    border: "border-[var(--danger)]/20",
-    dot: "bg-[var(--danger)]",
-  },
-};
-
 function normalizeStatus(raw: string): TxStatus {
   if (raw === "pending") return "pending";
   if (raw === "completed" || raw === "confirmed") return "completed";
@@ -71,8 +45,31 @@ function normalizeStatus(raw: string): TxStatus {
 }
 
 function TxBadge({ status }: { status: string }) {
+  const { t } = useI18n();
   const s = normalizeStatus(status);
-  const config = txStatusConfig[s];
+  const config = {
+    pending: {
+      bg: "bg-[var(--warning-glow)]",
+      text: "text-[var(--warning)]",
+      border: "border-[var(--warning)]/20",
+      dot: "bg-[var(--warning)]",
+      label: t("dashboard.pending"),
+    },
+    completed: {
+      bg: "bg-[var(--success-glow)]",
+      text: "text-[var(--success)]",
+      border: "border-[var(--success)]/20",
+      dot: "bg-[var(--success)]",
+      label: t("dashboard.completed"),
+    },
+    failed: {
+      bg: "bg-[var(--danger-glow)]",
+      text: "text-[var(--danger)]",
+      border: "border-[var(--danger)]/20",
+      dot: "bg-[var(--danger)]",
+      label: t("dashboard.failed"),
+    },
+  }[s];
   return (
     <span
       className={`inline-flex items-center gap-1 px-1.5 py-px text-[10px] font-semibold uppercase tracking-wider rounded-sm border ${config.bg} ${config.text} ${config.border}`}
@@ -84,6 +81,7 @@ function TxBadge({ status }: { status: string }) {
 }
 
 function WalletPage() {
+  const { t } = useI18n();
   const { data: wallet, isLoading: walletLoading } = useWallet();
   const { data: txPage } = useTransactions();
   const convert = useConvert();
@@ -144,7 +142,7 @@ function WalletPage() {
 
   const balanceCards = [
     {
-      label: "Token Balance (Gas)",
+      label: t("wallet.tokenBalanceGas"),
       value: wallet?.tokenBalance ?? 0,
       icon: Coins,
       strip: "border-[var(--primary)]",
@@ -152,7 +150,7 @@ function WalletPage() {
       suffix: "",
     },
     {
-      label: "USDT Balance",
+      label: t("wallet.usdtBalance"),
       value: wallet?.usdtBalance ?? 0,
       icon: Wallet,
       strip: "border-[var(--success)]",
@@ -160,7 +158,7 @@ function WalletPage() {
       suffix: " USDT",
     },
     {
-      label: "Reward Token",
+      label: t("wallet.rewardToken"),
       value: wallet?.referralTokenBalance ?? 0,
       icon: Gift,
       strip: "border-[var(--accent)]",
@@ -168,7 +166,7 @@ function WalletPage() {
       suffix: "",
     },
     {
-      label: "Total Deposited",
+      label: t("wallet.totalDeposited"),
       value: wallet?.totalDeposited ?? 0,
       icon: TrendingUp,
       strip: "border-[var(--primary)]",
@@ -184,16 +182,16 @@ function WalletPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-[var(--text-primary)] font-['Space_Grotesk'] tracking-tight">
-              Wallet
+              {t("nav.wallet")}
             </h1>
             <p className="text-xs text-[var(--text-muted)] mt-0.5">
-              Manage your balances and deposits
+              {t("wallet.subtitle")}
             </p>
           </div>
           <button
             onClick={() => window.location.reload()}
             className="p-1.5 rounded-md bg-[var(--bg-hover)] border border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-pressed)] transition-colors"
-            title="Refresh"
+            title={t("common.refresh")}
           >
             <RefreshCw className="w-3.5 h-3.5" />
           </button>
@@ -229,7 +227,7 @@ function WalletPage() {
           <div className="flex items-center gap-2 mb-3">
             <QrCode className="w-3.5 h-3.5 text-[var(--primary)]" />
             <h2 className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">
-              Deposit Address (BSC)
+              {t("wallet.depositAddressBsc")}
             </h2>
           </div>
 
@@ -257,7 +255,7 @@ function WalletPage() {
               <div className="flex-1 min-w-0 space-y-3">
                 <div>
                   <p className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold mb-1">
-                    Your BSC Deposit Address
+                    {t("wallet.yourBscAddress")}
                   </p>
                   <div className="flex items-center gap-2">
                     <div className="flex-1 bg-[var(--bg-hover)] border border-[var(--border-subtle)] rounded-md px-3 py-2 text-xs font-mono text-[var(--text-secondary)] truncate">
@@ -270,12 +268,12 @@ function WalletPage() {
                       {copied ? (
                         <>
                           <Check className="w-3.5 h-3.5 text-[var(--success)]" />
-                          Copied
+                          {t("common.copied")}
                         </>
                       ) : (
                         <>
                           <Copy className="w-3.5 h-3.5" />
-                          Copy
+                          {t("common.copy")}
                         </>
                       )}
                     </button>
@@ -285,11 +283,11 @@ function WalletPage() {
                 <div className="space-y-1">
                   <div className="flex items-start gap-1.5 text-[11px] text-[var(--text-muted)]">
                     <ArrowDownLeft className="w-3 h-3 mt-0.5 text-[var(--success)] shrink-0" />
-                    <span>Send BEP20 USDT to this address on the BSC network only.</span>
+                    <span>{t("wallet.sendBep20")}</span>
                   </div>
                   <div className="flex items-start gap-1.5 text-[11px] text-[var(--text-muted)]">
                     <ArrowUpRight className="w-3 h-3 mt-0.5 text-[var(--warning)] shrink-0" />
-                    <span>Deposits are credited after 12 block confirmations.</span>
+                    <span>{t("wallet.depositConfirmations")}</span>
                   </div>
                 </div>
               </div>
@@ -300,10 +298,10 @@ function WalletPage() {
                 <Sparkles className="w-4 h-4 text-[var(--primary)]" />
               </div>
               <p className="text-xs text-[var(--text-secondary)] mb-1">
-                No deposit address yet
+                {t("wallet.noDepositAddress")}
               </p>
               <p className="text-[11px] text-[var(--text-muted)] mb-4">
-                Generate a BSC address to start receiving deposits
+                {t("wallet.generateAddressDesc")}
               </p>
 
               {generateAddress.isError && (
@@ -311,7 +309,7 @@ function WalletPage() {
                   <AlertCircle className="w-3.5 h-3.5" />
                   {generateAddress.error instanceof Error
                     ? generateAddress.error.message
-                    : "Failed to generate address"}
+                    : t("wallet.failedGenerateAddress")}
                 </div>
               )}
 
@@ -323,12 +321,12 @@ function WalletPage() {
                 {generateAddress.isPending ? (
                   <>
                     <div className="w-3.5 h-3.5 border-2 border-[var(--text-invert)]/30 border-t-[var(--text-invert)] rounded-full animate-spin" />
-                    Generating...
+                    {t("wallet.generating")}
                   </>
                 ) : (
                   <>
                     <Sparkles className="w-3.5 h-3.5" />
-                    Generate Deposit Address
+                    {t("wallet.generateDepositAddress")}
                   </>
                 )}
               </button>
@@ -342,12 +340,10 @@ function WalletPage() {
             <Info className="w-4 h-4 text-[var(--accent)] shrink-0 mt-0.5" />
             <div>
               <h2 className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold mb-1">
-                What is Platform Token?
+                {t("wallet.whatIsPlatformToken")}
               </h2>
               <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
-                Platform Token is <strong className="text-[var(--text-primary)]">trading gas</strong> for live bots.
-                When your live bot closes a profitable trade, <strong className="text-[var(--text-primary)]">20% of the profit</strong> is charged as a fee and automatically deducted from your Token balance.
-                You must convert USDT to Token before running live bots. <strong className="text-[var(--text-primary)]">One-way only</strong> — Token cannot be converted back to USDT.
+                {t("wallet.gasExplanation")}
               </p>
             </div>
           </div>
@@ -358,13 +354,13 @@ function WalletPage() {
           <div className="flex items-center gap-2 mb-3">
             <ArrowRightLeft className="w-3.5 h-3.5 text-[var(--primary)]" />
             <h2 className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">
-              Convert USDT → Token
+              {t("wallet.convertTitle")}
             </h2>
           </div>
           <form onSubmit={handleConvert} className="flex flex-col sm:flex-row gap-2 items-end">
             <div className="flex-1 w-full">
               <label className="block text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold mb-1">
-                Amount
+                {t("common.amount")}
               </label>
               <input
                 type="number"
@@ -378,14 +374,14 @@ function WalletPage() {
             </div>
             <div className="w-full sm:w-auto px-3 py-2 rounded-md bg-[var(--bg-hover)] border border-[var(--border-subtle)] text-[var(--text-muted)] text-xs flex items-center gap-1.5">
               <ArrowLeftRight className="w-3.5 h-3.5" />
-              <span>USDT → Token</span>
+              <span>{t("wallet.usdtToToken")}</span>
             </div>
             <button
               type="submit"
               disabled={convert.isPending}
               className="w-full sm:w-auto px-3 py-2 rounded-md bg-[var(--primary)] text-[var(--text-invert)] font-medium text-[11px] hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
             >
-              {convert.isPending ? "Converting..." : "Convert"}
+              {convert.isPending ? t("wallet.converting") : t("wallet.convert")}
             </button>
           </form>
         </div>
@@ -395,20 +391,20 @@ function WalletPage() {
           <div className="flex items-center gap-2 mb-3">
             <Gift className="w-3.5 h-3.5 text-[var(--accent)]" />
             <h2 className="text-[10px] uppercase tracking-widest text-[var(--accent)] font-semibold">
-              Reward Token Withdrawal
+              {t("wallet.rewardTokenWithdrawal")}
             </h2>
           </div>
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div>
               <p className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">
-                Available Reward Token
+                {t("wallet.availableRewardToken")}
               </p>
               <p className="font-mono text-xl font-semibold tracking-tight text-[var(--accent)] mt-0.5">
                 {Number(wallet?.referralTokenBalance || 0).toFixed(4)}
               </p>
               <p className="text-[10px] text-[var(--text-muted)] mt-1">
-                Earned from referrals. Withdrawable to USDT with admin approval.
+                {t("wallet.earnedFromReferrals")}
               </p>
             </div>
             <button
@@ -416,7 +412,7 @@ function WalletPage() {
               disabled={withdrawReferral.isPending}
               className="px-2 py-1 rounded-md bg-[var(--accent)]/20 border border-[var(--accent)]/30 text-[var(--accent)] font-medium text-[11px] hover:bg-[var(--accent)]/30 active:scale-[0.98] transition-all disabled:opacity-50"
             >
-              {showWithdrawForm ? "Cancel" : "Request Withdrawal"}
+              {showWithdrawForm ? t("common.cancel") : t("wallet.requestWithdrawal")}
             </button>
           </div>
 
@@ -424,7 +420,7 @@ function WalletPage() {
             <form onSubmit={handleWithdraw} className="mt-3 pt-3 border-t border-[var(--accent)]/20 flex flex-col sm:flex-row gap-2 items-end">
               <div className="flex-1 w-full">
                 <label className="block text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold mb-1">
-                  Amount to Withdraw
+                  {t("wallet.amountToWithdraw")}
                 </label>
                 <input
                   type="number"
@@ -442,7 +438,7 @@ function WalletPage() {
                 disabled={withdrawReferral.isPending}
                 className="w-full sm:w-auto px-3 py-2 rounded-md bg-[var(--accent)] text-[var(--text-invert)] font-medium text-[11px] hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
               >
-                {withdrawReferral.isPending ? "Submitting..." : "Submit Request"}
+                {withdrawReferral.isPending ? t("common.submitting") : t("wallet.submitRequest")}
               </button>
             </form>
           )}
@@ -452,7 +448,7 @@ function WalletPage() {
               <AlertCircle className="w-3.5 h-3.5" />
               {withdrawReferral.error instanceof Error
                 ? withdrawReferral.error.message
-                : "Withdrawal request failed"}
+                : t("wallet.withdrawalFailed")}
             </div>
           )}
         </div>
@@ -461,10 +457,10 @@ function WalletPage() {
         <div className="wallet-card bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl overflow-hidden">
           <div className="px-4 py-3 border-b border-[var(--border-subtle)] flex items-center justify-between">
             <h2 className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">
-              Transaction History
+              {t("wallet.transactionHistory")}
             </h2>
             <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold">
-              {txs.length} transactions
+              {t("wallet.transactionCount", { count: txs.length })}
             </span>
           </div>
           <div className="overflow-x-auto">
@@ -472,19 +468,19 @@ function WalletPage() {
               <thead>
                 <tr className="border-b border-[var(--border-subtle)]">
                   <th className="text-left py-2 px-3 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
-                    Type
+                    {t("common.type")}
                   </th>
                   <th className="text-left py-2 px-3 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
-                    Amount
+                    {t("common.amount")}
                   </th>
                   <th className="text-left py-2 px-3 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
-                    Currency
+                    {t("common.currency")}
                   </th>
                   <th className="text-left py-2 px-3 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
-                    Status
+                    {t("common.status")}
                   </th>
                   <th className="text-left py-2 px-3 text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
-                    Date
+                    {t("common.date")}
                   </th>
                 </tr>
               </thead>
@@ -492,7 +488,7 @@ function WalletPage() {
                 {txs.length === 0 && (
                   <tr>
                     <td colSpan={5} className="px-3 py-6 text-center text-[var(--text-muted)] text-xs">
-                      No transactions yet.
+                      {t("dashboard.noTransactions")}
                     </td>
                   </tr>
                 )}

@@ -3,6 +3,7 @@ import { authMiddleware } from "../middleware/auth";
 import { rateLimitMiddleware } from "../middleware/rate-limit";
 import { prisma } from "@crypto-bot-platform/prisma";
 import { randomBytes, createHash } from "crypto";
+import speakeasy from "speakeasy";
 
 const apiKeys = new Hono();
 
@@ -46,6 +47,26 @@ apiKeys.post("/", rateLimitMiddleware(5, 900, "api-key-create"), authMiddleware,
   }
   const name = rawName;
 
+  // 2FA gate: if user has TOTP enabled, require a valid code to create an API key
+  if (user.totpEnabled) {
+    const totpCode = typeof body.totpCode === "string" ? body.totpCode.trim() : "";
+    if (!totpCode || totpCode.length !== 6 || !/^\d{6}$/.test(totpCode)) {
+      return c.json({ success: false, error: "2FA verification code required", code: "TOTP_REQUIRED" }, 403);
+    }
+    if (!user.totpSecret) {
+      return c.json({ success: false, error: "TOTP not configured properly", code: "TOTP_MISCONFIGURED" }, 500);
+    }
+    const verified = speakeasy.totp.verify({
+      secret: user.totpSecret,
+      encoding: "base32",
+      token: totpCode,
+      window: 1,
+    });
+    if (!verified) {
+      return c.json({ success: false, error: "Invalid 2FA code", code: "TOTP_INVALID" }, 403);
+    }
+  }
+
   // Validate permissions
   const defaultPerms = ["bots:read", "bots:write", "wallet:read", "wallet:write", "connections:read"];
   let permissions = defaultPerms;
@@ -66,7 +87,19 @@ apiKeys.post("/", rateLimitMiddleware(5, 900, "api-key-create"), authMiddleware,
     permissions = body.permissions;
   }
 
-  const expiresAt = body.expiresAt ? new Date(body.expiresAt) : null;
+  // Auto-expiry: accept expiresInDays (30, 90, 180) or null/0 for never
+  let expiresAt: Date | null = null;
+  const expiresInDays = body.expiresInDays;
+  if (expiresInDays !== undefined && expiresInDays !== null && expiresInDays !== 0) {
+    const days = Number(expiresInDays);
+    if (![30, 90, 180].includes(days)) {
+      return c.json({ success: false, error: "expiresInDays must be 30, 90, 180, or null/0", code: "BAD_EXPIRY" }, 400);
+    }
+    expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+  } else if (body.expiresAt) {
+    // Legacy support for direct expiresAt string
+    expiresAt = new Date(body.expiresAt);
+  }
 
   const { fullKey, prefix, hash } = generateApiKey();
 

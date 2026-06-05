@@ -48,6 +48,14 @@ bots.post("/", requireAuth, zValidator("json", CreateBotSchema), async (c) => {
     },
   });
 
+  // If copying a shared bot, record parent
+  if (body.parentBotId) {
+    await prisma.bot.update({
+      where: { id: bot.id },
+      data: { parentBotId: body.parentBotId } as any,
+    });
+  }
+
   logState({
     botId: bot.id,
     userId: user.id,
@@ -112,7 +120,7 @@ bots.patch("/:id", requireAuth, async (c) => {
   const update: any = {};
   if (body.name !== undefined) update.name = body.name;
   if (body.configJson !== undefined) {
-    // Validate DCA config if applicable
+    // Validate config by bot type
     if (bot.type === "dca") {
       const parsed = DcaBotConfigSchema.safeParse(body.configJson);
       if (!parsed.success) {
@@ -300,6 +308,142 @@ bots.post("/:id/emergency-stop", authMiddleware, roleMiddleware("admin"), async 
   });
 
   return c.json({ success: true, data: { status: "stopped" } });
+});
+
+// ============================================================
+// Community / Copy Trading
+// ============================================================
+
+// Share a bot to community
+bots.post("/:id/share", requireAuth, async (c) => {
+  const user = c.get("user");
+  const id = c.req.param("id");
+  const { mode } = await c.req.json();
+  const bot = await prisma.bot.findFirst({ where: { id, userId: user.id } });
+  if (!bot) return c.json({ success: false, error: "Bot not found" }, 404);
+  if (!["paper", "live"].includes(mode)) {
+    return c.json({ success: false, error: "mode must be paper or live" }, 400);
+  }
+  await prisma.bot.update({
+    where: { id },
+    data: { isShared: true, sharedAt: new Date(), sharedMode: mode } as any,
+  });
+  return c.json({ success: true, data: { isShared: true, sharedMode: mode } });
+});
+
+// Unshare a bot
+bots.post("/:id/unshare", requireAuth, async (c) => {
+  const user = c.get("user");
+  const id = c.req.param("id");
+  const bot = await prisma.bot.findFirst({ where: { id, userId: user.id } });
+  if (!bot) return c.json({ success: false, error: "Bot not found" }, 404);
+  await prisma.bot.update({
+    where: { id },
+    data: { isShared: false, sharedAt: null, sharedMode: null } as any,
+  });
+  return c.json({ success: true, data: { isShared: false } });
+});
+
+// List community shared bots
+bots.get("/community/shared", requireAuth, async (c) => {
+  const mode = c.req.query("mode") as "paper" | "live" | undefined;
+  const where: any = { isShared: true as any, status: { not: "error" } };
+  if (mode) where.sharedMode = mode;
+  const data = await prisma.bot.findMany({
+    where,
+    select: {
+      id: true,
+      name: true,
+      type: true,
+      mode: true,
+      sharedMode: true as any,
+      tradingPair: true,
+      configJson: true,
+      isShared: true as any,
+      sharedAt: true as any,
+      copyCount: true as any,
+      userId: true,
+      user: { select: { id: true, email: true } },
+    } as any,
+    orderBy: { copyCount: "desc" } as any,
+  });
+  return c.json({ success: true, data });
+});
+
+// Copy / subscribe to a shared bot
+bots.post("/:id/copy", requireAuth, async (c) => {
+  const user = c.get("user");
+  const id = c.req.param("id");
+  const { connectionId, mode, tradingPair } = await c.req.json();
+  const original = await prisma.bot.findFirst({ where: { id, isShared: true } as any });
+  if (!original) return c.json({ success: false, error: "Shared bot not found" }, 404);
+  if (original.userId === user.id) {
+    return c.json({ success: false, error: "Cannot copy your own bot" }, 400);
+  }
+
+  // Check if already subscribed
+  const existingSub = await (prisma as any).botSubscription.findUnique({
+    where: { botId_subscriberId: { botId: id, subscriberId: user.id } },
+  });
+  if (existingSub) {
+    return c.json({ success: false, error: "Already subscribed to this bot" }, 409);
+  }
+
+  // Create subscription
+  const sub = await (prisma as any).botSubscription.create({
+    data: {
+      botId: id,
+      subscriberId: user.id,
+      mode: mode || (original as any).sharedMode || "paper",
+      status: "stopped",
+    },
+  });
+
+  // Create child bot with parent reference
+  const childBot = await prisma.bot.create({
+    data: {
+      userId: user.id,
+      connectionId,
+      name: `${original.name} (Copy)`,
+      type: original.type as any,
+      status: "stopped",
+      mode: mode || (original as any).sharedMode || "paper",
+      configJson: original.configJson,
+      tradingPair: tradingPair || original.tradingPair,
+      parentBotId: original.id,
+      leverage: (original.configJson as any)?.leverage ?? 1,
+      leverageType: (original.configJson as any)?.leverage_type ?? "cross",
+    } as any,
+  });
+
+  // Increment copy count
+  await prisma.bot.update({
+    where: { id: original.id },
+    data: { copyCount: { increment: 1 } } as any,
+  });
+
+  return c.json({ success: true, data: { subscription: sub, childBot } }, 201);
+});
+
+// List my subscriptions
+bots.get("/community/subscriptions", requireAuth, async (c) => {
+  const user = c.get("user");
+  const data = await (prisma as any).botSubscription.findMany({
+    where: { subscriberId: user.id },
+    include: {
+      bot: {
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          tradingPair: true,
+          user: { select: { id: true, email: true } },
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+  return c.json({ success: true, data });
 });
 
 export default bots;

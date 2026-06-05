@@ -160,10 +160,10 @@ function LoginPage() {
               </div>
               <div>
                 <div className="text-[15px] font-semibold text-[var(--text-primary)] font-['Space_Grotesk'] tracking-tight">
-                  NexusBot
+                  {t("auth.brandName")}
                 </div>
                 <div className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider">
-                  {t("common.platform")}
+                  {t("auth.brandSubtitle")}
                 </div>
               </div>
             </div>
@@ -291,7 +291,7 @@ function LoginPage() {
                       type="text"
                       value={totpCode}
                       onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                      placeholder="000000"
+                      placeholder={t("twoFA.totpPlaceholder")}
                       className="w-full px-3 py-3 rounded-md bg-[var(--bg-base)] border border-[var(--border-subtle)] text-lg text-[var(--text-primary)] text-center tracking-[0.5em] outline-none focus:border-[var(--primary)] mb-5"
                       maxLength={6}
                       autoFocus

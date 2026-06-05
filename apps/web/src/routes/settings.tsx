@@ -143,10 +143,11 @@ function SettingsPage() {
 
         {/* Language */}
         <SettingsSection title={t("settings.languageRegion")} icon={<Globe className="w-4 h-4" />}>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             {[
               { code: "en", label: "English" },
               { code: "zh", label: "中文" },
+              { code: "ms", label: "Bahasa Melayu" },
             ].map((l) => (
               <button
                 key={l.code}
