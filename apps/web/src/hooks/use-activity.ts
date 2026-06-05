@@ -18,7 +18,7 @@ export function useActivityStream(botId?: string, category?: string) {
   const token = useAuth((s) => s.token);
   const [logs, setLogs] = useState<ActivityLog[]>([]);
   const [connected, setConnected] = useState(false);
-  const esRef = useRef<EventSource | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   const clear = useCallback(() => setLogs([]), []);
 
@@ -28,34 +28,94 @@ export function useActivityStream(botId?: string, category?: string) {
     const url = new URL(`${API_BASE}/logs/stream`);
     if (botId) url.searchParams.set("botId", botId);
     if (category) url.searchParams.set("category", category);
-    url.searchParams.set("token", token);
 
-    const es = new EventSource(url.toString());
-    esRef.current = es;
+    let isClosed = false;
+    let retryTimeout: ReturnType<typeof setTimeout> | null = null;
 
-    es.onopen = () => setConnected(true);
+    async function connect() {
+      if (isClosed) return;
+      const abort = new AbortController();
+      abortRef.current = abort;
 
-    es.addEventListener("log", (event) => {
       try {
-        const log = JSON.parse(event.data);
-        setLogs((prev) => {
-          // Avoid duplicates
-          if (prev.some((p) => p.id === log.id)) return prev;
-          return [...prev, log].slice(-500); // keep last 500
+        const res = await fetch(url.toString(), {
+          headers: { Authorization: `Bearer ${token}` },
+          signal: abort.signal,
         });
-      } catch {
-        // ignore parse errors
-      }
-    });
 
-    es.onerror = () => {
-      setConnected(false);
-    };
+        if (!res.ok || !res.body) {
+          console.error("Activity stream failed:", res.status);
+          setConnected(false);
+          scheduleReconnect();
+          return;
+        }
+
+        setConnected(true);
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        while (!isClosed) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() ?? "";
+
+          let currentEvent = "";
+          let currentData = "";
+
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed) {
+              // Dispatch complete event
+              if (currentEvent === "log" && currentData) {
+                try {
+                  const log = JSON.parse(currentData);
+                  setLogs((prev) => {
+                    if (prev.some((p) => p.id === log.id)) return prev;
+                    return [...prev, log].slice(-500);
+                  });
+                } catch {
+                  // ignore parse errors
+                }
+              }
+              currentEvent = "";
+              currentData = "";
+              continue;
+            }
+            if (trimmed.startsWith("event:")) {
+              currentEvent = trimmed.slice(6).trim();
+            } else if (trimmed.startsWith("data:")) {
+              currentData = trimmed.slice(5).trim();
+            }
+          }
+        }
+      } catch (err: any) {
+        if (err.name === "AbortError") return;
+        console.error("Activity stream error:", err);
+        setConnected(false);
+      }
+
+      if (!isClosed) {
+        scheduleReconnect();
+      }
+    }
+
+    function scheduleReconnect() {
+      if (retryTimeout) clearTimeout(retryTimeout);
+      retryTimeout = setTimeout(() => {
+        if (!isClosed) connect();
+      }, 5000);
+    }
+
+    connect();
 
     return () => {
-      es.close();
-      esRef.current = null;
-      setConnected(false);
+      isClosed = true;
+      if (retryTimeout) clearTimeout(retryTimeout);
+      abortRef.current?.abort();
     };
   }, [token, botId, category]);
 

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../lib/api-client";
+import { useToast } from "./use-toast";
 
 export function useMe() {
   return useQuery({
@@ -32,9 +33,13 @@ export function useTransactions() {
 
 export function useStartBot() {
   const qc = useQueryClient();
+  const toast = useToast();
   return useMutation({
     mutationFn: (id: string) => api<any>(`/bots/${id}/start`, { method: "POST" }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["bots"] }),
+    onError: (err: any) => {
+      toast.error(err?.message || "Failed to start bot");
+    },
   });
 }
 
