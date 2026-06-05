@@ -3,7 +3,7 @@ import { useState, useMemo } from "react";
 import { useBots, useStartBot, useStopBot, useDeleteBot } from "../../hooks/use-api";
 import { PageWrapper } from "../../components/layout/page-wrapper";
 import { Play, Square, Plus, Search, Bot, Trash2, Pencil } from "lucide-react";
-import ConfirmModal from "../../components/ui/confirm-modal";
+import { ConfirmModal } from "../../components/ui/confirm-modal";
 import { useI18n } from "../../hooks/use-i18n";
 
 export const Route = createFileRoute("/bots/")({
