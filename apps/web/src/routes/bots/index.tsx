@@ -87,6 +87,13 @@ function BotsPage() {
     });
   };
 
+  const fmt = (n: number | string | undefined) => {
+    if (n == null) return "";
+    const val = Number(n);
+    if (Number.isNaN(val)) return String(n);
+    return val.toFixed(6).replace(/\.?0+$/, "");
+  };
+
   return (
     <PageWrapper>
       <div className="flex flex-col gap-4">
@@ -204,7 +211,7 @@ function BotsPage() {
                         }`}
                       >
                         {Number(bot.stateJson.unrealizedPnl) >= 0 ? "+" : ""}
-                        {bot.stateJson.unrealizedPnl} USDT
+                        {fmt(bot.stateJson.unrealizedPnl)} USDT
                       </span>
                     ) : bot.paperBalance?.realizedPnl != null ? (
                       <span
@@ -215,7 +222,7 @@ function BotsPage() {
                         }`}
                       >
                         {Number(bot.paperBalance.realizedPnl) >= 0 ? "+" : ""}
-                        {bot.paperBalance.realizedPnl} USDT
+                        {fmt(bot.paperBalance.realizedPnl)} USDT
                       </span>
                     ) : (
                       <span className="text-[10px] text-[var(--text-muted)]/60 italic">
@@ -291,12 +298,12 @@ function BotsPage() {
                         {bot.stateJson?.realizedPnl != null ? (
                           <span className={Number(bot.stateJson.realizedPnl) >= 0 ? "text-[var(--success)]" : "text-[var(--danger)]"}>
                             {Number(bot.stateJson.realizedPnl) >= 0 ? "+" : ""}
-                            {bot.stateJson.realizedPnl} USDT
+                            {fmt(bot.stateJson.realizedPnl)} USDT
                           </span>
                         ) : bot.paperBalance?.realizedPnl != null ? (
                           <span className={Number(bot.paperBalance.realizedPnl) >= 0 ? "text-[var(--success)]" : "text-[var(--danger)]"}>
                             {Number(bot.paperBalance.realizedPnl) >= 0 ? "+" : ""}
-                            {bot.paperBalance.realizedPnl} USDT
+                            {fmt(bot.paperBalance.realizedPnl)} USDT
                           </span>
                         ) : (
                           <span className="text-[var(--text-muted)]">—</span>
@@ -311,12 +318,12 @@ function BotsPage() {
                         {bot.stateJson?.realizedPnl != null ? (
                           <span className={Number(bot.stateJson.realizedPnl) >= 0 ? "text-[var(--success)]" : "text-[var(--danger)]"}>
                             {Number(bot.stateJson.realizedPnl) >= 0 ? "+" : ""}
-                            ${bot.stateJson.realizedPnl}
+                            ${fmt(bot.stateJson.realizedPnl)}
                           </span>
                         ) : bot.paperBalance?.realizedPnl != null ? (
                           <span className={Number(bot.paperBalance.realizedPnl) >= 0 ? "text-[var(--success)]" : "text-[var(--danger)]"}>
                             {Number(bot.paperBalance.realizedPnl) >= 0 ? "+" : ""}
-                            ${bot.paperBalance.realizedPnl}
+                            ${fmt(bot.paperBalance.realizedPnl)}
                           </span>
                         ) : (
                           <span className="text-[var(--text-muted)]">—</span>
