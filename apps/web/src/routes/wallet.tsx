@@ -374,6 +374,7 @@ function WalletPage() {
               <input
                 type="number"
                 step="0.00000001"
+                min="0.00000001"
                 value={convertAmount}
                 onChange={(e) => setConvertAmount(e.target.value)}
                 placeholder="0.00"
@@ -387,7 +388,7 @@ function WalletPage() {
             </div>
             <button
               type="submit"
-              disabled={convert.isPending}
+              disabled={convert.isPending || !convertAmount || parseFloat(convertAmount) <= 0}
               className="w-full sm:w-auto px-3 py-2 rounded-md bg-[var(--primary)] text-[var(--text-invert)] font-medium text-[11px] hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
             >
               {convert.isPending ? t("wallet.converting") : t("wallet.convert")}

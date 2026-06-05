@@ -1,7 +1,19 @@
 import { createMiddleware } from "hono/factory";
 import { config } from "../config";
 
-const allowedIps = config.ADMIN_ALLOWED_IPS.split(",").map((s) => s.trim()).filter(Boolean);
+const allowedEntries = config.ADMIN_ALLOWED_IPS.split(",").map((s) => s.trim()).filter(Boolean);
+
+function ipToLong(ip: string): number {
+  const parts = ip.split(".").map(Number);
+  return ((parts[0] << 24) | (parts[1] << 16) | (parts[2] << 8) | parts[3]) >>> 0;
+}
+
+function isIpInCidr(ip: string, cidr: string): boolean {
+  if (!cidr.includes("/")) return ip === cidr;
+  const [subnet, bits] = cidr.split("/");
+  const mask = -1 << (32 - parseInt(bits, 10));
+  return (ipToLong(ip) & mask) === (ipToLong(subnet) & mask);
+}
 
 function getClientIp(c: any): string {
   // Headers commonly set by reverse proxies
@@ -40,7 +52,8 @@ export const ipAllowlistMiddleware = createMiddleware(async (c, next) => {
     return await next();
   }
 
-  if (!allowedIps.includes(ip)) {
+  const allowed = allowedEntries.some((entry) => isIpInCidr(ip, entry));
+  if (!allowed) {
     return c.json({ success: false, error: "Admin access denied from this IP", code: "IP_BLOCKED" }, 403);
   }
 

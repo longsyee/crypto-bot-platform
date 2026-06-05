@@ -50,6 +50,8 @@ admin.get("/security-events", async (c) => {
 admin.post("/bots/:id/kill", async (c) => {
   const id = c.req.param("id");
   const adminUser = c.get("user");
+  const bot = await prisma.bot.findUnique({ where: { id } });
+  if (!bot) return c.json({ success: false, error: "Bot not found" }, 404);
   await prisma.bot.update({ where: { id }, data: { status: "stopped" } });
   await botQueue.add("bot-stop", { botId: id, emergency: true });
   await prisma.adminAuditLog.create({
@@ -67,6 +69,8 @@ admin.post("/bots/:id/kill", async (c) => {
 admin.post("/referrals/:id/approve-kol", async (c) => {
   const id = c.req.param("id");
   const adminUser = c.get("user");
+  const existing = await prisma.referral.findUnique({ where: { id } });
+  if (!existing) return c.json({ success: false, error: "Referral not found" }, 404);
   const ref = await prisma.referral.update({
     where: { id },
     data: { tier: "kol", commissionRate: 0.35 },

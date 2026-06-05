@@ -12,6 +12,9 @@ export async function handleSignalJob(job: any): Promise<void> {
     include: { connection: true },
   });
   if (!bot) return;
+  if (!bot.connection) {
+    throw new Error(`Bot ${botId} missing exchange connection`);
+  }
 
   // Seed paperInitialBalance from current wallet SimFunds on first signal (if empty)
   if (bot.mode === "paper") {
@@ -65,12 +68,17 @@ export async function handleSignalJob(job: any): Promise<void> {
   const cfg = bot.configJson as any;
   const isLimit = (payload.order_type || cfg.default_order_type || "market") === "limit";
   const price = isLimit ? (payload.price || cfg.default_price) : undefined;
+  const amount = payload.volume || cfg.default_volume || 0;
+
+  if (!amount || amount <= 0) {
+    throw new Error(`Invalid order amount: ${amount}. Must be > 0.`);
+  }
 
   const order = await connector.placeOrder({
     symbol,
     side: payload.side || cfg.default_side,
     type: payload.order_type || cfg.default_order_type || "market",
-    amount: payload.volume || cfg.default_volume || 0,
+    amount,
     price,
     reduceOnly: payload.reduce_only || cfg.reduce_only || false,
     positionSide: payload.position_side || cfg.position_side || undefined,
