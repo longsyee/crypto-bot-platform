@@ -277,6 +277,10 @@ export const dictionary = {
       stopBeforeDelete: "Stop bot before deleting",
       confirmDeleteTitle: "Delete Bot",
       confirmDeleteDesc: 'Are you sure you want to delete "{name}"? This action cannot be undone and all associated orders, logs, and trades will be permanently removed.',
+      emergencyExit: "Emergency Exit",
+      emergencyExitTitle: "Emergency Exit — {name}",
+      emergencyExitDesc: "This will immediately stop the bot and close all open positions. Estimated unrealized PnL at current market price:",
+      emergencyExitWarning: "This action cannot be undone.",
     },
     dashboard: {
       subtitle: "Overview of your trading activity",
@@ -1256,6 +1260,10 @@ export const dictionary = {
       stopBeforeDelete: "删除前请先停止机器人",
       confirmDeleteTitle: "删除机器人",
       confirmDeleteDesc: '确定要删除 "{name}" 吗？此操作无法撤销，所有关联订单、日志和交易将被永久删除。',
+      emergencyExit: "紧急退出",
+      emergencyExitTitle: "紧急退出 — {name}",
+      emergencyExitDesc: "此操作将立即停止机器人并平掉所有持仓。当前市场价格的预估浮动盈亏：",
+      emergencyExitWarning: "此操作无法撤销。"
     },
     dashboard: {
       subtitle: "您的交易活动概览",
@@ -2287,6 +2295,10 @@ export const dictionary = {
       stopBeforeDelete: "Hentikan bot sebelum memadam",
       confirmDeleteTitle: "Padam Bot",
       confirmDeleteDesc: 'Adakah anda pasti mahu memadamkan "{name}"? Tindakan ini tidak boleh dibatalkan dan semua pesanan, log, dan dagangan berkaitan akan dibuang secara kekal.',
+      emergencyExit: "Keluar Kecemasan",
+      emergencyExitTitle: "Keluar Kecemasan — {name}",
+      emergencyExitDesc: "Ini akan segera menghentikan bot dan menutup semua posisi terbuka. Anggaran untung/rugi terapung pada harga pasaran semasa:",
+      emergencyExitWarning: "Tindakan ini tidak boleh dibatalkan."
     },
     dashboard: {
       subtitle: "Gambaran keseluruhan aktiviti dagangan anda",

@@ -3,7 +3,7 @@ import React from 'react';
 interface ConfirmModalProps {
   open: boolean;
   title: string;
-  message: string;
+  message: React.ReactNode;
   confirmLabel?: string;
   cancelLabel?: string;
   destructive?: boolean;
@@ -35,7 +35,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-lg font-semibold text-[var(--text-primary)]">{title}</h3>
-        <p className="mt-2 text-sm text-[var(--text-secondary)] leading-relaxed">{message}</p>
+        <div className="mt-2 text-sm text-[var(--text-secondary)] leading-relaxed">{message}</div>
 
         <div className="mt-6 flex items-center justify-end gap-3">
           <button

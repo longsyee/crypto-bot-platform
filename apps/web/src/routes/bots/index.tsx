@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
-import { useBots, useStartBot, useStopBot, useDeleteBot } from "../../hooks/use-api";
+import { useBots, useStartBot, useStopBot, useDeleteBot, useExitBot } from "../../hooks/use-api";
 import { PageWrapper } from "../../components/layout/page-wrapper";
-import { Play, Square, Plus, Search, Bot, Trash2, Pencil } from "lucide-react";
+import { Play, Square, Plus, Search, Bot, Trash2, Pencil, Zap } from "lucide-react";
 import { ConfirmModal } from "../../components/ui/confirm-modal";
 import { useI18n } from "../../hooks/use-i18n";
 
@@ -18,10 +18,12 @@ function BotsPage() {
   const startBot = useStartBot();
   const stopBot = useStopBot();
   const deleteBot = useDeleteBot();
+  const exitBot = useExitBot();
 
   const [activeTab, setActiveTab] = useState<TabValue>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [botToDelete, setBotToDelete] = useState<any | null>(null);
+  const [botToExit, setBotToExit] = useState<any | null>(null);
 
   const filteredBots = useMemo(() => {
     let result = bots || [];
@@ -360,6 +362,16 @@ function BotsPage() {
                         {t("bots.stop")}
                       </button>
                     )}
+                    {bot.status === "running" && (
+                      <button
+                        onClick={() => setBotToExit(bot)}
+                        disabled={exitBot.isPending}
+                        className="inline-flex items-center justify-center px-3 py-1.5 rounded-lg text-[11px] font-semibold bg-[var(--warning)]/10 text-[var(--warning)] border border-[var(--warning)]/20 hover:bg-[var(--warning)]/20 transition-colors disabled:opacity-50"
+                        title={t("bots.emergencyExit")}
+                      >
+                        <Zap className="w-3 h-3 fill-current" />
+                      </button>
+                    )}
                     <Link
                       to={`/bots/${bot.id}` as any}
                       className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold bg-[var(--bg-hover)] text-[var(--text-muted)] border border-[var(--border-subtle)] hover:bg-[var(--primary)]/10 hover:text-[var(--primary)] hover:border-[var(--primary)]/20 transition-colors"
@@ -407,6 +419,67 @@ function BotsPage() {
           }
         }}
         onCancel={() => setBotToDelete(null)}
+      />
+
+      <ConfirmModal
+        open={!!botToExit}
+        title={
+          botToExit
+            ? t("bots.emergencyExitTitle", { name: botToExit.name })
+            : t("bots.emergencyExit")
+        }
+        message={
+          botToExit ? (
+            <div className="space-y-2">
+              <p>{t("bots.emergencyExitDesc")}</p>
+              <div className="flex items-center gap-2">
+                <span className="text-[var(--text-muted)]">{t("common.pnl")}:</span>
+                <span
+                  className={`font-semibold ${
+                    (botToExit.stateJson?.unrealizedPnl != null
+                      ? Number(botToExit.stateJson.unrealizedPnl)
+                      : botToExit.paperBalance?.realizedPnl != null
+                      ? Number(botToExit.paperBalance.realizedPnl)
+                      : 0) >= 0
+                      ? "text-[var(--success)]"
+                      : "text-[var(--danger)]"
+                  }`}
+                >
+                  {(botToExit.stateJson?.unrealizedPnl != null
+                    ? Number(botToExit.stateJson.unrealizedPnl) >= 0
+                      ? "+"
+                      : ""
+                    : botToExit.paperBalance?.realizedPnl != null
+                    ? Number(botToExit.paperBalance.realizedPnl) >= 0
+                      ? "+"
+                      : ""
+                    : "") +
+                    fmt(
+                      botToExit.stateJson?.unrealizedPnl ??
+                        botToExit.paperBalance?.realizedPnl ??
+                        0
+                    )}
+                  {" "}
+                  USDT
+                </span>
+              </div>
+              <p className="text-xs text-[var(--danger)]">{t("bots.emergencyExitWarning")}</p>
+            </div>
+          ) : (
+            ""
+          )
+        }
+        confirmLabel={t("bots.emergencyExit")}
+        cancelLabel={t("common.cancel")}
+        destructive
+        onConfirm={() => {
+          if (botToExit) {
+            exitBot.mutate(botToExit.id, {
+              onSuccess: () => setBotToExit(null),
+            });
+          }
+        }}
+        onCancel={() => setBotToExit(null)}
       />
     </PageWrapper>
   );
