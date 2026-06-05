@@ -20,7 +20,10 @@ bots.get("/", requireAuth, async (c) => {
   if (status) where.status = status;
   const data = await prisma.bot.findMany({
     where,
-    include: { connection: { select: { id: true, name: true, exchangeId: true } } },
+    include: {
+      connection: { select: { id: true, name: true, exchangeId: true } },
+      _count: { select: { botOrders: true } },
+    },
     orderBy: { updatedAt: "desc" },
   });
   return c.json({ success: true, data });
