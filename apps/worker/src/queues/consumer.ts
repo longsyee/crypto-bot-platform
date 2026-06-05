@@ -8,6 +8,23 @@ import { getConnector } from "../exchange/registry";
 import { decrypt } from "../services/encryption";
 import { logAlert } from "@crypto-bot-platform/shared";
 
+const WORKER_ID = `worker-${process.pid}-${Date.now()}`;
+const LOCK_TTL_SECONDS = 60;
+
+async function acquireBotLock(botId: string): Promise<boolean> {
+  const key = `bot-loop-lock:${botId}`;
+  const result = await redisConnection.set(key, WORKER_ID, "EX", LOCK_TTL_SECONDS, "NX");
+  return result === "OK";
+}
+
+async function releaseBotLock(botId: string): Promise<void> {
+  const key = `bot-loop-lock:${botId}`;
+  const current = await redisConnection.get(key);
+  if (current === WORKER_ID) {
+    await redisConnection.del(key);
+  }
+}
+
 async function handleCancelOrderJob(job: any) {
   const { botId, exchangeOrderId, symbol, mode, connection: connectionId } = job.data;
   try {
@@ -104,7 +121,14 @@ async function reconcile() {
       const bot = await prisma.bot.findUnique({ where: { id: botId } });
       if (!bot) continue;
       if (bot.type === "dca") {
+        const acquired = await acquireBotLock(botId);
+        if (!acquired) {
+          console.log(`[WORKER] Bot ${botId} loop already owned by another worker; skipping`);
+          continue;
+        }
         await startDcaLoop(botId);
+        // Refresh lock periodically inside startDcaLoop would be ideal,
+        // but for now we rely on the duplicate-start guard in startDcaLoop
       }
     } catch (err: any) {
       console.error(`[WORKER] Failed to reconcile bot ${botId}:`, err.message);

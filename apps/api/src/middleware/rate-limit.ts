@@ -1,4 +1,5 @@
 import { createMiddleware } from "hono/factory";
+import { getConnInfo } from "@hono/node-server/conninfo";
 import { Redis } from "ioredis";
 import { config } from "../config";
 
@@ -10,8 +11,13 @@ export function rateLimitMiddleware(
   keyPrefix: string
 ) {
   return createMiddleware(async (c, next) => {
-    // x-forwarded-for should only be trusted when behind a verified proxy
-    const ip = c.req.header("x-real-ip") || c.env?.remoteAddress || "unknown";
+    let ip: string;
+    try {
+      const info = getConnInfo(c);
+      ip = info.remote.address || "unknown";
+    } catch {
+      ip = "unknown";
+    }
     const key = `ratelimit:${keyPrefix}:${ip}`;
     const current = await redis.incr(key);
     if (current === 1) {
