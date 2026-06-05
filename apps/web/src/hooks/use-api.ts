@@ -68,6 +68,17 @@ export function useBotLogs(id: string) {
   });
 }
 
+export function useCancelOrder(botId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (orderId: string) =>
+      api<any>(`/bots/${botId}/orders/${orderId}/cancel`, { method: "POST" }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["bots", botId, "orders"] });
+    },
+  });
+}
+
 export function useBotPaperTrades(id: string) {
   return useQuery({
     queryKey: ["bots", id, "paper-trades"],

@@ -4,6 +4,55 @@ import { handleSignalJob } from "../engine/signal-handler";
 import { startDcaLoop, stopDcaLoop, emergencyExit } from "../engine/dca-loop";
 import { reconcileRunningBots } from "../engine/bot-registry";
 import { prisma } from "@crypto-bot-platform/prisma";
+import { getConnector } from "../exchange/registry";
+import { decrypt } from "../services/encryption";
+import { logAlert } from "@crypto-bot-platform/shared";
+
+async function handleCancelOrderJob(job: any) {
+  const { botId, exchangeOrderId, symbol, mode, connection: connectionId } = job.data;
+  try {
+    const connection = await prisma.exchangeConnection.findUnique({
+      where: { id: connectionId },
+    });
+    if (!connection) throw new Error("Connection not found");
+
+    const connector = getConnector(connection.exchangeId, mode, botId);
+    if (mode === "live") {
+      await connector.connect({
+        apiKey: decrypt(connection.apiKeyEncrypted),
+        secret: decrypt(connection.apiSecretEncrypted),
+        passphrase: connection.passphraseEncrypted
+          ? decrypt(connection.passphraseEncrypted)
+          : undefined,
+        testnet: connection.isTestnet,
+      });
+    } else {
+      await connector.connect({ apiKey: "", secret: "" });
+    }
+
+    if (exchangeOrderId) {
+      await connector.cancelOrder(exchangeOrderId, symbol);
+    }
+
+    await prisma.botOrder.updateMany({
+      where: { botId, exchangeOrderId: exchangeOrderId || undefined },
+      data: { status: "canceled" },
+    });
+
+    logAlert({
+      botId,
+      message: `Order ${exchangeOrderId || "unknown"} on ${symbol} canceled`,
+      metadata: { exchangeOrderId, symbol },
+    });
+  } catch (err: any) {
+    logAlert({
+      botId,
+      message: `Cancel order failed: ${err.message}`,
+      metadata: { error: err.message, exchangeOrderId, symbol },
+    });
+    throw err;
+  }
+}
 
 export const botWorker = new Worker(
   "bot",
@@ -21,6 +70,9 @@ export const botWorker = new Worker(
           break;
         case "dca-exit":
           await emergencyExit(job.data.botId);
+          break;
+        case "order-cancel":
+          await handleCancelOrderJob(job);
           break;
         case "dca-sync":
           // Position sync happens automatically every 10 ticks in the DCA loop.

@@ -99,6 +99,41 @@ bots.get("/:id/orders", requireAuth, async (c) => {
   return c.json({ success: true, data });
 });
 
+bots.post("/:id/orders/:orderId/cancel", requireAuth, async (c) => {
+  const user = c.get("user");
+  const id = c.req.param("id");
+  const orderId = c.req.param("orderId");
+  const bot = await prisma.bot.findFirst({ where: { id, userId: user.id } });
+  if (!bot) return c.json({ success: false, error: "Bot not found" }, 404);
+
+  const order = await prisma.botOrder.findFirst({
+    where: { id: orderId, botId: id },
+  });
+  if (!order) return c.json({ success: false, error: "Order not found" }, 404);
+  if (order.status !== "open" && order.status !== "pending") {
+    return c.json({ success: false, error: "Order is not active", code: "ORDER_NOT_ACTIVE" }, 400);
+  }
+
+  // Queue cancel job to worker
+  await botQueue.add("order-cancel", {
+    botId: id,
+    orderId: order.id,
+    exchangeOrderId: order.exchangeOrderId,
+    symbol: order.symbol,
+    mode: bot.mode,
+    connection: bot.connectionId,
+  });
+
+  logOrder({
+    botId: id,
+    userId: user.id,
+    message: `Cancel requested for order ${order.exchangeOrderId || orderId}`,
+    metadata: { orderId: order.id, exchangeOrderId: order.exchangeOrderId, symbol: order.symbol },
+  });
+
+  return c.json({ success: true, data: { message: "Cancel request sent to worker" } });
+});
+
 bots.get("/:id/logs", requireAuth, async (c) => {
   const user = c.get("user");
   const id = c.req.param("id");

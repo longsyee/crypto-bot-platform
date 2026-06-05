@@ -12,6 +12,7 @@ import {
   useExchangeBalance,
   useExitBot,
   useBotLivePrice,
+  useCancelOrder,
 } from "../../hooks/use-api";
 import { useToast } from "../../hooks/use-toast";
 import { useI18n } from "../../hooks/use-i18n";
@@ -425,6 +426,7 @@ function BotDetailPage() {
   const toggleMode = useToggleBotMode();
   const updateBot = useUpdateBot();
   const exitBot = useExitBot();
+  const cancelOrder = useCancelOrder(botId);
 
   const toast = useToast();
 
@@ -1039,13 +1041,18 @@ function BotDetailPage() {
                           <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider font-semibold">
                             {t("botDetail.date")}
                           </th>
+                          {!isPaper && (
+                            <th className="text-left px-3 py-2 text-[9px] uppercase tracking-wider font-semibold">
+                              {t("common.actions")}
+                            </th>
+                          )}
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[var(--border-subtle)]">
                         {tradesLoading && (
                           <tr>
                             <td
-                              colSpan={isPaper ? 6 : 5}
+                              colSpan={isPaper ? 6 : 6}
                               className="px-4 py-6 text-center text-[var(--text-muted)]"
                             >
                               {t("common.loading")}...
@@ -1056,7 +1063,7 @@ function BotDetailPage() {
                           (trades?.length === 0 || !trades) && (
                             <tr>
                               <td
-                                colSpan={isPaper ? 6 : 5}
+                                colSpan={isPaper ? 6 : 6}
                                 className="px-4 py-6 text-center text-[var(--text-muted)]"
                               >
                                 {isPaper
@@ -1128,6 +1135,20 @@ function BotDetailPage() {
                                 ? new Date(o.createdAt).toLocaleString()
                                 : "—"}
                             </td>
+                            {!isPaper && (
+                              <td className="px-3 py-2">
+                                {(o.status === "open" || o.status === "pending") && (
+                                  <button
+                                    onClick={() => cancelOrder.mutate(o.id)}
+                                    disabled={cancelOrder.isPending}
+                                    className="inline-flex items-center justify-center p-1 rounded-md text-[var(--danger)] hover:bg-[var(--danger)]/10 transition-colors disabled:opacity-50"
+                                    title={t("common.cancel")}
+                                  >
+                                    <X className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                              </td>
+                            )}
                           </tr>
                         ))}
                       </tbody>
