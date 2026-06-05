@@ -44,7 +44,6 @@ enum TransactionCurrency {
 enum BotType {
   signal
   dca
-  grid
 }
 
 enum BotStatus {

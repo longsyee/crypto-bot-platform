@@ -163,7 +163,6 @@ export const DcaBotConfigSchema = z.object({
       z.object({
         price_fluctuation_pct: z.number(),
         multiplier: z.number(),
-        trailing_pct: z.number().min(0).max(100).default(0),
         ema_enabled: z.boolean(),
         macd_enabled: z.boolean(),
       })

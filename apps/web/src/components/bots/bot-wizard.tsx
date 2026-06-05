@@ -117,7 +117,6 @@ const DcaConfigSchema = z.object({
     round: z.number().int(),
     price_fluctuation_pct: z.number(),
     multiplier: z.number(),
-    trailing_pct: z.number().min(0).max(100).default(0),
     ema: z.boolean(),
     macd: z.boolean(),
   })).optional().default([]),
@@ -136,11 +135,11 @@ const DcaConfigSchema = z.object({
 });
 
 const DEFAULT_ROUNDS = [
-  { round: 1, price_fluctuation_pct: 1, multiplier: 1.5, trailing_pct: 0, ema: false, macd: false },
-  { round: 2, price_fluctuation_pct: 2, multiplier: 1.5, trailing_pct: 0, ema: false, macd: false },
-  { round: 3, price_fluctuation_pct: 3, multiplier: 1.5, trailing_pct: 0, ema: false, macd: false },
-  { round: 4, price_fluctuation_pct: 4, multiplier: 1.5, trailing_pct: 0, ema: false, macd: false },
-  { round: 5, price_fluctuation_pct: 5, multiplier: 1.5, trailing_pct: 0, ema: false, macd: false },
+  { round: 1, price_fluctuation_pct: 1, multiplier: 1.5, ema: false, macd: false },
+  { round: 2, price_fluctuation_pct: 2, multiplier: 1.5, ema: false, macd: false },
+  { round: 3, price_fluctuation_pct: 3, multiplier: 1.5, ema: false, macd: false },
+  { round: 4, price_fluctuation_pct: 4, multiplier: 1.5, ema: false, macd: false },
+  { round: 5, price_fluctuation_pct: 5, multiplier: 1.5, ema: false, macd: false },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -521,7 +520,6 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess, presel
               rounds: dcaForm.rounds?.map((r) => ({
                 price_fluctuation_pct: r.price_fluctuation_pct,
                 multiplier: r.multiplier,
-                trailing_pct: r.trailing_pct,
                 ema_enabled: r.ema,
                 macd_enabled: r.macd,
               })),
@@ -1249,12 +1247,12 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess, presel
                         trigger_threshold: "3",
                         pause_duration: "480",
                         rounds: [
-                          { round: 1, price_fluctuation_pct: 2, multiplier: 1, trailing_pct: 0.3, ema: false, macd: false },
-                          { round: 2, price_fluctuation_pct: 3, multiplier: 1.3, trailing_pct: 0.4, ema: false, macd: false },
-                          { round: 3, price_fluctuation_pct: 5, multiplier: 1.5, trailing_pct: 0.5, ema: false, macd: false },
-                          { round: 4, price_fluctuation_pct: 7, multiplier: 1.8, trailing_pct: 0.7, ema: true, macd: true },
-                          { round: 5, price_fluctuation_pct: 10, multiplier: 2, trailing_pct: 1, ema: true, macd: true },
-                        ] as { round: number; price_fluctuation_pct: number; multiplier: number; trailing_pct: number; ema: boolean; macd: boolean }[],
+                          { round: 1, price_fluctuation_pct: 2, multiplier: 1, ema: false, macd: false },
+                          { round: 2, price_fluctuation_pct: 3, multiplier: 1.3, ema: false, macd: false },
+                          { round: 3, price_fluctuation_pct: 5, multiplier: 1.5, ema: false, macd: false },
+                          { round: 4, price_fluctuation_pct: 7, multiplier: 1.8, ema: true, macd: true },
+                          { round: 5, price_fluctuation_pct: 10, multiplier: 2, ema: true, macd: true },
+                        ] as { round: number; price_fluctuation_pct: number; multiplier: number; ema: boolean; macd: boolean }[],
                         macd_signal_enabled: false,
                         rsi_signal_enabled: false,
                         rsi_upper_limit: "70",
@@ -1294,15 +1292,15 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess, presel
                         trigger_threshold: "3",
                         pause_duration: "480",
                         rounds: [
-                          { round: 1, price_fluctuation_pct: 0.5, multiplier: 1, trailing_pct: 0, ema: false, macd: false },
-                          { round: 2, price_fluctuation_pct: 1, multiplier: 1.2, trailing_pct: 0, ema: false, macd: false },
-                          { round: 3, price_fluctuation_pct: 1.5, multiplier: 1.3, trailing_pct: 0, ema: false, macd: false },
-                          { round: 4, price_fluctuation_pct: 2, multiplier: 1.4, trailing_pct: 0, ema: false, macd: false },
-                          { round: 5, price_fluctuation_pct: 2.5, multiplier: 1.5, trailing_pct: 0, ema: false, macd: false },
-                          { round: 6, price_fluctuation_pct: 3, multiplier: 1.6, trailing_pct: 0, ema: false, macd: false },
-                          { round: 7, price_fluctuation_pct: 4, multiplier: 1.8, trailing_pct: 0, ema: false, macd: false },
-                          { round: 8, price_fluctuation_pct: 5, multiplier: 2, trailing_pct: 0, ema: false, macd: false },
-                        ] as { round: number; price_fluctuation_pct: number; multiplier: number; trailing_pct: number; ema: boolean; macd: boolean }[],
+                          { round: 1, price_fluctuation_pct: 0.5, multiplier: 1, ema: false, macd: false },
+                          { round: 2, price_fluctuation_pct: 1, multiplier: 1.2, ema: false, macd: false },
+                          { round: 3, price_fluctuation_pct: 1.5, multiplier: 1.3, ema: false, macd: false },
+                          { round: 4, price_fluctuation_pct: 2, multiplier: 1.4, ema: false, macd: false },
+                          { round: 5, price_fluctuation_pct: 2.5, multiplier: 1.5, ema: false, macd: false },
+                          { round: 6, price_fluctuation_pct: 3, multiplier: 1.6, ema: false, macd: false },
+                          { round: 7, price_fluctuation_pct: 4, multiplier: 1.8, ema: false, macd: false },
+                          { round: 8, price_fluctuation_pct: 5, multiplier: 2, ema: false, macd: false },
+                        ] as { round: number; price_fluctuation_pct: number; multiplier: number; ema: boolean; macd: boolean }[],
                         macd_signal_enabled: false,
                         rsi_signal_enabled: false,
                         rsi_upper_limit: "70",
@@ -1344,13 +1342,13 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess, presel
                         trigger_threshold: "3",
                         pause_duration: "480",
                         rounds: [
-                          { round: 1, price_fluctuation_pct: 1, multiplier: 1, trailing_pct: 0.2, ema: false, macd: false },
-                          { round: 2, price_fluctuation_pct: 2, multiplier: 1.2, trailing_pct: 0.3, ema: false, macd: false },
-                          { round: 3, price_fluctuation_pct: 3, multiplier: 1.4, trailing_pct: 0.4, ema: false, macd: false },
-                          { round: 4, price_fluctuation_pct: 4, multiplier: 1.5, trailing_pct: 0.5, ema: true, macd: true },
-                          { round: 5, price_fluctuation_pct: 5, multiplier: 1.7, trailing_pct: 0.7, ema: true, macd: true },
-                          { round: 6, price_fluctuation_pct: 6, multiplier: 2, trailing_pct: 1, ema: true, macd: true },
-                        ] as { round: number; price_fluctuation_pct: number; multiplier: number; trailing_pct: number; ema: boolean; macd: boolean }[],
+                          { round: 1, price_fluctuation_pct: 1, multiplier: 1, ema: false, macd: false },
+                          { round: 2, price_fluctuation_pct: 2, multiplier: 1.2, ema: false, macd: false },
+                          { round: 3, price_fluctuation_pct: 3, multiplier: 1.4, ema: false, macd: false },
+                          { round: 4, price_fluctuation_pct: 4, multiplier: 1.5, ema: true, macd: true },
+                          { round: 5, price_fluctuation_pct: 5, multiplier: 1.7, ema: true, macd: true },
+                          { round: 6, price_fluctuation_pct: 6, multiplier: 2, ema: true, macd: true },
+                        ] as { round: number; price_fluctuation_pct: number; multiplier: number; ema: boolean; macd: boolean }[],
                         macd_signal_enabled: false,
                         rsi_signal_enabled: false,
                         rsi_upper_limit: "70",
@@ -1569,7 +1567,6 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess, presel
                             round: nextRounds.length + 1,
                             price_fluctuation_pct: nextRounds.length + 1,
                             multiplier: 1.5,
-                            trailing_pct: 0,
                             ema: false,
                             macd: false,
                           });
@@ -1710,7 +1707,6 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess, presel
                           <th className="py-2 text-left font-medium">{t("wizard.roundNum")}</th>
                           <th className="py-2 text-left font-medium">{t("wizard.priceFluctuation")}</th>
                           <th className="py-2 text-left font-medium">{t("wizard.multiplier")}</th>
-                          <th className="py-2 text-left font-medium">{t("wizard.dcaTrailing")}</th>
                           <th className="py-2 text-center font-medium">EMA</th>
                           <th className="py-2 text-center font-medium">MACD</th>
                         </tr>
@@ -1745,22 +1741,6 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess, presel
                                   setDcaForm((prev) => {
                                     const next = [...prev.rounds];
                                     next[idx] = { ...next[idx], multiplier: isNaN(val) ? 1 : val };
-                                    return { ...prev, rounds: next };
-                                  });
-                                }}
-                                className="w-20 rounded-md border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-2 py-1 text-xs text-[var(--text-primary)] focus:border-[var(--primary)] focus:outline-none"
-                              />
-                            </td>
-                            <td className="py-1.5">
-                              <input
-                                type="number"
-                                step={0.1}
-                                value={row.trailing_pct}
-                                onChange={(e) => {
-                                  const val = parseFloat(e.target.value);
-                                  setDcaForm((prev) => {
-                                    const next = [...prev.rounds];
-                                    next[idx] = { ...next[idx], trailing_pct: isNaN(val) ? 0 : val };
                                     return { ...prev, rounds: next };
                                   });
                                 }}
