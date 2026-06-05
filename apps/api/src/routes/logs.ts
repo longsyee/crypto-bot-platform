@@ -1,8 +1,12 @@
 import { Hono } from "hono";
 import { requireAuth } from "../middleware/require-auth";
+import { rateLimitMiddleware } from "../middleware/rate-limit";
 import { prisma } from "@crypto-bot-platform/prisma";
 
 const logs = new Hono();
+
+// Track concurrent SSE log streams per user (max 3)
+const streamCounts = new Map<string, number>();
 
 /* ---------- Proxy: GET /logs/activity?botId=xxx&category=xxx ---------- */
 logs.get("/activity", requireAuth, async (c) => {
@@ -41,7 +45,7 @@ logs.get("/activity", requireAuth, async (c) => {
 });
 
 /* ---------- SSE Stream: GET /logs/stream?botId=xxx ---------- */
-logs.get("/stream", requireAuth, async (c) => {
+logs.get("/stream", requireAuth, rateLimitMiddleware(10, 60, "log_stream"), async (c) => {
   const user = c.get("user");
   const botId = c.req.query("botId");
   const category = c.req.query("category");
@@ -53,6 +57,13 @@ logs.get("/stream", requireAuth, async (c) => {
     });
     if (!bot) return c.json({ success: false, error: "Bot not found" }, 404);
   }
+
+  // Max 3 concurrent streams per user
+  const currentCount = streamCounts.get(user.id) ?? 0;
+  if (currentCount >= 3) {
+    return c.json({ success: false, error: "Too many concurrent log streams", code: "STREAM_LIMIT" }, 429);
+  }
+  streamCounts.set(user.id, currentCount + 1);
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
@@ -105,12 +116,15 @@ logs.get("/stream", requireAuth, async (c) => {
             encoder.encode(`event: error\ndata: ${JSON.stringify({ error: String(err) })}\n\n`)
           );
         }
-      }, 1500);
+      }, 5000);
 
       c.req.raw.signal?.addEventListener("abort", () => {
         closed = true;
         clearInterval(tick);
         controller.close();
+        const count = streamCounts.get(user.id) ?? 1;
+        if (count <= 1) streamCounts.delete(user.id);
+        else streamCounts.set(user.id, count - 1);
       });
     },
   });

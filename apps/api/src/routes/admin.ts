@@ -15,15 +15,19 @@ const admin = new Hono();
 admin.use("/*", authMiddleware, roleMiddleware("admin"), ipAllowlistMiddleware);
 
 admin.get("/dashboard", async (c) => {
-  const [totalUsers, totalBots, totalFees, activeBots] = await Promise.all([
+  const [totalUsers, totalBots, totalFeesAgg, totalRefundsAgg, activeBots] = await Promise.all([
     prisma.user.count(),
     prisma.bot.count(),
     prisma.transaction.aggregate({ where: { type: "trade_fee" }, _sum: { amount: true } }),
+    prisma.transaction.aggregate({ where: { type: "refund" }, _sum: { amount: true } }),
     prisma.bot.count({ where: { status: "running" } }),
   ]);
+  const grossFees = Number(totalFeesAgg._sum.amount ?? 0);
+  const refunds = Number(totalRefundsAgg._sum.amount ?? 0);
+  const netFees = Math.max(0, grossFees - refunds);
   return c.json({
     success: true,
-    data: { totalUsers, totalBots, totalFees: totalFees._sum.amount, activeBots },
+    data: { totalUsers, totalBots, totalFees: netFees, grossFees, refunds, activeBots },
   });
 });
 
