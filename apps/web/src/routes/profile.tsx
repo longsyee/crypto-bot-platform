@@ -18,6 +18,7 @@ import {
   Terminal,
   ChevronRight,
   Camera,
+  Fingerprint,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
@@ -191,7 +192,7 @@ function ProfilePage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-[var(--border-subtle)] rounded-xl overflow-hidden border border-[var(--border-subtle)] mt-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-[var(--border-subtle)] rounded-xl overflow-hidden border border-[var(--border-subtle)] mt-4">
                 <StatItem
                   icon={<Calendar className="w-3.5 h-3.5" />}
                   label={t("profile.memberSince")}
@@ -212,6 +213,17 @@ function ProfilePage() {
                   icon={<Mail className="w-3.5 h-3.5" />}
                   label={t("auth.email")}
                   value={profile?.email || "—"}
+                />
+                <StatItem
+                  icon={<Fingerprint className="w-3.5 h-3.5" />}
+                  label={t("profile.userId")}
+                  value={profile?.id || "—"}
+                  onCopy={
+                    profile?.id
+                      ? () => handleCopy(profile.id)
+                      : undefined
+                  }
+                  copied={copied}
                 />
               </div>
             </div>

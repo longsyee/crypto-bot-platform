@@ -621,7 +621,7 @@ export function useSimFundsConfig() {
 export function useGrantSimFunds() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (payload: { userId: string; amount: number; reason?: string }) =>
+    mutationFn: (payload: { identifier: string; amount: number; reason?: string }) =>
       api<any>("/admin/sim-funds/grant", {
         method: "POST",
         body: JSON.stringify(payload),

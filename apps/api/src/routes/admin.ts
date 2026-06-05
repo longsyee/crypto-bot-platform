@@ -417,17 +417,29 @@ admin.post("/credits/grant", async (c) => {
 
 admin.post("/sim-funds/grant", async (c) => {
   const adminUser = c.get("user");
-  const { userId, amount, reason } = await c.req.json();
-  if (!userId || !amount || amount <= 0) {
+  const { identifier, amount, reason } = await c.req.json();
+  if (!identifier || !amount || amount <= 0) {
     return c.json({ success: false, error: "Invalid request" }, 400);
   }
 
-  const wallet = await prisma.wallet.findUnique({ where: { userId } });
+  // Resolve user by UUID or email
+  let targetUserId = identifier.trim();
+  const isEmail = targetUserId.includes("@");
+  if (isEmail) {
+    const user = await prisma.user.findUnique({
+      where: { email: targetUserId.toLowerCase() },
+      select: { id: true },
+    });
+    if (!user) return c.json({ success: false, error: "User not found" }, 404);
+    targetUserId = user.id;
+  }
+
+  const wallet = await prisma.wallet.findUnique({ where: { userId: targetUserId } });
   if (!wallet) return c.json({ success: false, error: "Wallet not found" }, 404);
 
   await prisma.$transaction([
     prisma.wallet.update({
-      where: { userId },
+      where: { userId: targetUserId },
       data: { simFundsBalance: { increment: amount } },
     }),
     prisma.transaction.create({

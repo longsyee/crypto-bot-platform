@@ -231,12 +231,21 @@ function UsersTab({ users, total, isLoading, isError, error }: { users: any[]; t
     const q = search.toLowerCase();
     return users.filter(
       (u) =>
+        u.id?.toLowerCase().includes(q) ||
         u.email?.toLowerCase().includes(q) ||
         u.role?.toLowerCase().includes(q)
     );
   }, [users, search]);
 
   const columns: Column<any>[] = [
+    {
+      key: "id",
+      header: t("admin.userId"),
+      sortable: true,
+      render: (u) => (
+        <span className="font-mono text-[10px] text-[var(--text-muted)] truncate max-w-[120px] block" title={u.id}>{u.id}</span>
+      ),
+    },
     {
       key: "email",
       header: t("admin.email"),
@@ -472,18 +481,18 @@ function BotsTab({ bots }: { bots: any[] }) {
 
 function CompanyTab({ stats }: { stats?: any }) {
   const { t } = useI18n();
-  const [grantUserId, setGrantUserId] = useState("");
+  const [grantIdentifier, setGrantIdentifier] = useState("");
   const [grantAmount, setGrantAmount] = useState("");
   const grantSimFunds = useGrantSimFunds();
 
   const handleGrant = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!grantUserId.trim() || !grantAmount.trim()) return;
+    if (!grantIdentifier.trim() || !grantAmount.trim()) return;
     grantSimFunds.mutate(
-      { userId: grantUserId.trim(), amount: parseFloat(grantAmount) },
+      { identifier: grantIdentifier.trim(), amount: parseFloat(grantAmount) },
       {
         onSuccess: () => {
-          setGrantUserId("");
+          setGrantIdentifier("");
           setGrantAmount("");
         },
       }
@@ -530,12 +539,12 @@ function CompanyTab({ stats }: { stats?: any }) {
         </div>
         <form onSubmit={handleGrant} className="grid gap-3 sm:grid-cols-3">
           <div className="space-y-1">
-            <label className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">{t("admin.userId")}</label>
+            <label className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">{t("admin.userIdOrEmail")}</label>
             <input
               type="text"
-              value={grantUserId}
-              onChange={(e) => setGrantUserId(e.target.value)}
-              placeholder={t("admin.userIdPlaceholder")}
+              value={grantIdentifier}
+              onChange={(e) => setGrantIdentifier(e.target.value)}
+              placeholder={t("admin.userIdOrEmailPlaceholder")}
               required
               className="w-full px-3 py-2 rounded-md bg-[var(--bg-hover)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-xs placeholder:text-[var(--text-muted)] focus:border-[var(--primary)] focus:outline-none"
             />
