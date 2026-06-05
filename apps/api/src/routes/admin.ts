@@ -331,4 +331,126 @@ admin.get("/company-stats", async (c) => {
   });
 });
 
+/* ------------------------------------------------------------------
+ * SimFunds & Credit Admin
+ * ------------------------------------------------------------------ */
+
+admin.get("/credits/config", async (c) => {
+  const settings = await prisma.globalSetting.findMany();
+  const map = Object.fromEntries(settings.map((s) => [s.key, s.value]));
+  return c.json({ success: true, data: map });
+});
+
+admin.post("/credits/config", async (c) => {
+  const adminUser = c.get("user");
+  const body = await c.req.json();
+  const keys = [
+    "credit_price_usdt",
+    "live_profit_fee_pct",
+    "min_credit_purchase_usdt",
+    "free_credits_on_signup",
+    "min_credits_to_start_live",
+    "paper_mock_rate_usdt",
+    "paper_free_mock_usdt",
+    "max_paper_bots_per_user",
+    "paper_daily_signal_limit",
+  ];
+
+  for (const key of keys) {
+    if (body[key] !== undefined) {
+      await prisma.globalSetting.upsert({
+        where: { key },
+        create: { key, value: String(body[key]) },
+        update: { value: String(body[key]), updatedBy: adminUser.id },
+      });
+    }
+  }
+
+  return c.json({ success: true, data: { message: "Settings updated" } });
+});
+
+admin.post("/credits/grant", async (c) => {
+  const adminUser = c.get("user");
+  const { userId, amount, reason } = await c.req.json();
+  if (!userId || !amount || amount <= 0) {
+    return c.json({ success: false, error: "Invalid request" }, 400);
+  }
+
+  const wallet = await prisma.wallet.findUnique({ where: { userId } });
+  if (!wallet) return c.json({ success: false, error: "Wallet not found" }, 404);
+
+  await prisma.$transaction([
+    prisma.wallet.update({
+      where: { userId },
+      data: { tokenBalance: { increment: amount } },
+    }),
+    prisma.transaction.create({
+      data: {
+        walletId: wallet.id,
+        type: "admin_adjust",
+        amount,
+        currency: "TOKEN",
+        status: "confirmed",
+        metadataJson: { grantedBy: adminUser.id, reason, kind: "token_grant" } as any,
+      },
+    }),
+  ]);
+
+  return c.json({ success: true, data: { message: `Granted ${amount} credits` } });
+});
+
+admin.post("/sim-funds/grant", async (c) => {
+  const adminUser = c.get("user");
+  const { userId, amount, reason } = await c.req.json();
+  if (!userId || !amount || amount <= 0) {
+    return c.json({ success: false, error: "Invalid request" }, 400);
+  }
+
+  const wallet = await prisma.wallet.findUnique({ where: { userId } });
+  if (!wallet) return c.json({ success: false, error: "Wallet not found" }, 404);
+
+  await prisma.$transaction([
+    prisma.wallet.update({
+      where: { userId },
+      data: { simFundsBalance: { increment: amount } },
+    }),
+    prisma.transaction.create({
+      data: {
+        walletId: wallet.id,
+        type: "sim_funds_grant",
+        amount,
+        currency: "USDT",
+        status: "confirmed",
+        metadataJson: { grantedBy: adminUser.id, reason } as any,
+      },
+    }),
+  ]);
+
+  return c.json({ success: true, data: { message: `Granted ${amount} SimFunds` } });
+});
+
+admin.get("/credits/transactions", async (c) => {
+  const page = parseInt(c.req.query("page") || "1");
+  const limit = Math.min(parseInt(c.req.query("limit") || "20"), 100);
+  const type = c.req.query("type");
+
+  const where: any = {
+    type: { in: ["paper_topup", "sim_funds_grant", "admin_adjust", "trade_fee"] },
+  };
+  if (type) where.type = type;
+
+  const [data, total] = await Promise.all([
+    prisma.transaction.findMany({
+      where,
+      skip: (page - 1) * limit,
+      take: limit,
+      orderBy: { createdAt: "desc" },
+      include: { wallet: { select: { userId: true } } },
+    }),
+    prisma.transaction.count({ where }),
+  ]);
+
+  return c.json({ success: true, data, meta: { page, limit, total } });
+});
+
 export default admin;

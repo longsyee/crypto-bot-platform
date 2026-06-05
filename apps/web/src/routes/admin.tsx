@@ -13,6 +13,7 @@ import {
   useApproveReferralWithdrawal,
   useRejectReferralWithdrawal,
   useToggleShowcasePaperTrades,
+  useGrantSimFunds,
 } from "../hooks/use-api";
 import { useAuth } from "../hooks/use-auth";
 import { useI18n } from "../hooks/use-i18n";
@@ -32,6 +33,9 @@ import {
   ShieldAlert,
   Search,
   Gift,
+  BookOpen,
+  AlertCircle,
+  Check,
 } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({
@@ -468,6 +472,24 @@ function BotsTab({ bots }: { bots: any[] }) {
 
 function CompanyTab({ stats }: { stats?: any }) {
   const { t } = useI18n();
+  const [grantUserId, setGrantUserId] = useState("");
+  const [grantAmount, setGrantAmount] = useState("");
+  const grantSimFunds = useGrantSimFunds();
+
+  const handleGrant = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!grantUserId.trim() || !grantAmount.trim()) return;
+    grantSimFunds.mutate(
+      { userId: grantUserId.trim(), amount: parseFloat(grantAmount) },
+      {
+        onSuccess: () => {
+          setGrantUserId("");
+          setGrantAmount("");
+        },
+      }
+    );
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl p-4">
@@ -498,6 +520,61 @@ function CompanyTab({ stats }: { stats?: any }) {
             </span>
           </div>
         </div>
+      </div>
+
+      {/* SimFunds Grant Panel */}
+      <div className="bg-[var(--bg-card)] border border-[var(--primary)]/20 rounded-xl p-4 space-y-4">
+        <div className="flex items-center gap-2">
+          <BookOpen className="w-4 h-4 text-[var(--primary)]" />
+          <h3 className="text-sm font-semibold text-[var(--text-primary)]">{t("admin.grantSimFunds")}</h3>
+        </div>
+        <form onSubmit={handleGrant} className="grid gap-3 sm:grid-cols-3">
+          <div className="space-y-1">
+            <label className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">{t("admin.userId")}</label>
+            <input
+              type="text"
+              value={grantUserId}
+              onChange={(e) => setGrantUserId(e.target.value)}
+              placeholder={t("admin.userIdPlaceholder")}
+              required
+              className="w-full px-3 py-2 rounded-md bg-[var(--bg-hover)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-xs placeholder:text-[var(--text-muted)] focus:border-[var(--primary)] focus:outline-none"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">{t("admin.simFundsAmount")}</label>
+            <input
+              type="number"
+              step="1"
+              min="1"
+              value={grantAmount}
+              onChange={(e) => setGrantAmount(e.target.value)}
+              placeholder="1000"
+              required
+              className="w-full px-3 py-2 rounded-md bg-[var(--bg-hover)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-xs placeholder:text-[var(--text-muted)] focus:border-[var(--primary)] focus:outline-none"
+            />
+          </div>
+          <div className="flex items-end">
+            <button
+              type="submit"
+              disabled={grantSimFunds.isPending}
+              className="w-full px-3 py-2 rounded-md bg-[var(--primary)] text-[var(--text-invert)] font-medium text-[11px] hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
+            >
+              {grantSimFunds.isPending ? t("common.submitting") : t("admin.grant")}
+            </button>
+          </div>
+        </form>
+        {grantSimFunds.isError && (
+          <div className="flex items-center gap-1.5 text-[var(--danger)] text-xs">
+            <AlertCircle className="w-3.5 h-3.5" />
+            {grantSimFunds.error instanceof Error ? grantSimFunds.error.message : t("admin.grantFailed")}
+          </div>
+        )}
+        {grantSimFunds.isSuccess && (
+          <div className="flex items-center gap-1.5 text-[var(--success)] text-xs">
+            <Check className="w-3.5 h-3.5" />
+            {t("admin.grantSuccess")}
+          </div>
+        )}
       </div>
     </div>
   );

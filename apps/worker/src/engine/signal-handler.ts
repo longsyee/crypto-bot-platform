@@ -13,6 +13,28 @@ export async function handleSignalJob(job: any): Promise<void> {
   });
   if (!bot) return;
 
+  // Seed paperInitialBalance from current wallet SimFunds on first signal (if empty)
+  if (bot.mode === "paper") {
+    const currentInitial = (bot as any).paperInitialBalance as Record<string, number> | null;
+    if (!currentInitial || (currentInitial.USDT ?? 0) <= 0) {
+      try {
+        const wallet = await prisma.wallet.findUnique({
+          where: { userId: bot.userId },
+          select: { simFundsBalance: true },
+        });
+        const simFunds = wallet?.simFundsBalance?.toNumber() ?? 0;
+        if (simFunds > 0) {
+          await prisma.bot.update({
+            where: { id: botId },
+            data: { paperInitialBalance: { USDT: simFunds } as any },
+          });
+        }
+      } catch (_e) {
+        // ignore
+      }
+    }
+  }
+
   const connector = getConnector(bot.connection.exchangeId, bot.mode, botId);
   if (bot.mode === "live") {
     await connector.connect({
@@ -40,11 +62,18 @@ export async function handleSignalJob(job: any): Promise<void> {
     metadata: { ...payload },
   });
 
+  const cfg = bot.configJson as any;
+  const isLimit = (payload.order_type || cfg.default_order_type || "market") === "limit";
+  const price = isLimit ? (payload.price || cfg.default_price) : undefined;
+
   const order = await connector.placeOrder({
     symbol,
-    side: payload.side || (bot.configJson as any).default_side,
-    type: payload.order_type || (bot.configJson as any).default_order_type || "market",
-    amount: payload.volume || (bot.configJson as any).default_volume || 0,
+    side: payload.side || cfg.default_side,
+    type: payload.order_type || cfg.default_order_type || "market",
+    amount: payload.volume || cfg.default_volume || 0,
+    price,
+    reduceOnly: payload.reduce_only || cfg.reduce_only || false,
+    positionSide: payload.position_side || cfg.position_side || undefined,
   });
 
   logOrder({
@@ -54,20 +83,8 @@ export async function handleSignalJob(job: any): Promise<void> {
     metadata: { orderId: order.orderId, status: order.status, cost: order.cost },
   });
 
-  await prisma.botOrder.create({
-    data: {
-      botId,
-      exchangeOrderId: order.orderId,
-      symbol,
-      side: payload.side || (bot.configJson as any).default_side,
-      type: payload.order_type || "market",
-      amount: payload.volume || 0,
-      status: order.status,
-      filled: order.filled,
-      remaining: order.remaining,
-      feeRateAtEntry: config.GLOBAL_FEE_RATE,
-    },
-  });
+  // BotOrder is now recorded automatically by CCXTConnector.placeOrder
+  // so both paper and live have a persistent, unified order ledger.
 
   // Simplified PnL calc; real impl tracks entry/exit pairs
   if (bot.mode === "live") {

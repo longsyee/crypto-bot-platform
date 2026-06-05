@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Variant F — Meridian</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://api.fontshare.com/v2/css?f[]=geist@400,500,600,700&f[]=space-grotesk@400,500,600,700&f[]=satoshi@400,500,700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-base: #030712;
+      --bg-elevated: #0a0f1a;
+      --bg-card: #0f1525;
+      --bg-hover: #141d2e;
+      --primary: #60a5fa;
+      --primary-glow: rgba(96, 165, 250, 0.12);
+      --success: #34d399;
+      --success-glow: rgba(52, 211, 153, 0.12);
+      --danger: #f87171;
+      --danger-glow: rgba(248, 113, 113, 0.12);
+      --warning: #fbbf24;
+      --accent: #2dd4bf;
+      --accent-glow: rgba(45, 212, 191, 0.12);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --border-subtle: rgba(148, 163, 184, 0.08);
+      --border-default: rgba(148, 163, 184, 0.12);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html {
+      background: var(--bg-base);
+      color: var(--text-primary);
+      font-family: 'Geist', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* Mesh gradient ambient */
+    .ambient-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse 60% 40% at 80% 10%, rgba(96, 165, 250, 0.04), transparent),
+        radial-gradient(ellipse 40% 60% at 20% 80%, rgba(52, 211, 153, 0.03), transparent);
+    }
+
+    /* App Shell */
+    .app {
+      position: relative;
+      z-index: 10;
+      min-height: 100dvh;
+    }
+
+    /* Floating Header */
+    .header-float {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 24px;
+      background: rgba(10, 15, 26, 0.8);
+      backdrop-filter: blur(24px) saturate(150%);
+      border: 1px solid var(--border-subtle);
+      border-radius: 999px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.04);
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: -0.02em;
+      padding-right: 16px;
+      border-right: 1px solid var(--border-subtle);
+    }
+
+    .header-logo {
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent), var(--primary));
+    }
+
+    .header-nav {
+      display: flex;
+      gap: 4px;
+    }
+
+    .header-nav a {
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .header-nav a:hover, .header-nav a.active {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-left: 16px;
+      border-left: 1px solid var(--border-subtle);
+    }
+
+    .header-chip {
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: var(--success-glow);
+      border: 1px solid rgba(52, 211, 153, 0.15);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--success);
+      font-family: 'Geist', monospace;
+    }
+
+    /* Hero Stats */
+    .hero-stats {
+      padding: 160px 48px 80px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .hero-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--accent);
+      margin-bottom: 32px;
+    }
+
+    .hero-kicker::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: kickerPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes kickerPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.7); }
+    }
+
+    .hero-stats h1 {
+      font-family: 'Satoshi', sans-serif;
+      font-size: clamp(48px, 7vw, 96px);
+      font-weight: 700;
+      letter-spacing: -0.05em;
+      line-height: 0.95;
+      margin-bottom: 48px;
+    }
+
+    .hero-stats h1 .muted {
+      color: var(--text-muted);
+    }
+
+    .mega-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border-subtle);
+      border-radius: 24px;
+      overflow: hidden;
+    }
+
+    .mega-stat {
+      background: var(--bg-card);
+      padding: 40px 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .mega-stat::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(400px circle at var(--mx, 50%) var(--my, 50%), rgba(96,165,250,0.06), transparent 40%);
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      pointer-events: none;
+    }
+
+    .mega-stat:hover::before { opacity: 1; }
+
+    .mega-stat-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 12px;
+    }
+
+    .mega-stat-value {
+      font-family: 'Satoshi', sans-serif;
+      font-size: clamp(32px, 4vw, 56px);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      margin-bottom: 12px;
+    }
+
+    .mega-stat-delta {
+      font-size: 14px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 8px;
+    }
+
+    .mega-stat-delta.up {
+      background: var(--success-glow);
+      color: var(--success);
+    }
+
+    .mega-stat-delta.down {
+      background: var(--danger-glow);
+      color: var(--danger);
+    }
+
+    /* Bento Dashboard */
+    .bento-section {
+      padding: 60px 48px 100px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    .bento-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      grid-auto-rows: minmax(200px, auto);
+      gap: 16px;
+    }
+
+    .bento-tile {
+      position: relative;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      padding: 28px;
+      overflow: hidden;
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease;
+    }
+
+    .bento-tile:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 24px 48px rgba(0,0,0,0.2);
+    }
+
+    .bento-tile::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1px;
+      background: radial-gradient(500px circle at var(--mx, 50%) var(--my, 50%), rgba(96,165,250,0.1), transparent 40%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    .bento-tile:hover::before { opacity: 1; }
+
+    .tile-w-4 { grid-column: span 4; }
+    .tile-w-5 { grid-column: span 5; }
+    .tile-w-7 { grid-column: span 7; }
+    .tile-w-8 { grid-column: span 8; }
+    .tile-w-12 { grid-column: span 12; }
+
+    .tile-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .tile-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .tile-action {
+      font-size: 12px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: color 0.2s ease;
+    }
+
+    .tile-action:hover { color: var(--primary); }
+
+    /* Sparkline SVG */
+    .sparkline {
+      width: 100%;
+      height: 60px;
+    }
+
+    .sparkline-path {
+      fill: none;
+      stroke: var(--primary);
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .sparkline-area {
+      fill: url(#sparkGradient);
+      opacity: 0.2;
+    }
+
+    /* Bot List inside tile */
+    .bot-list-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .bot-list-item:last-child { border-bottom: none; }
+
+    .bot-avatar {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      font-size: 13px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .bot-avatar.blue {
+      background: var(--primary-glow);
+      color: var(--primary);
+      border: 1px solid rgba(96, 165, 250, 0.15);
+    }
+
+    .bot-avatar.green {
+      background: var(--success-glow);
+      color: var(--success);
+      border: 1px solid rgba(52, 211, 153, 0.15);
+    }
+
+    .bot-avatar.amber {
+      background: rgba(251, 191, 36, 0.08);
+      color: var(--warning);
+      border: 1px solid rgba(251, 191, 36, 0.15);
+    }
+
+    .bot-meta {
+      flex: 1;
+    }
+
+    .bot-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+
+    .bot-pair {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-family: 'Geist', monospace;
+    }
+
+    .bot-pnl {
+      font-family: 'Geist', monospace;
+      font-size: 14px;
+      font-weight: 500;
+      text-align: right;
+    }
+
+    .bot-pnl.up { color: var(--success); }
+    .bot-pnl.down { color: var(--danger); }
+
+    .mini-bar {
+      width: 80px;
+      height: 4px;
+      background: var(--bg-hover);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+
+    .mini-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: var(--success);
+    }
+
+    /* Transaction Row */
+    .tx-row {
+      display: grid;
+      grid-template-columns: 1fr 100px 100px 80px;
+      gap: 16px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border-subtle);
+      align-items: center;
+    }
+
+    .tx-row:last-child { border-bottom: none; }
+
+    .tx-type {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .tx-icon {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+    }
+
+    .tx-icon.in {
+      background: var(--success-glow);
+      border: 1px solid rgba(52, 211, 153, 0.15);
+      color: var(--success);
+    }
+
+    .tx-icon.out {
+      background: var(--danger-glow);
+      border: 1px solid rgba(248, 113, 113, 0.15);
+      color: var(--danger);
+    }
+
+    .tx-detail {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .tx-detail strong {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .tx-amount {
+      font-family: 'Geist', monospace;
+      font-size: 13px;
+      font-weight: 500;
+      text-align: right;
+    }
+
+    .tx-time {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-align: right;
+    }
+
+    .tx-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .tx-badge.green {
+      background: var(--success-glow);
+      color: var(--success);
+      border: 1px solid rgba(52, 211, 153, 0.15);
+    }
+
+    .tx-badge.amber {
+      background: rgba(251, 191, 36, 0.08);
+      color: var(--warning);
+      border: 1px solid rgba(251, 191, 36, 0.15);
+    }
+
+    @media (max-width: 1024px) {
+      .bento-grid { grid-template-columns: 1fr; }
+      .tile-w-4, .tile-w-5, .tile-w-7, .tile-w-8, .tile-w-12 { grid-column: span 1; }
+      .mega-stats { grid-template-columns: 1fr; }
+      .hero-stats { padding: 140px 24px 60px; }
+      .bento-section { padding: 40px 24px 80px; }
+      .header-float { padding: 10px 16px; gap: 8px; }
+      .header-nav { display: none; }
+    }
+
+    @media (max-width: 640px) {
+      .tx-row { grid-template-columns: 1fr 80px; }
+      .tx-time, .tx-badge { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient-bg"></div>
+
+  <header class="header-float">
+    <div class="header-brand">
+      <div class="header-logo"></div>
+      Meridian
+    </div>
+    <nav class="header-nav">
+      <a href="#" class="active">Overview</a>
+      <a href="#">Bots</a>
+      <a href="#">Wallet</a>
+      <a href="#">Markets</a>
+    </nav>
+    <div class="header-actions">
+      <div class="header-chip">$12,847.32</div>
+      <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--success));"></div>
+    </div>
+  </header>
+
+  <div class="app">
+    <!-- Hero Stats -->
+    <section class="hero-stats">
+      <div class="hero-kicker">Live Dashboard</div>
+      <h1>
+        Your positions
+        <span class="muted">generate</span>
+        returns
+      </h1>
+
+      <div class="mega-stats">
+        <div class="mega-stat">
+          <div class="mega-stat-label">Total Balance</div>
+          <div class="mega-stat-value" data-count="12847.32">$0</div>
+          <div class="mega-stat-delta up">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M18 15l-6-6-6 6"/></svg>
+            +$1,247 this week
+          </div>
+        </div>
+
+        <div class="mega-stat">
+          <div class="mega-stat-label">Active Bots</div>
+          <div class="mega-stat-value" data-count="8">0</div>
+          <div class="mega-stat-delta up">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M18 15l-6-6-6 6"/></svg>
+            2 new this month
+          </div>
+        </div>
+
+        <div class="mega-stat">
+          <div class="mega-stat-label">All-Time PnL</div>
+          <div class="mega-stat-value" data-count="2847.32">$0</div>
+          <div class="mega-stat-delta down">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+            -1.2% today
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bento Grid -->
+    <section class="bento-section">
+      <div class="section-label">Control Surface</div>
+
+      <div class="bento-grid">
+        <!-- Performance Chart (wide) -->
+        <div class="bento-tile tile-w-8">
+          <div class="tile-header">
+            <div class="tile-title">Portfolio Performance</div>
+            <div class="tile-action">24H / 7D / 30D</div>
+          </div>
+          <svg class="sparkline" viewBox="0 0 400 60" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="sparkGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#60a5fa" stop-opacity="0.5"/>
+                <stop offset="100%" stop-color="#60a5fa" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <path class="sparkline-area" d="M0,45 Q25,42 50,38 T100,30 T150,35 T200,20 T250,25 T300,15 T350,18 T400,10 L400,60 L0,60 Z"/>
+            <path class="sparkline-path" d="M0,45 Q25,42 50,38 T100,30 T150,35 T200,20 T250,25 T300,15 T350,18 T400,10"/>
+          </svg>
+          <div style="display:flex; gap:32px; margin-top:20px;">
+            <div>
+              <div style="font-size:11px; color:var(--text-muted); margin-bottom:4px;">Best Performer</div>
+              <div style="font-size:14px; font-weight:600;">Alpha Grid <span style="color:var(--success)">+$1,842</span></div>
+            </div>
+            <div>
+              <div style="font-size:11px; color:var(--text-muted); margin-bottom:4px;">Worst Performer</div>
+              <div style="font-size:14px; font-weight:600;">DCA Builder <span style="color:var(--danger)">-$124</span></div>
+            </div>
+            <div>
+              <div style="font-size:11px; color:var(--text-muted); margin-bottom:4px;">Win Rate</div>
+              <div style="font-size:14px; font-weight:600;">73.8%</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bot List (narrow) -->
+        <div class="bento-tile tile-w-4">
+          <div class="tile-header">
+            <div class="tile-title">Active Bots</div>
+            <div class="tile-action">View All</div>
+          </div>
+          <div class="bot-list-item">
+            <div class="bot-avatar blue">A</div>
+            <div class="bot-meta">
+              <div class="bot-name">Alpha Grid</div>
+              <div class="bot-pair">BTC/USDT — Spot</div>
+            </div>
+            <div>
+              <div class="bot-pnl up">+$1,842</div>
+              <div class="mini-bar"><div class="mini-bar-fill" style="width:78%"></div></div>
+            </div>
+          </div>
+          <div class="bot-list-item">
+            <div class="bot-avatar green">M</div>
+            <div class="bot-meta">
+              <div class="bot-name">Momentum V2</div>
+              <div class="bot-pair">ETH/USDT — Futures</div>
+            </div>
+            <div>
+              <div class="bot-pnl up">+$647</div>
+              <div class="mini-bar"><div class="mini-bar-fill" style="width:45%"></div></div>
+            </div>
+          </div>
+          <div class="bot-list-item">
+            <div class="bot-avatar amber">D</div>
+            <div class="bot-meta">
+              <div class="bot-name">DCA Builder</div>
+              <div class="bot-pair">SOL/USDT — Spot</div>
+            </div>
+            <div>
+              <div class="bot-pnl down">-$124</div>
+              <div class="mini-bar"><div class="mini-bar-fill" style="width:22%; background:var(--danger)"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Market Overview (medium) -->
+        <div class="bento-tile tile-w-5">
+          <div class="tile-header">
+            <div class="tile-title">Markets</div>
+            <div class="tile-action">Top Movers</div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border-subtle);">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div style="width:28px;height:28px;border-radius:8px;background:var(--primary-glow);border:1px solid rgba(96,165,250,0.15);display:grid;place-items:center;font-size:11px;font-weight:600;color:var(--primary);">B</div>
+                <div>
+                  <div style="font-size:13px;font-weight:500;">Bitcoin</div>
+                  <div style="font-size:11px;color:var(--text-muted);">BTC/USDT</div>
+                </div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-family:monospace; font-size:13px; font-weight:500;">$43,210.50</div>
+                <div style="font-size:11px; color:var(--success);">+2.41%</div>
+              </div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border-subtle);">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div style="width:28px;height:28px;border-radius:8px;background:var(--success-glow);border:1px solid rgba(52,211,153,0.15);display:grid;place-items:center;font-size:11px;font-weight:600;color:var(--success);">E</div>
+                <div>
+                  <div style="font-size:13px;font-weight:500;">Ethereum</div>
+                  <div style="font-size:11px;color:var(--text-muted);">ETH/USDT</div>
+                </div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-family:monospace; font-size:13px; font-weight:500;">$2,847.12</div>
+                <div style="font-size:11px; color:var(--success);">+1.82%</div>
+              </div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0;">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div style="width:28px;height:28px;border-radius:8px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.15);display:grid;place-items:center;font-size:11px;font-weight:600;color:var(--warning);">S</div>
+                <div>
+                  <div style="font-size:13px;font-weight:500;">Solana</div>
+                  <div style="font-size:11px;color:var(--text-muted);">SOL/USDT</div>
+                </div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-family:monospace; font-size:13px; font-weight:500;">$142.80</div>
+                <div style="font-size:11px; color:var(--danger);">-0.73%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Allocation (medium) -->
+        <div class="bento-tile tile-w-7">
+          <div class="tile-header">
+            <div class="tile-title">Allocation</div>
+            <div class="tile-action">By Asset</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:40px;">
+            <div style="position:relative; width:140px; height:140px; flex-shrink:0;">
+              <svg width="140" height="140" viewBox="0 0 140 140">
+                <circle cx="70" cy="70" r="60" fill="none" stroke="var(--bg-hover)" stroke-width="12"/>
+                <circle cx="70" cy="70" r="60" fill="none" stroke="var(--primary)" stroke-width="12" stroke-dasharray="150 226" stroke-linecap="round" transform="rotate(-90 70 70)"/>
+                <circle cx="70" cy="70" r="60" fill="none" stroke="var(--success)" stroke-width="12" stroke-dasharray="90 226" stroke-dashoffset="-150" stroke-linecap="round" transform="rotate(-90 70 70)"/>
+                <circle cx="70" cy="70" r="60" fill="none" stroke="var(--warning)" stroke-width="12" stroke-dasharray="60 226" stroke-dashoffset="-240" stroke-linecap="round" transform="rotate(-90 70 70)"/>
+              </svg>
+              <div style="position:absolute; inset:0; display:grid; place-items:center;">
+                <div style="text-align:center;">
+                  <div style="font-size:11px; color:var(--text-muted);">Total</div>
+                  <div style="font-size:18px; font-weight:700;">$12.8K</div>
+                </div>
+              </div>
+            </div>
+            <div style="flex:1; display:flex; flex-direction:column; gap:14px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <div style="width:8px;height:8px;border-radius:50%;background:var(--primary);"></div>
+                  <span style="font-size:13px;">Bitcoin</span>
+                </div>
+                <span style="font-family:monospace; font-size:13px; font-weight:500;">42.3%</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <div style="width:8px;height:8px;border-radius:50%;background:var(--success);"></div>
+                  <span style="font-size:13px;">Ethereum</span>
+                </div>
+                <span style="font-family:monospace; font-size:13px; font-weight:500;">28.7%</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <div style="width:8px;height:8px;border-radius:50%;background:var(--warning);"></div>
+                  <span style="font-size:13px;">Stablecoins</span>
+                </div>
+                <span style="font-family:monospace; font-size:13px; font-weight:500;">19.5%</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <div style="width:8px;height:8px;border-radius:50%;background:var(--text-muted);"></div>
+                  <span style="font-size:13px;">Others</span>
+                </div>
+                <span style="font-family:monospace; font-size:13px; font-weight:500;">9.5%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Transactions (full width) -->
+        <div class="bento-tile tile-w-12">
+          <div class="tile-header">
+            <div class="tile-title">Recent Transactions</div>
+            <div class="tile-action">View All</div>
+          </div>
+          <div class="tx-row">
+            <div class="tx-type">
+              <div class="tx-icon in">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+              </div>
+              <div class="tx-detail">
+                <strong>Deposit</strong> — USDT TRC20
+              </div>
+            </div>
+            <div class="tx-amount" style="color:var(--success)">+$500.00</div>
+            <div class="tx-time">2 minutes ago</div>
+            <div class="tx-badge green">Completed</div>
+          </div>
+          <div class="tx-row">
+            <div class="tx-type">
+              <div class="tx-icon out">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7-7 7 7"/></svg>
+              </div>
+              <div class="tx-detail">
+                <strong>Bot Payout</strong> — Alpha Grid
+              </div>
+            </div>
+            <div class="tx-amount" style="color:var(--danger)">-$124.50</div>
+            <div class="tx-time">14 minutes ago</div>
+            <div class="tx-badge green">Completed</div>
+          </div>
+          <div class="tx-row">
+            <div class="tx-type">
+              <div class="tx-icon in">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+              </div>
+              <div class="tx-detail">
+                <strong>Referral Reward</strong> — Level 2 Commission
+              </div>
+            </div>
+            <div class="tx-amount" style="color:var(--success)">+$12.40</div>
+            <div class="tx-time">1 hour ago</div>
+            <div class="tx-badge green">Completed</div>
+          </div>
+          <div class="tx-row">
+            <div class="tx-type">
+              <div class="tx-icon out">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7-7 7 7"/></svg>
+              </div>
+              <div class="tx-detail">
+                <strong>Withdrawal</strong> — USDT ERC20
+              </div>
+            </div>
+            <div class="tx-amount" style="color:var(--danger)">-$1,200.00</div>
+            <div class="tx-time">3 hours ago</div>
+            <div class="tx-badge amber">Pending</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    gsap.registerPlugin(ScrollTrigger);
+
+    // Spotlight mouse tracking on tiles and mega-stats
+    document.querySelectorAll('.bento-tile, .mega-stat').forEach(el => {
+      el.addEventListener('mousemove', (e) => {
+        const rect = el.getBoundingClientRect();
+        el.style.setProperty('--mx', (e.clientX - rect.left) + 'px');
+        el.style.setProperty('--my', (e.clientY - rect.top) + 'px');
+      });
+    });
+
+    // Header entrance
+    gsap.from('.header-float', {
+      y: -30,
+      opacity: 0,
+      duration: 0.8,
+      ease: 'power3.out',
+      delay: 0.1
+    });
+
+    // Hero kicker + title
+    gsap.from('.hero-kicker', {
+      y: 20,
+      opacity: 0,
+      duration: 0.6,
+      ease: 'power3.out',
+      delay: 0.3
+    });
+
+    gsap.from('.hero-stats h1', {
+      y: 40,
+      opacity: 0,
+      duration: 1,
+      ease: 'power3.out',
+      delay: 0.4
+    });
+
+    // Mega stat counter animation
+    document.querySelectorAll('.mega-stat-value').forEach((el, i) => {
+      const target = parseFloat(el.dataset.count);
+      const isCurrency = el.textContent.includes('$');
+      const obj = { val: 0 };
+      gsap.to(obj, {
+        val: target,
+        duration: 2,
+        delay: 0.6 + i * 0.15,
+        ease: 'power2.out',
+        onUpdate: () => {
+          const formatted = obj.val.toFixed(2);
+          el.textContent = (isCurrency ? '$' : '') + formatted.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+      });
+    });
+
+    // Mega stats entrance
+    gsap.from('.mega-stat', {
+      y: 30,
+      opacity: 0,
+      duration: 0.8,
+      stagger: 0.1,
+      ease: 'power3.out',
+      delay: 0.5
+    });
+
+    // Bento tiles scroll reveal
+    gsap.from('.bento-tile', {
+      scrollTrigger: {
+        trigger: '.bento-grid',
+        start: 'top 85%',
+        toggleActions: 'play none none reverse'
+      },
+      y: 40,
+      opacity: 0,
+      duration: 0.7,
+      stagger: 0.08,
+      ease: 'power3.out'
+    });
+
+    // Sparkline draw animation
+    gsap.from('.sparkline-path', {
+      scrollTrigger: {
+        trigger: '.sparkline',
+        start: 'top 80%',
+        toggleActions: 'play none none reverse'
+      },
+      strokeDasharray: 500,
+      strokeDashoffset: 500,
+      duration: 2,
+      ease: 'power2.out'
+    });
+
+    gsap.from('.sparkline-area', {
+      scrollTrigger: {
+        trigger: '.sparkline',
+        start: 'top 80%',
+        toggleActions: 'play none none reverse'
+      },
+      opacity: 0,
+      duration: 1.2,
+      delay: 0.5,
+      ease: 'power2.out'
+    });
+
+    // Bot list items stagger
+    gsap.from('.bot-list-item', {
+      scrollTrigger: {
+        trigger: '.bot-list-item',
+        start: 'top 85%',
+        toggleActions: 'play none none reverse'
+      },
+      x: -20,
+      opacity: 0,
+      duration: 0.5,
+      stagger: 0.08,
+      ease: 'power2.out'
+    });
+
+    // Transaction rows stagger
+    gsap.from('.tx-row', {
+      scrollTrigger: {
+        trigger: '.tx-row',
+        start: 'top 85%',
+        toggleActions: 'play none none reverse'
+      },
+      y: 15,
+      opacity: 0,
+      duration: 0.5,
+      stagger: 0.06,
+      ease: 'power2.out'
+    });
+
+    // Header shrink on scroll
+    ScrollTrigger.create({
+      start: 80,
+      onUpdate: (self) => {
+        const header = document.querySelector('.header-float');
+        if (self.scroll() > 80) {
+          header.style.padding = '8px 20px';
+          header.style.background = 'rgba(10, 15, 26, 0.95)';
+        } else {
+          header.style.padding = '12px 24px';
+          header.style.background = 'rgba(10, 15, 26, 0.8)';
+        }
+      }
+    });
+
+    // Donut chart rotation on scroll
+    gsap.to('svg circle:nth-child(2)', {
+      scrollTrigger: {
+        trigger: '.tile-w-7',
+        start: 'top 80%',
+        end: 'bottom 20%',
+        scrub: true
+      },
+      rotation: 360,
+      transformOrigin: '70px 70px',
+      ease: 'none'
+    });
+  </script>
+</body>
+</html>

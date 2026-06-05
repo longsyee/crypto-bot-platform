@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Variant I — Admin Terminal</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://api.fontshare.com/v2/css?f[]=geist@400,500,600,700&f[]=space-grotesk@400,500,600,700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-base: #02040a;
+      --bg-elevated: #0a0e17;
+      --bg-card: #0d111c;
+      --bg-hover: #111827;
+      --primary: #60a5fa;
+      --primary-glow: rgba(96, 165, 250, 0.08);
+      --success: #34d399;
+      --success-glow: rgba(52, 211, 153, 0.08);
+      --danger: #f87171;
+      --danger-glow: rgba(248, 113, 113, 0.08);
+      --warning: #fbbf24;
+      --accent: #2dd4bf;
+      --text-primary: #f1f5f9;
+      --text-secondary: #64748b;
+      --text-muted: #475569;
+      --border-subtle: rgba(100, 116, 139, 0.1);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html {
+      background: var(--bg-base);
+      color: var(--text-primary);
+      font-family: 'Geist', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .noise {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      pointer-events: none;
+      opacity: 0.02;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    .terminal {
+      display: grid;
+      grid-template-rows: 44px 1fr;
+      min-height: 100dvh;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      background: var(--bg-elevated);
+      border-bottom: 1px solid var(--border-subtle);
+      z-index: 100;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .topbar-logo {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo-mark {
+      width: 22px; height: 22px;
+      border-radius: 5px;
+      background: linear-gradient(135deg, var(--accent), var(--success));
+    }
+
+    .topbar-nav {
+      display: flex;
+      gap: 2px;
+    }
+
+    .topbar-nav a {
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .topbar-nav a:hover, .topbar-nav a.active {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .admin-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(139, 92, 246, 0.08);
+      border: 1px solid rgba(139, 92, 246, 0.15);
+      font-size: 10px;
+      font-weight: 600;
+      color: #a78bfa;
+    }
+
+    /* Workspace */
+    .workspace {
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    /* Stats Row */
+    .admin-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border-subtle);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .admin-stat {
+      background: var(--bg-card);
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .admin-stat::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+    }
+
+    .admin-stat.s1::before { background: var(--primary); }
+    .admin-stat.s2::before { background: var(--success); }
+    .admin-stat.s3::before { background: var(--warning); }
+    .admin-stat.s4::before { background: #a78bfa; }
+
+    .admin-stat-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+    }
+
+    .admin-stat-value {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 24px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .admin-stat-sub {
+      font-family: 'Geist', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* Two Column Layout */
+    .admin-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 16px;
+    }
+
+    /* Panel */
+    .panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .panel-header h3 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .panel-action {
+      font-size: 11px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: color 0.2s ease;
+    }
+
+    .panel-action:hover { color: var(--primary); }
+
+    /* Search */
+    .search-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: var(--bg-base);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+
+    .search-box input {
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      font-size: 12px;
+      width: 100%;
+      outline: none;
+    }
+
+    .search-box input::placeholder { color: var(--text-muted); }
+
+    /* Table */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+
+    .data-table th {
+      text-align: left;
+      padding: 8px 10px;
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-subtle);
+      background: var(--bg-elevated);
+    }
+
+    .data-table td {
+      padding: 10px;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: rgba(255,255,255,0.015); }
+
+    .role-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 600;
+    }
+
+    .role-admin {
+      background: rgba(139, 92, 246, 0.08);
+      color: #a78bfa;
+      border: 1px solid rgba(139, 92, 246, 0.15);
+    }
+
+    .role-kol {
+      background: var(--warning-glow);
+      color: var(--warning);
+      border: 1px solid rgba(251, 191, 36, 0.15);
+    }
+
+    .role-user {
+      background: var(--primary-glow);
+      color: var(--primary);
+      border: 1px solid rgba(96, 165, 250, 0.15);
+    }
+
+    .role-silver {
+      background: rgba(148, 163, 184, 0.08);
+      color: #94a3b8;
+      border: 1px solid rgba(148, 163, 184, 0.15);
+    }
+
+    .action-btn {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 600;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-elevated);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .action-btn:hover { border-color: var(--text-muted); color: var(--text-primary); }
+    .action-btn.approve { background: var(--success); color: var(--bg-base); border-color: var(--success); }
+    .action-btn.reject { background: var(--danger); color: var(--bg-base); border-color: var(--danger); }
+
+    /* Withdrawal Item */
+    .withdrawal-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .withdrawal-item:last-child { border-bottom: none; }
+
+    .withdrawal-avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      flex-shrink: 0;
+    }
+
+    .withdrawal-meta {
+      flex: 1;
+    }
+
+    .withdrawal-user {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .withdrawal-detail {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-family: 'Geist', monospace;
+      margin-top: 2px;
+    }
+
+    .withdrawal-amount {
+      font-family: 'Geist', monospace;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      text-align: right;
+    }
+
+    .withdrawal-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    /* Audit Log */
+    .audit-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border-subtle);
+      font-size: 11px;
+    }
+
+    .audit-item:last-child { border-bottom: none; }
+
+    .audit-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .audit-dot.success { background: var(--success); }
+    .audit-dot.warning { background: var(--warning); }
+    .audit-dot.info { background: var(--primary); }
+
+    .audit-text {
+      flex: 1;
+      color: var(--text-secondary);
+    }
+
+    .audit-text strong {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .audit-time {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-family: 'Geist', monospace;
+    }
+
+    /* Company Stats mini */
+    .company-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--border-subtle);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-top: 12px;
+    }
+
+    .company-cell {
+      background: var(--bg-base);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .company-label {
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+    }
+
+    .company-value {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    @media (max-width: 1024px) {
+      .admin-grid { grid-template-columns: 1fr; }
+      .admin-stats { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 640px) {
+      .admin-stats { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="noise"></div>
+
+  <div class="terminal">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-logo">
+          <div class="logo-mark"></div>
+          Flux
+        </div>
+        <nav class="topbar-nav">
+          <a href="variant-e-flux-terminal.html">Terminal</a>
+          <a href="variant-g-bot-terminal.html">Bots</a>
+          <a href="variant-h-wallet-terminal.html">Wallet</a>
+          <a href="#" class="active">Admin</a>
+        </nav>
+      </div>
+      <div class="topbar-right">
+        <div class="admin-badge">Super Admin</div>
+        <div style="font-family:monospace; font-size:10px; color:var(--text-muted);">v2.4.1</div>
+      </div>
+    </div>
+
+    <div class="workspace">
+      <!-- Top Stats -->
+      <div class="admin-stats">
+        <div class="admin-stat s1">
+          <div class="admin-stat-label">Total Users</div>
+          <div class="admin-stat-value" data-count="2847">0</div>
+          <div class="admin-stat-sub">+124 this week</div>
+        </div>
+        <div class="admin-stat s2">
+          <div class="admin-stat-label">Active Bots</div>
+          <div class="admin-stat-value" data-count="1842">0</div>
+          <div class="admin-stat-sub">1,005 stopped</div>
+        </div>
+        <div class="admin-stat s3">
+          <div class="admin-stat-label">Pending Withdrawals</div>
+          <div class="admin-stat-value" style="color:var(--warning)">12</div>
+          <div class="admin-stat-sub">$3,847.20 total</div>
+        </div>
+        <div class="admin-stat s4">
+          <div class="admin-stat-label">Total Fees</div>
+          <div class="admin-stat-value" data-count="48291">$0</div>
+          <div class="admin-stat-sub">Lifetime collected</div>
+        </div>
+      </div>
+
+      <div class="admin-grid">
+        <!-- Left Column -->
+        <div style="display:flex; flex-direction:column; gap:16px;">
+          <!-- Users Table -->
+          <div class="panel">
+            <div class="panel-header">
+              <h3>Users</h3>
+              <span class="panel-action">Export CSV</span>
+            </div>
+            <div class="search-box">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" placeholder="Search users..." />
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Tier</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>alex.morgan@pm.me</td>
+                  <td><span class="role-badge role-admin">Admin</span></td>
+                  <td><span class="role-badge role-kol">KOL</span></td>
+                  <td>Jan 14, 2024</td>
+                  <td><button class="action-btn">Edit</button></td>
+                </tr>
+                <tr>
+                  <td>sam.chen@dev.io</td>
+                  <td><span class="role-badge role-user">User</span></td>
+                  <td><span class="role-badge role-kol">KOL</span></td>
+                  <td>Mar 2, 2024</td>
+                  <td><button class="action-btn">Edit</button></td>
+                </tr>
+                <tr>
+                  <td>lena.k@fintech.co</td>
+                  <td><span class="role-badge role-user">User</span></td>
+                  <td><span class="role-badge role-silver">Silver</span></td>
+                  <td>Apr 18, 2024</td>
+                  <td><button class="action-btn">Edit</button></td>
+                </tr>
+                <tr>
+                  <td>jordan.t@trade.xyz</td>
+                  <td><span class="role-badge role-user">User</span></td>
+                  <td><span class="role-badge role-user">Bronze</span></td>
+                  <td>May 7, 2024</td>
+                  <td><button class="action-btn">Edit</button></td>
+                </tr>
+                <tr>
+                  <td>mira.patel@quant.in</td>
+                  <td><span class="role-badge role-user">User</span></td>
+                  <td><span class="role-badge role-kol">KOL</span></td>
+                  <td>Jun 1, 2024</td>
+                  <td><button class="action-btn">Edit</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Audit Log -->
+          <div class="panel">
+            <div class="panel-header">
+              <h3>Audit Log</h3>
+              <span class="panel-action">View All</span>
+            </div>
+            <div class="audit-item">
+              <div class="audit-dot success"></div>
+              <div class="audit-text"><strong>Withdrawal approved</strong> — $500 RWD to 0x3a...e7b</div>
+              <div class="audit-time">2m</div>
+            </div>
+            <div class="audit-item">
+              <div class="audit-dot warning"></div>
+              <div class="audit-text"><strong>User suspended</strong> — sam.chen for policy violation</div>
+              <div class="audit-time">14m</div>
+            </div>
+            <div class="audit-item">
+              <div class="audit-dot info"></div>
+              <div class="audit-text"><strong>Role changed</strong> — lena.k promoted to Silver</div>
+              <div class="audit-time">1h</div>
+            </div>
+            <div class="audit-item">
+              <div class="audit-dot success"></div>
+              <div class="audit-text"><strong>Bot started</strong> — Alpha Grid by alex.morgan</div>
+              <div class="audit-time">2h</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column -->
+        <div style="display:flex; flex-direction:column; gap:16px;">
+          <!-- Withdrawal Queue -->
+          <div class="panel">
+            <div class="panel-header">
+              <h3>Withdrawal Queue</h3>
+              <span class="panel-action">12 Pending</span>
+            </div>
+            <div class="withdrawal-item">
+              <div class="withdrawal-avatar"></div>
+              <div class="withdrawal-meta">
+                <div class="withdrawal-user">alex.morgan@pm.me</div>
+                <div class="withdrawal-detail">$500.00 RWD — 2m ago</div>
+              </div>
+              <div class="withdrawal-actions">
+                <button class="action-btn approve">Approve</button>
+                <button class="action-btn reject">Reject</button>
+              </div>
+            </div>
+            <div class="withdrawal-item">
+              <div class="withdrawal-avatar" style="background:linear-gradient(135deg,var(--success),var(--accent));"></div>
+              <div class="withdrawal-meta">
+                <div class="withdrawal-user">sam.chen@dev.io</div>
+                <div class="withdrawal-detail">$1,200.00 RWD — 8m ago</div>
+              </div>
+              <div class="withdrawal-actions">
+                <button class="action-btn approve">Approve</button>
+                <button class="action-btn reject">Reject</button>
+              </div>
+            </div>
+            <div class="withdrawal-item">
+              <div class="withdrawal-avatar" style="background:linear-gradient(135deg,var(--danger),var(--warning));"></div>
+              <div class="withdrawal-meta">
+                <div class="withdrawal-user">lena.k@fintech.co</div>
+                <div class="withdrawal-detail">$340.50 RWD — 15m ago</div>
+              </div>
+              <div class="withdrawal-actions">
+                <button class="action-btn approve">Approve</button>
+                <button class="action-btn reject">Reject</button>
+              </div>
+            </div>
+            <div class="withdrawal-item">
+              <div class="withdrawal-avatar" style="background:linear-gradient(135deg,#a78bfa,var(--primary));"></div>
+              <div class="withdrawal-meta">
+                <div class="withdrawal-user">jordan.t@trade.xyz</div>
+                <div class="withdrawal-detail">$95.20 RWD — 32m ago</div>
+              </div>
+              <div class="withdrawal-actions">
+                <button class="action-btn approve">Approve</button>
+                <button class="action-btn reject">Reject</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Company Health -->
+          <div class="panel">
+            <div class="panel-header">
+              <h3>Company Health</h3>
+              <span class="panel-action">This Month</span>
+            </div>
+            <div class="company-grid">
+              <div class="company-cell">
+                <div class="company-label">Deposits</div>
+                <div class="company-value" style="color:var(--success)">$42.1K</div>
+              </div>
+              <div class="company-cell">
+                <div class="company-label">Payouts</div>
+                <div class="company-value" style="color:var(--danger)">$12.8K</div>
+              </div>
+              <div class="company-cell">
+                <div class="company-label">Net Balance</div>
+                <div class="company-value">$29.3K</div>
+              </div>
+              <div class="company-cell">
+                <div class="company-label">Fees Collected</div>
+                <div class="company-value" style="color:var(--primary)">$4.2K</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    gsap.registerPlugin(ScrollTrigger);
+
+    // Count up stats
+    document.querySelectorAll('[data-count]').forEach(el => {
+      const target = parseInt(el.dataset.count);
+      const obj = { val: 0 };
+      const isCurrency = el.textContent.includes('$');
+      gsap.to(obj, {
+        val: target,
+        duration: 2,
+        delay: 0.3,
+        ease: 'power2.out',
+        onUpdate: () => {
+          const v = Math.round(obj.val).toLocaleString();
+          el.textContent = isCurrency ? '$' + v : v;
+        }
+      });
+    });
+
+    gsap.from('.topbar', { y: -44, opacity: 0, duration: 0.5, ease: 'power3.out' });
+    gsap.from('.admin-stat', { y: 16, opacity: 0, duration: 0.5, stagger: 0.06, ease: 'power2.out', delay: 0.2 });
+    gsap.from('.panel', { y: 20, opacity: 0, duration: 0.5, stagger: 0.08, ease: 'power2.out', delay: 0.35 });
+    gsap.from('.data-table tbody tr', { y: 10, opacity: 0, duration: 0.3, stagger: 0.04, ease: 'power2.out', delay: 0.5 });
+    gsap.from('.withdrawal-item', { x: 20, opacity: 0, duration: 0.4, stagger: 0.06, ease: 'power2.out', delay: 0.45 });
+    gsap.from('.audit-item', { x: -10, opacity: 0, duration: 0.3, stagger: 0.05, ease: 'power2.out', delay: 0.55 });
+  </script>
+</body>
+</html>

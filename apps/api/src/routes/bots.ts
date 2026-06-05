@@ -41,6 +41,15 @@ bots.post("/", requireAuth, zValidator("json", CreateBotSchema), async (c) => {
   const body = c.req.valid("json");
 
   const config = body.config;
+
+  // For paper bots, seed from user's SimFunds wallet balance
+  let paperInitialBalance: any = undefined;
+  if (body.mode === "paper") {
+    const wallet = await prisma.wallet.findUnique({ where: { userId: user.id } });
+    const simFunds = wallet?.simFundsBalance?.toNumber() ?? 0;
+    paperInitialBalance = { USDT: simFunds };
+  }
+
   const bot = await prisma.bot.create({
     data: {
       userId: user.id,
@@ -54,7 +63,7 @@ bots.post("/", requireAuth, zValidator("json", CreateBotSchema), async (c) => {
       leverageType: config.type === "dca" ? (config.leverage_type ?? "cross") : "cross",
       maxSafetyOrdersActive: config.type === "dca" ? (config.max_safety_orders_active ?? 3) : 3,
       tradingPair: body.tradingPair || undefined,
-      paperInitialBalance: body.mode === "paper" ? body.paperInitialBalance : undefined,
+      paperInitialBalance,
     },
   });
 
@@ -190,6 +199,19 @@ bots.post("/:id/start", requireAuth, async (c) => {
     const wallet = await prisma.wallet.findUnique({ where: { userId: user.id } });
     if (!wallet || wallet.tokenBalance.lessThanOrEqualTo(0)) {
       return c.json({ success: false, error: "Insufficient token balance to start live bot", code: "NO_FUNDS" }, 400);
+    }
+  }
+
+  if (bot.mode === "paper") {
+    const wallet = await prisma.wallet.findUnique({ where: { userId: user.id } });
+    const simFunds = wallet?.simFundsBalance?.toNumber() ?? 0;
+    if (simFunds <= 0) {
+      return c.json({
+        success: false,
+        error: "No SimFunds available. Top up to start paper trading.",
+        code: "NO_SIM_FUNDS",
+        data: { topUpUrl: "/paper-topup" },
+      }, 400);
     }
   }
 

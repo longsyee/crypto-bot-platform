@@ -279,6 +279,27 @@ export async function startDcaLoop(botId: string): Promise<void> {
       return;
     }
 
+    // Seed paperInitialBalance from current wallet SimFunds on every start
+    if (bot.mode === "paper") {
+      try {
+        const wallet = await prisma.wallet.findUnique({
+          where: { userId: bot.userId },
+          select: { simFundsBalance: true },
+        });
+        const simFunds = wallet?.simFundsBalance?.toNumber() ?? 0;
+        if (simFunds > 0) {
+          await prisma.bot.update({
+            where: { id: botId },
+            data: {
+              paperInitialBalance: { USDT: simFunds } as any,
+            },
+          });
+        }
+      } catch (_e) {
+        // ignore wallet read errors — connector fallback handles it
+      }
+    }
+
     const cfg = bot.configJson as any;
     const connector = getConnector(bot.connection.exchangeId, bot.mode, botId);
     const symbol = (bot as any).tradingPair || cfg.default_symbol || "BTC/USDT";
@@ -334,16 +355,17 @@ export async function startDcaLoop(botId: string): Promise<void> {
         });
       } else {
         const direction = directions[0];
-        const existingOrders =
-          bot.mode === "live"
-            ? await prisma.botOrder.findMany({
-                where: { botId, side: getEntrySide(direction) },
-                orderBy: { createdAt: "asc" },
-              })
-            : await prisma.paperTrade.findMany({
-                where: { botId, side: getEntrySide(direction) },
-                orderBy: { createdAt: "asc" },
-              });
+        let existingOrders: any[] = await prisma.botOrder.findMany({
+          where: { botId, side: getEntrySide(direction) },
+          orderBy: { createdAt: "asc" },
+        });
+        // Fallback for legacy paper bots that only have PaperTrade records
+        if (existingOrders.length === 0 && bot.mode === "paper") {
+          existingOrders = await prisma.paperTrade.findMany({
+            where: { botId, side: getEntrySide(direction) },
+            orderBy: { createdAt: "asc" },
+          });
+        }
 
         if (existingOrders.length > 0) {
           let totalAmount = new Decimal(0);
@@ -1547,6 +1569,21 @@ async function reconcilePendingOrders(opts: {
             metadata: { orderId: po.exchangeOrderId, filled: newlyFilled, price: avgPrice },
           });
         }
+        // Update unified BotOrder ledger
+        try {
+          await prisma.botOrder.updateMany({
+            where: { botId, exchangeOrderId: po.exchangeOrderId },
+            data: {
+              status: "closed",
+              filled: order.filled,
+              remaining: 0,
+              cost: order.cost,
+              fee: order.fee,
+            },
+          });
+        } catch (_e) {
+          // Non-fatal: ledger update best-effort
+        }
       } else if (state.tickCount - po.placedAtTick > LIMIT_ORDER_MAX_TICKS) {
         // Cancel stale limit order
         await connector.cancelOrder(po.exchangeOrderId, symbol);
@@ -1555,6 +1592,15 @@ async function reconcilePendingOrders(opts: {
           message: `Stale limit order ${po.exchangeOrderId} cancelled after ${LIMIT_ORDER_MAX_TICKS} ticks`,
           metadata: { orderId: po.exchangeOrderId, placedAtTick: po.placedAtTick },
         });
+        // Update unified BotOrder ledger
+        try {
+          await prisma.botOrder.updateMany({
+            where: { botId, exchangeOrderId: po.exchangeOrderId },
+            data: { status: "canceled", remaining: 0 },
+          });
+        } catch (_e) {
+          // Non-fatal: ledger update best-effort
+        }
       } else {
         stillPending.push(po);
       }

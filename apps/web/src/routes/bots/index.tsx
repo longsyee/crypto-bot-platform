@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
-import { useBots, useStartBot, useStopBot, useDeleteBot, useExitBot } from "../../hooks/use-api";
+import { useBots, useStartBot, useStopBot, useDeleteBot, useExitBot, useSimFundsConfig } from "../../hooks/use-api";
 import { PageWrapper } from "../../components/layout/page-wrapper";
 import { Play, Square, Plus, Search, Bot, Trash2, Pencil, Zap } from "lucide-react";
 import { ConfirmModal } from "../../components/ui/confirm-modal";
@@ -19,6 +19,7 @@ function BotsPage() {
   const stopBot = useStopBot();
   const deleteBot = useDeleteBot();
   const exitBot = useExitBot();
+  const { data: simConfig } = useSimFundsConfig();
 
   const [activeTab, setActiveTab] = useState<TabValue>("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -231,6 +232,25 @@ function BotsPage() {
                         {t("common.pnl")}: —
                       </span>
                     )}
+                    {bot.mode === "paper" && (
+                      (bot.stateJson?.realizedPnl != null
+                        ? Number(bot.stateJson.realizedPnl)
+                        : bot.paperBalance?.realizedPnl != null
+                        ? Number(bot.paperBalance.realizedPnl)
+                        : null) != null && (
+                        <span className="text-[10px] text-[var(--text-muted)]">
+                          {t("botDetail.realEquivalent")}: $
+                          {fmt(
+                            (Number(
+                              bot.stateJson?.realizedPnl ?? bot.paperBalance?.realizedPnl ?? 0
+                            ) *
+                              (1 -
+                                (Number((simConfig?.data as any)?.live_profit_fee_pct ?? 20) /
+                                  100)))
+                          )}
+                        </span>
+                      )
+                    )}
                   </div>
 
                   {/* Meta grid */}
@@ -282,8 +302,8 @@ function BotsPage() {
                     </div>
                   </div>
 
-                  {/* Stats row: Orders / PnL / Profit */}
-                  <div className="relative grid grid-cols-3 gap-2.5">
+                  {/* Stats row: Orders / PnL / Profit / Real Equivalent */}
+                  <div className="relative grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                     <div className="bg-[var(--bg-hover)]/60 border border-[var(--border-subtle)] rounded-lg px-3 py-2 flex flex-col gap-0.5">
                       <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
                         {t("common.orders")}
@@ -332,6 +352,30 @@ function BotsPage() {
                         )}
                       </span>
                     </div>
+                    {bot.mode === "paper" && (
+                      (bot.stateJson?.realizedPnl != null
+                        ? Number(bot.stateJson.realizedPnl)
+                        : bot.paperBalance?.realizedPnl != null
+                        ? Number(bot.paperBalance.realizedPnl)
+                        : null) != null && (
+                        <div className="bg-[var(--bg-hover)]/60 border border-[var(--border-subtle)] rounded-lg px-3 py-2 flex flex-col gap-0.5">
+                          <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
+                            {t("botDetail.realEquivalent")}
+                          </span>
+                          <span className="text-xs font-semibold text-[var(--text-secondary)]">
+                            $
+                            {fmt(
+                              (Number(
+                                bot.stateJson?.realizedPnl ?? bot.paperBalance?.realizedPnl ?? 0
+                              ) *
+                                (1 -
+                                  (Number((simConfig?.data as any)?.live_profit_fee_pct ?? 20) /
+                                    100)))
+                            )}
+                          </span>
+                        </div>
+                      )
+                    )}
                   </div>
 
                   {/* Footer: updated time */}

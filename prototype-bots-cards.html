@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Bots List — Card Prototype</title>
+<style>
+  :root {
+    --bg: #0b0d12;
+    --bg-card: #13161c;
+    --bg-elevated: #1a1e26;
+    --border: rgba(255,255,255,0.06);
+    --border-strong: rgba(255,255,255,0.10);
+    --text: #e7e9ee;
+    --text-secondary: #8b92a8;
+    --primary: #7dd3fc;   /* cyan accent */
+    --success: #34d399;
+    --warning: #fbbf24;
+    --danger: #f87171;
+    --radius: 14px;
+    --shadow: 0 10px 30px rgba(0,0,0,0.35);
+    --shadow-hover: 0 14px 40px rgba(0,0,0,0.45);
+    --transition: transform 180ms ease, box-shadow 180ms ease;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 40px 24px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  }
+  h1 { margin: 0 0 24px; font-size: 28px; letter-spacing: -0.3px; }
+  .grid {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: repeat(1, 1fr);
+  }
+  @media (min-width: 640px)  { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1024px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (min-width: 1440px) { .grid { grid-template-columns: repeat(4, 1fr); } }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    transition: var(--transition);
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1.2px;
+    background: linear-gradient(160deg, rgba(125,211,252,0.25), rgba(125,211,252,0) 55%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    opacity: 0.6;
+    transition: opacity 180ms ease;
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+  }
+  .card:hover::before { opacity: 1; }
+
+  .row-between {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  }
+  .title {
+    font-size: 18px; font-weight: 700; letter-spacing: -0.2px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .pair {
+    font-size: 13px; font-weight: 600; color: var(--primary);
+    background: rgba(125,211,252,0.10);
+    border: 1px solid rgba(125,211,252,0.18);
+    padding: 4px 10px; border-radius: 999px;
+  }
+
+  .meta {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .meta-item {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .meta-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-secondary); }
+  .meta-value { font-size: 14px; font-weight: 600; }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 600; padding: 5px 10px; border-radius: 999px;
+    border: 1px solid var(--border-strong);
+  }
+  .badge.running { background: rgba(52,211,153,0.10); color: var(--success); border-color: rgba(52,211,153,0.25); }
+  .badge.stopped { background: rgba(139,146,168,0.10); color: var(--text-secondary); border-color: rgba(139,146,168,0.25); }
+  .badge.paper   { background: rgba(251,191,36,0.10); color: var(--warning); border-color: rgba(251,191,36,0.25); }
+  .badge.live    { background: rgba(125,211,252,0.10); color: var(--primary); border-color: rgba(125,211,252,0.25); }
+
+  .actions {
+    display: flex; gap: 8px; margin-top: 4px;
+  }
+  .btn {
+    flex: 1;
+    appearance: none; border: 1px solid var(--border-strong);
+    background: var(--bg-elevated); color: var(--text);
+    padding: 9px 12px; border-radius: 10px; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: background 120ms ease, border-color 120ms ease;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .btn:hover { background: rgba(255,255,255,0.04); border-color: var(--border-strong); }
+  .btn.primary { background: rgba(125,211,252,0.12); color: var(--primary); border-color: rgba(125,211,252,0.30); }
+  .btn.primary:hover { background: rgba(125,211,252,0.18); }
+  .btn.danger  { background: rgba(248,113,113,0.10); color: var(--danger); border-color: rgba(248,113,113,0.25); }
+  .btn.danger:hover  { background: rgba(248,113,113,0.16); }
+
+  .status-dot {
+    width: 8px; height: 8px; border-radius: 50%; display: inline-block;
+  }
+  .status-dot.running { background: var(--success); box-shadow: 0 0 8px var(--success); }
+  .status-dot.stopped { background: var(--text-secondary); }
+
+  .footer-note {
+    margin-top: 18px; color: var(--text-secondary); font-size: 13px;
+  }
+</style>
+</head>
+<body>
+  <h1>My Bots</h1>
+  <div class="grid" id="grid"></div>
+  <p class="footer-note">Desktop: 4 columns • Laptop: 3 columns • Tablet: 2 columns • Mobile: 1 column</p>
+
+<script>
+const bots = [
+  { name: "BTC/USDT DCA", pair: "BTC/USDT", type: "DCA+", mode: "Live", status: "Running", exchange: "Binance", orders: 12, pnl: "+3.2%", profit: "$42.10" },
+  { name: "ETH Long Signal", pair: "ETH/USDT", type: "Signal", mode: "Paper", status: "Stopped", exchange: "Bybit", orders: 4, pnl: "-0.8%", profit: "-$1.20" },
+  { name: "SOL Aggressive", pair: "SOL/USDT", type: "DCA+", mode: "Live", status: "Running", exchange: "Binance", orders: 28, pnl: "+7.4%", profit: "$124.50" },
+  { name: "XRP Signal", pair: "XRP/USDT", type: "Signal", mode: "Paper", status: "Running", exchange: "OKX", orders: 6, pnl: "+1.1%", profit: "$3.40" },
+  { name: "DOGE Moon", pair: "DOGE/USDT", type: "DCA+", mode: "Live", status: "Stopped", exchange: "Bybit", orders: 0, pnl: "0.0%", profit: "$0.00" },
+  { name: "ADA Safe", pair: "ADA/USDT", type: "DCA+", mode: "Paper", status: "Running", exchange: "Binance", orders: 8, pnl: "+2.5%", profit: "$8.90" },
+];
+
+const grid = document.getElementById('grid');
+
+function fmtMoney(v) {
+  const isNeg = v.startsWith('-');
+  const color = isNeg ? 'var(--danger)' : 'var(--success)';
+  return `<span style="color:${color}">${v}</span>`;
+}
+
+bots.forEach(b => {
+  const el = document.createElement('div');
+  el.className = 'card';
+  el.innerHTML = `
+    <div class="row-between">
+      <div class="title" title="${b.name}">${b.name}</div>
+      <span class="pair">${b.pair}</span>
+    </div>
+    <div class="meta">
+      <div class="meta-item">
+        <span class="meta-label">Type</span>
+        <span class="meta-value">${b.type}</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Mode</span>
+        <span class="badge ${b.mode.toLowerCase()}">${b.mode}</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Status</span>
+        <span class="meta-value" style="display:flex;align-items:center;gap:6px">
+          <span class="status-dot ${b.status.toLowerCase()}"></span>
+          ${b.status}
+        </span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Exchange</span>
+        <span class="meta-value">${b.exchange}</span>
+      </div>
+    </div>
+    <div class="meta" style="grid-template-columns: repeat(3, 1fr)">
+      <div class="meta-item">
+        <span class="meta-label">Orders</span>
+        <span class="meta-value">${b.orders}</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">PnL</span>
+        <span class="meta-value">${fmtMoney(b.pnl)}</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Profit</span>
+        <span class="meta-value">${fmtMoney(b.profit)}</span>
+      </div>
+    </div>
+    <div class="actions">
+      ${b.status === 'Running'
+        ? `<button class="btn danger">■ Stop</button>`
+        : `<button class="btn primary">▶ Start</button>`}
+      <button class="btn">⚙ Edit</button>
+      <button class="btn">🗑</button>
+    </div>
+  `;
+  grid.appendChild(el);
+});
+</script>
+</body>
+</html>

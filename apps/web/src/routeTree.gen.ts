@@ -16,10 +16,12 @@ import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ReferralsRouteImport } from './routes/referrals'
 import { Route as RankingsRouteImport } from './routes/rankings'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as PaperTopupRouteImport } from './routes/paper-topup'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as ExchangeConnectionsRouteImport } from './routes/exchange-connections'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as CommunityRouteImport } from './routes/community'
 import { Route as CalculatorRouteImport } from './routes/calculator'
 import { Route as ApiDocsRouteImport } from './routes/api-docs'
 import { Route as AiIntegrationRouteImport } from './routes/ai-integration'
@@ -64,6 +66,11 @@ const ProfileRoute = ProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PaperTopupRoute = PaperTopupRouteImport.update({
+  id: '/paper-topup',
+  path: '/paper-topup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -82,6 +89,11 @@ const ExchangeConnectionsRoute = ExchangeConnectionsRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CommunityRoute = CommunityRouteImport.update({
+  id: '/community',
+  path: '/community',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CalculatorRoute = CalculatorRouteImport.update({
@@ -131,10 +143,12 @@ export interface FileRoutesByFullPath {
   '/ai-integration': typeof AiIntegrationRoute
   '/api-docs': typeof ApiDocsRoute
   '/calculator': typeof CalculatorRoute
+  '/community': typeof CommunityRoute
   '/dashboard': typeof DashboardRoute
   '/exchange-connections': typeof ExchangeConnectionsRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/paper-topup': typeof PaperTopupRoute
   '/profile': typeof ProfileRoute
   '/rankings': typeof RankingsRoute
   '/referrals': typeof ReferralsRoute
@@ -152,10 +166,12 @@ export interface FileRoutesByTo {
   '/ai-integration': typeof AiIntegrationRoute
   '/api-docs': typeof ApiDocsRoute
   '/calculator': typeof CalculatorRoute
+  '/community': typeof CommunityRoute
   '/dashboard': typeof DashboardRoute
   '/exchange-connections': typeof ExchangeConnectionsRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/paper-topup': typeof PaperTopupRoute
   '/profile': typeof ProfileRoute
   '/rankings': typeof RankingsRoute
   '/referrals': typeof ReferralsRoute
@@ -174,10 +190,12 @@ export interface FileRoutesById {
   '/ai-integration': typeof AiIntegrationRoute
   '/api-docs': typeof ApiDocsRoute
   '/calculator': typeof CalculatorRoute
+  '/community': typeof CommunityRoute
   '/dashboard': typeof DashboardRoute
   '/exchange-connections': typeof ExchangeConnectionsRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/paper-topup': typeof PaperTopupRoute
   '/profile': typeof ProfileRoute
   '/rankings': typeof RankingsRoute
   '/referrals': typeof ReferralsRoute
@@ -197,10 +215,12 @@ export interface FileRouteTypes {
     | '/ai-integration'
     | '/api-docs'
     | '/calculator'
+    | '/community'
     | '/dashboard'
     | '/exchange-connections'
     | '/forgot-password'
     | '/login'
+    | '/paper-topup'
     | '/profile'
     | '/rankings'
     | '/referrals'
@@ -218,10 +238,12 @@ export interface FileRouteTypes {
     | '/ai-integration'
     | '/api-docs'
     | '/calculator'
+    | '/community'
     | '/dashboard'
     | '/exchange-connections'
     | '/forgot-password'
     | '/login'
+    | '/paper-topup'
     | '/profile'
     | '/rankings'
     | '/referrals'
@@ -239,10 +261,12 @@ export interface FileRouteTypes {
     | '/ai-integration'
     | '/api-docs'
     | '/calculator'
+    | '/community'
     | '/dashboard'
     | '/exchange-connections'
     | '/forgot-password'
     | '/login'
+    | '/paper-topup'
     | '/profile'
     | '/rankings'
     | '/referrals'
@@ -261,10 +285,12 @@ export interface RootRouteChildren {
   AiIntegrationRoute: typeof AiIntegrationRoute
   ApiDocsRoute: typeof ApiDocsRoute
   CalculatorRoute: typeof CalculatorRoute
+  CommunityRoute: typeof CommunityRoute
   DashboardRoute: typeof DashboardRoute
   ExchangeConnectionsRoute: typeof ExchangeConnectionsRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
+  PaperTopupRoute: typeof PaperTopupRoute
   ProfileRoute: typeof ProfileRoute
   RankingsRoute: typeof RankingsRoute
   ReferralsRoute: typeof ReferralsRoute
@@ -328,6 +354,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/paper-topup': {
+      id: '/paper-topup'
+      path: '/paper-topup'
+      fullPath: '/paper-topup'
+      preLoaderRoute: typeof PaperTopupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -354,6 +387,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/community': {
+      id: '/community'
+      path: '/community'
+      fullPath: '/community'
+      preLoaderRoute: typeof CommunityRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/calculator': {
@@ -421,10 +461,12 @@ const rootRouteChildren: RootRouteChildren = {
   AiIntegrationRoute: AiIntegrationRoute,
   ApiDocsRoute: ApiDocsRoute,
   CalculatorRoute: CalculatorRoute,
+  CommunityRoute: CommunityRoute,
   DashboardRoute: DashboardRoute,
   ExchangeConnectionsRoute: ExchangeConnectionsRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
+  PaperTopupRoute: PaperTopupRoute,
   ProfileRoute: ProfileRoute,
   RankingsRoute: RankingsRoute,
   ReferralsRoute: ReferralsRoute,

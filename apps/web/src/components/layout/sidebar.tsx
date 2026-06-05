@@ -27,6 +27,7 @@ const nav = [
   { to: "/wallet", tKey: "nav.wallet", icon: Wallet },
   { to: "/exchange-connections", tKey: "nav.exchanges", icon: Plug },
   { to: "/bots", tKey: "nav.bots", icon: Bot },
+  { to: "/paper-topup", tKey: "nav.paperTopup", icon: BookOpen },
   { to: "/calculator", tKey: "nav.dcaSimulator", icon: Calculator },
   { to: "/rankings", tKey: "nav.rankings", icon: Trophy },
   { to: "/referrals", tKey: "nav.referrals", icon: Users },

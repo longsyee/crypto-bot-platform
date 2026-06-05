@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Variant B — Liquid Glass Bento</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://api.fontshare.com/v2/css?f[]=geist@400,500,600,700&f[]=cabinet-grotesk@400,500,700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-base: #f9fafb;
+      --bg-elevated: #ffffff;
+      --accent: #0891b2;
+      --accent-glow: rgba(8, 145, 178, 0.1);
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+      --border-subtle: rgba(148, 163, 184, 0.15);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html {
+      background: var(--bg-base);
+      color: var(--text-primary);
+      font-family: 'Geist', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* Floating ambient orbs */
+    .ambient {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.4;
+      animation: orbFloat 20s ease-in-out infinite;
+    }
+
+    .orb-1 {
+      width: 400px; height: 400px;
+      background: rgba(8, 145, 178, 0.12);
+      top: -10%; left: -5%;
+      animation-delay: 0s;
+    }
+
+    .orb-2 {
+      width: 300px; height: 300px;
+      background: rgba(99, 102, 241, 0.08);
+      bottom: 10%; right: -5%;
+      animation-delay: -7s;
+    }
+
+    .orb-3 {
+      width: 250px; height: 250px;
+      background: rgba(8, 145, 178, 0.06);
+      top: 50%; left: 50%;
+      animation-delay: -14s;
+    }
+
+    @keyframes orbFloat {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -30px) scale(1.1); }
+      66% { transform: translate(-20px, 20px) scale(0.95); }
+    }
+
+    /* Navigation — Floating Island */
+    .nav-island {
+      position: fixed;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      background: rgba(255,255,255,0.72);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid rgba(255,255,255,0.5);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.6);
+      border-radius: 999px;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .nav-island.scrolled {
+      padding: 8px 20px;
+      background: rgba(255,255,255,0.9);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.1);
+    }
+
+    .nav-logo {
+      font-family: 'Cabinet Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: -0.02em;
+      padding: 6px 12px;
+      color: var(--text-primary);
+    }
+
+    .nav-divider {
+      width: 1px;
+      height: 20px;
+      background: var(--border-subtle);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 4px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      display: block;
+      padding: 6px 14px;
+      border-radius: 999px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.25s ease;
+    }
+
+    .nav-links a:hover {
+      background: rgba(8, 145, 178, 0.08);
+      color: var(--accent);
+    }
+
+    /* Hero — Asymmetric Left */
+    .hero {
+      position: relative;
+      z-index: 10;
+      min-height: 100dvh;
+      display: grid;
+      grid-template-columns: 55fr 45fr;
+      align-items: center;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 140px 48px 80px;
+    }
+
+    .hero-left {
+      padding-right: 80px;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: rgba(8, 145, 178, 0.08);
+      border: 1px solid rgba(8, 145, 178, 0.15);
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 32px;
+      font-family: 'Geist', sans-serif;
+    }
+
+    .hero h1 {
+      font-family: 'Cabinet Grotesk', sans-serif;
+      font-size: clamp(44px, 5.5vw, 72px);
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      line-height: 1.05;
+      margin-bottom: 24px;
+    }
+
+    .hero h1 em {
+      font-style: normal;
+      color: var(--accent);
+    }
+
+    .hero-desc {
+      font-size: 17px;
+      line-height: 1.65;
+      color: var(--text-secondary);
+      max-width: 460px;
+      margin-bottom: 36px;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      background: var(--text-primary);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 14px;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.18);
+    }
+
+    .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 14px;
+      border: 1px solid var(--border-subtle);
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--text-muted);
+      color: var(--text-primary);
+    }
+
+    .hero-right {
+      position: relative;
+      height: 520px;
+    }
+
+    /* Glass Panels Stack */
+    .glass-stack {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    .glass-panel {
+      position: absolute;
+      background: rgba(255,255,255,0.65);
+      backdrop-filter: blur(40px) saturate(150%);
+      -webkit-backdrop-filter: blur(40px) saturate(150%);
+      border: 1px solid rgba(255,255,255,0.5);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.06), inset 0 1px 1px rgba(255,255,255,0.8);
+      border-radius: 24px;
+      overflow: hidden;
+      transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .glass-panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1px;
+      background: radial-gradient(500px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(8,145,178,0.15), transparent 40%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    .glass-panel:hover::before { opacity: 1; }
+
+    .glass-panel::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.6), rgba(255,255,255,0.1));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+      opacity: 0.6;
+    }
+
+    .panel-1 {
+      width: 320px;
+      height: 200px;
+      top: 0; right: 0;
+      padding: 28px;
+    }
+
+    .panel-2 {
+      width: 260px;
+      height: 160px;
+      top: 220px; left: 40px;
+      padding: 24px;
+    }
+
+    .panel-3 {
+      width: 280px;
+      height: 120px;
+      bottom: 0; right: 60px;
+      padding: 24px;
+    }
+
+    .panel-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .panel-value {
+      font-family: 'Cabinet Grotesk', sans-serif;
+      font-size: 36px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: var(--text-primary);
+    }
+
+    .panel-value.accent { color: var(--accent); }
+
+    .panel-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    .panel-chart {
+      position: absolute;
+      bottom: 20px;
+      left: 24px;
+      right: 24px;
+      height: 40px;
+    }
+
+    .panel-chart svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Bento Grid Section */
+    .bento-section {
+      position: relative;
+      z-index: 10;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 100px 48px;
+    }
+
+    .bento-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 48px;
+    }
+
+    .bento-header h2 {
+      font-family: 'Cabinet Grotesk', sans-serif;
+      font-size: clamp(32px, 3.5vw, 48px);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+    }
+
+    .bento-header p {
+      font-size: 15px;
+      color: var(--text-secondary);
+      max-width: 300px;
+      text-align: right;
+    }
+
+    .bento-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: repeat(2, 280px);
+      gap: 20px;
+    }
+
+    .bento-tile {
+      position: relative;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: 24px;
+      padding: 32px;
+      overflow: hidden;
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease;
+      cursor: pointer;
+    }
+
+    .bento-tile:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 24px 48px rgba(0,0,0,0.08);
+    }
+
+    .bento-tile::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1px;
+      background: radial-gradient(400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(8,145,178,0.12), transparent 40%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    .bento-tile:hover::before { opacity: 1; }
+
+    .tile-wide { grid-column: span 2; }
+    .tile-tall { grid-row: span 2; }
+
+    .tile-label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    .tile-title {
+      font-family: 'Cabinet Grotesk', sans-serif;
+      font-size: 24px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      margin-bottom: 12px;
+    }
+
+    .tile-desc {
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--text-secondary);
+    }
+
+    /* Infinite carousel inside wide tile */
+    .tile-carousel {
+      position: absolute;
+      bottom: 24px;
+      left: 24px;
+      right: 24px;
+      overflow: hidden;
+      display: flex;
+      gap: 12px;
+    }
+
+    .carousel-track {
+      display: flex;
+      gap: 12px;
+      animation: carouselScroll 20s linear infinite;
+    }
+
+    .carousel-track:hover { animation-play-state: paused; }
+
+    @keyframes carouselScroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    .carousel-item {
+      flex-shrink: 0;
+      padding: 10px 18px;
+      background: var(--bg-base);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+
+    /* Shimmer loader */
+    .shimmer {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .shimmer::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+      animation: shimmerSweep 2s infinite;
+    }
+
+    @keyframes shimmerSweep {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    /* Live indicator */
+    .live-pulse {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .live-pulse::before {
+      content: '';
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      animation: livePulse 2s ease-in-out infinite;
+    }
+
+    @keyframes livePulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+      50% { opacity: 0.7; box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+    }
+
+    /* Marquee Section */
+    .marquee-section {
+      position: relative;
+      z-index: 10;
+      padding: 80px 0;
+      overflow: hidden;
+      border-top: 1px solid var(--border-subtle);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .marquee-row {
+      display: flex;
+      white-space: nowrap;
+      font-family: 'Cabinet Grotesk', sans-serif;
+      font-size: clamp(48px, 7vw, 96px);
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      color: var(--text-primary);
+      opacity: 0.08;
+    }
+
+    .marquee-row span { padding-right: 0.4em; }
+
+    /* Footer */
+    .footer {
+      position: relative;
+      z-index: 10;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 80px 48px 48px;
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 48px;
+    }
+
+    .footer-brand {
+      font-family: 'Cabinet Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 20px;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+    }
+
+    .footer-copy {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      max-width: 280px;
+    }
+
+    .footer-col h4 {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    .footer-col a {
+      display: block;
+      font-size: 14px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      margin-bottom: 12px;
+      transition: color 0.2s ease;
+    }
+
+    .footer-col a:hover { color: var(--text-primary); }
+
+    @media (max-width: 768px) {
+      .hero { grid-template-columns: 1fr; padding: 120px 24px 60px; }
+      .hero-left { padding-right: 0; }
+      .hero-right { height: 400px; margin-top: 40px; }
+      .panel-1 { width: 240px; height: 160px; }
+      .panel-2 { width: 200px; height: 130px; top: 180px; left: 20px; }
+      .panel-3 { width: 220px; height: 100px; bottom: 10px; right: 20px; }
+      .bento-grid { grid-template-columns: 1fr; grid-template-rows: auto; }
+      .tile-wide, .tile-tall { grid-column: span 1; grid-row: span 1; }
+      .bento-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .bento-header p { text-align: left; }
+      .footer-grid { grid-template-columns: 1fr; }
+      .nav-island { padding: 8px 12px; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <nav class="nav-island">
+    <div class="nav-logo">Prism</div>
+    <div class="nav-divider"></div>
+    <ul class="nav-links">
+      <li><a href="#">Platform</a></li>
+      <li><a href="#">Network</a></li>
+      <li><a href="#">Developers</a></li>
+    </ul>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-left">
+      <div class="hero-badge">
+        <span class="live-pulse"></span>
+        Network Active
+      </div>
+      <h1>
+        Orchestrate
+        <em>everything</em>
+        from one surface
+      </h1>
+      <p class="hero-desc">
+        A unified control plane for autonomous systems. Design workflows, monitor state, and execute decisions through a single pane of glass.
+      </p>
+      <div class="hero-actions">
+        <button class="btn-primary">
+          Get Started
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="btn-ghost">View Demo</button>
+      </div>
+    </div>
+    <div class="hero-right">
+      <div class="glass-stack">
+        <div class="glass-panel panel-1">
+          <div class="panel-label">Active Nodes</div>
+          <div class="panel-value accent">2,847</div>
+          <div class="panel-sub">+124 this hour</div>
+          <div class="panel-chart">
+            <svg viewBox="0 0 200 40" preserveAspectRatio="none">
+              <path d="M0 35 Q20 30 40 32 T80 20 T120 25 T160 10 T200 15" fill="none" stroke="rgba(8,145,178,0.4)" stroke-width="2"/>
+              <path d="M0 35 Q20 30 40 32 T80 20 T120 25 T160 10 T200 15 L200 40 L0 40 Z" fill="rgba(8,145,178,0.06)"/>
+            </svg>
+          </div>
+        </div>
+        <div class="glass-panel panel-2">
+          <div class="panel-label">Throughput</div>
+          <div class="panel-value">48.2K</div>
+          <div class="panel-sub">ops / second</div>
+        </div>
+        <div class="glass-panel panel-3">
+          <div class="panel-label">Availability</div>
+          <div class="panel-value accent">99.997%</div>
+          <div class="panel-sub">Last 30 days</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="bento-section">
+    <div class="bento-header">
+      <h2>The Control Surface</h2>
+      <p>Every tool you need, arranged exactly how you think.</p>
+    </div>
+
+    <div class="bento-grid">
+      <div class="bento-tile tile-wide">
+        <div class="tile-label">Live Stream</div>
+        <div class="tile-title">Real-time Events</div>
+        <div class="tile-desc">Watch your infrastructure respond in milliseconds. No refreshes, no polling delays.</div>
+        <div class="tile-carousel">
+          <div class="carousel-track">
+            <div class="carousel-item">Node scaled</div>
+            <div class="carousel-item">Pipeline synced</div>
+            <div class="carousel-item">Alert resolved</div>
+            <div class="carousel-item">Deploy complete</div>
+            <div class="carousel-item">Health check OK</div>
+            <div class="carousel-item">Node scaled</div>
+            <div class="carousel-item">Pipeline synced</div>
+            <div class="carousel-item">Alert resolved</div>
+            <div class="carousel-item">Deploy complete</div>
+            <div class="carousel-item">Health check OK</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bento-tile tile-tall">
+        <div class="tile-label">Status</div>
+        <div class="tile-title">System Health</div>
+        <div class="tile-desc">All subsystems operating within nominal parameters.</div>
+        <div style="margin-top: 24px; display: flex; flex-direction: column; gap: 16px;">
+          <div class="shimmer" style="height: 8px; background: var(--bg-base); border-radius: 4px;"></div>
+          <div style="height: 8px; background: var(--bg-base); border-radius: 4px; width: 80%;"></div>
+          <div style="height: 8px; background: var(--bg-base); border-radius: 4px; width: 60%;"></div>
+          <div class="shimmer" style="height: 8px; background: var(--bg-base); border-radius: 4px; width: 90%;"></div>
+          <div style="height: 8px; background: var(--bg-base); border-radius: 4px; width: 70%;"></div>
+        </div>
+      </div>
+
+      <div class="bento-tile">
+        <div class="tile-label">Security</div>
+        <div class="tile-title">Zero Trust</div>
+        <div class="tile-desc">Every request verified, every identity proven.</div>
+      </div>
+
+      <div class="bento-tile tile-wide">
+        <div class="tile-label">Analytics</div>
+        <div class="tile-title">Decision Intelligence</div>
+        <div class="tile-desc">Predictive modeling turns your historical data into forward guidance. Surface patterns before they become problems.</div>
+        <div style="margin-top: 20px; height: 60px; display: flex; align-items: flex-end; gap: 6px;">
+          <div style="flex:1; height: 40%; background: rgba(8,145,178,0.15); border-radius: 4px;"></div>
+          <div style="flex:1; height: 70%; background: rgba(8,145,178,0.2); border-radius: 4px;"></div>
+          <div style="flex:1; height: 55%; background: rgba(8,145,178,0.12); border-radius: 4px;"></div>
+          <div style="flex:1; height: 85%; background: rgba(8,145,178,0.25); border-radius: 4px;"></div>
+          <div style="flex:1; height: 60%; background: rgba(8,145,178,0.15); border-radius: 4px;"></div>
+          <div style="flex:1; height: 95%; background: rgba(8,145,178,0.3); border-radius: 4px;"></div>
+          <div style="flex:1; height: 45%; background: rgba(8,145,178,0.1); border-radius: 4px;"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="marquee-section">
+    <div class="marquee-row" id="marquee1">
+      <span>ORCHESTRATE / SYNCHRONIZE / DEPLOY / SCALE / MONITOR / OPTIMIZE / ORCHESTRATE / SYNCHRONIZE / DEPLOY / SCALE / MONITOR / OPTIMIZE / </span>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand">Prism</div>
+        <p class="footer-copy">Unified infrastructure for modern operators. Built to orchestrate, designed to scale.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <a href="#">Platform</a>
+        <a href="#">Network</a>
+        <a href="#">Security</a>
+        <a href="#">Pricing</a>
+      </div>
+      <div class="footer-col">
+        <h4>Developers</h4>
+        <a href="#">Documentation</a>
+        <a href="#">API Status</a>
+        <a href="#">SDKs</a>
+        <a href="#">Community</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    gsap.registerPlugin(ScrollTrigger);
+
+    // Nav scroll morph
+    ScrollTrigger.create({
+      start: 50,
+      onUpdate: (self) => {
+        document.querySelector('.nav-island').classList.toggle('scrolled', self.scroll() > 50);
+      }
+    });
+
+    // Hero entrance
+    gsap.from('.hero-left > *', {
+      y: 50,
+      opacity: 0,
+      duration: 1,
+      stagger: 0.12,
+      ease: 'power3.out',
+      delay: 0.3
+    });
+
+    gsap.from('.glass-panel', {
+      y: 60,
+      opacity: 0,
+      scale: 0.95,
+      duration: 1.2,
+      stagger: 0.15,
+      ease: 'power3.out',
+      delay: 0.5
+    });
+
+    // Glass panels tilt on mouse
+    document.querySelectorAll('.glass-panel').forEach(panel => {
+      panel.addEventListener('mousemove', (e) => {
+        const rect = panel.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
+        const y = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
+        panel.style.setProperty('--mouse-x', e.clientX - rect.left + 'px');
+        panel.style.setProperty('--mouse-y', e.clientY - rect.top + 'px');
+        panel.style.transform = `perspective(800px) rotateX(${-y * 6}deg) rotateY(${x * 6}deg) translateZ(10px)`;
+      });
+      panel.addEventListener('mouseleave', () => {
+        panel.style.transform = 'perspective(800px) rotateX(0) rotateY(0) translateZ(0)';
+      });
+    });
+
+    // Bento tiles spotlight
+    document.querySelectorAll('.bento-tile').forEach(tile => {
+      tile.addEventListener('mousemove', (e) => {
+        const rect = tile.getBoundingClientRect();
+        tile.style.setProperty('--mouse-x', e.clientX - rect.left + 'px');
+        tile.style.setProperty('--mouse-y', e.clientY - rect.top + 'px');
+      });
+    });
+
+    // Bento reveal
+    gsap.from('.bento-tile', {
+      scrollTrigger: {
+        trigger: '.bento-grid',
+        start: 'top 80%',
+        toggleActions: 'play none none reverse'
+      },
+      y: 40,
+      opacity: 0,
+      duration: 0.8,
+      stagger: 0.1,
+      ease: 'power3.out'
+    });
+
+    // Marquee speed on scroll
+    const marqueeSpan = document.querySelector('#marquee1 span');
+    let baseSpeed = 30;
+    gsap.to(marqueeSpan, {
+      xPercent: -50,
+      duration: baseSpeed,
+      ease: 'none',
+      repeat: -1
+    });
+
+    ScrollTrigger.create({
+      trigger: '.marquee-section',
+      start: 'top bottom',
+      end: 'bottom top',
+      onUpdate: (self) => {
+        const tl = gsap.getTweensOf(marqueeSpan)[0];
+        if (tl) tl.timeScale(1 + self.progress * 2);
+      }
+    });
+
+    // Ambient orbs parallax
+    gsap.to('.orb-1', {
+      scrollTrigger: { scrub: true },
+      y: -200,
+      ease: 'none'
+    });
+    gsap.to('.orb-2', {
+      scrollTrigger: { scrub: true },
+      y: 150,
+      ease: 'none'
+    });
+  </script>
+</body>
+</html>

@@ -212,9 +212,6 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess, presel
   const [connectionId, setConnectionId] = useState<string>("");
   const [mode, setMode] = useState<"paper" | "live">("paper");
   const [tradingPair, setTradingPair] = useState<string>("");
-  const [paperInitialBalance, setPaperInitialBalance] = useState<Record<string, number>>({
-    USDT: 10000,
-  });
   const [activeQuoteTab, setActiveQuoteTab] = useState<string>("USDT");
   const [pairSearch, setPairSearch] = useState<string>("");
   const [pairSelectorOpen, setPairSelectorOpen] = useState<boolean>(true);
@@ -365,13 +362,6 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess, presel
           setErrors({ tradingPair: "Select a trading pair" });
           return false;
         }
-        if (mode === "paper") {
-          const hasBalance = Object.values(paperInitialBalance).some((v) => v > 0);
-          if (!hasBalance) {
-            setErrors({ paperInitialBalance: "At least one paper balance must be greater than 0" });
-            return false;
-          }
-        }
         return true;
       }
       if (step === 3) {
@@ -393,7 +383,7 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess, presel
       }
       return false;
     }
-  }, [step, botType, connectionId, tradingPair, mode, paperInitialBalance, signalForm, dcaForm]);
+  }, [step, botType, connectionId, tradingPair, mode, signalForm, dcaForm]);
 
   const canNext =
     (step === 1 && botType !== null) ||
@@ -463,7 +453,6 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess, presel
             connectionId,
             mode,
             tradingPair,
-            paperInitialBalance: mode === "paper" ? paperInitialBalance : undefined,
             config: {
               type: "signal" as const,
               default_symbol: signalForm.default_symbol || undefined,
@@ -484,7 +473,6 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess, presel
             connectionId,
             mode,
             tradingPair,
-            paperInitialBalance: mode === "paper" ? paperInitialBalance : undefined,
             config: {
               type: "dca" as const,
               default_symbol: dcaForm.default_symbol || undefined,
@@ -1082,27 +1070,14 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess, presel
                 </div>
 
                 {mode === "paper" && (
-                  <div className="rounded-lg border border-[var(--border-subtle)]/30 bg-[var(--bg-card)]/30 p-4 space-y-3">
-                    <p className="text-sm font-medium text-[var(--text-secondary)]">{t("wizard.initialPaperBalance")}</p>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      {Object.entries(paperInitialBalance).map(([currency, amount]) => (
-                        <Input
-                          key={currency}
-                          label={currency}
-                          type="number"
-                          value={String(amount)}
-                          onChange={(e) =>
-                            setPaperInitialBalance((prev) => ({
-                              ...prev,
-                              [currency]: Number(e.target.value),
-                            }))
-                          }
-                        />
-                      ))}
+                  <div className="rounded-lg border border-[var(--primary)]/20 bg-[var(--primary)]/[0.03] p-4 space-y-2">
+                    <div className="flex items-center gap-2 text-[var(--primary)]">
+                      <BookOpen className="h-4 w-4" />
+                      <span className="text-sm font-medium">{t("wizard.simFundsInfoTitle")}</span>
                     </div>
-                    {errors.paperInitialBalance && (
-                      <p className="text-xs text-[var(--danger)]">{errors.paperInitialBalance}</p>
-                    )}
+                    <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+                      {t("wizard.simFundsInfoDesc")}
+                    </p>
                   </div>
                 )}
 
@@ -2281,11 +2256,8 @@ export const BotWizard: React.FC<BotWizardProps> = ({ onClose, onSuccess, presel
                 {mode === "paper" && (
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-[var(--border-subtle)]/30 pb-3">
                     <span className="text-sm text-[var(--text-muted)]">{t("wizard.initialPaperBalance")}</span>
-                    <span className="text-sm font-semibold text-[var(--text-primary)]">
-                      {Object.entries(paperInitialBalance)
-                        .filter(([_, v]) => v > 0)
-                        .map(([k, v]) => `${v} ${k}`)
-                        .join(", ")}
+                    <span className="text-sm font-semibold text-[var(--primary)]">
+                      {t("wizard.seededFromSimFunds")}
                     </span>
                   </div>
                 )}

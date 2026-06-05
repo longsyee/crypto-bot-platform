@@ -13,6 +13,7 @@ import {
   useExitBot,
   useBotLivePrice,
   useCancelOrder,
+  useSimFundsConfig,
 } from "../../hooks/use-api";
 import { useToast } from "../../hooks/use-toast";
 import { useI18n } from "../../hooks/use-i18n";
@@ -98,6 +99,7 @@ function CapitalCard({
 }) {
   const { t } = useI18n();
   const { data: livePriceData, isLoading: priceLoading } = useBotLivePrice(botId);
+  const { data: simConfig } = useSimFundsConfig();
   const livePrice = livePriceData?.lastPrice || 0;
   const leverage = Number(paperBalance.leverage || configJson?.leverage || 1);
 
@@ -205,6 +207,17 @@ function CapitalCard({
                 {realizedPnl >= 0 ? "+" : ""}{realizedPnl.toFixed(4)} <span className="text-sm font-normal text-[var(--text-muted)]">USDT</span>
               </span>
               <span className="font-mono text-[11px] text-[var(--text-muted)]">{t("botDetail.closedTradeProfitLoss")}</span>
+            </div>
+
+            {/* Real Equivalent */}
+            <div className="bg-[var(--bg-card)] px-4 py-3 flex flex-col gap-1.5 border-t-2 border-[var(--primary)]">
+              <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold flex items-center gap-1.5">
+                <Wallet className="w-3.5 h-3.5" /> {t("botDetail.realEquivalent")}
+              </span>
+              <span className="font-['Space_Grotesk'] text-xl font-semibold tracking-tight text-[var(--text-primary)]">
+                {(realizedPnl * (1 - (Number((simConfig?.data as any)?.live_profit_fee_pct ?? 20) / 100))).toFixed(4)} <span className="text-sm font-normal text-[var(--text-muted)]">USDT</span>
+              </span>
+              <span className="font-mono text-[11px] text-[var(--text-muted)]">{t("botDetail.realEquivalentDesc")}</span>
             </div>
 
             {/* Live Market Price */}

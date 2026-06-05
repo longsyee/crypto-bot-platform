@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Auth — CryptoBot Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/Flip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/Draggable.min.js"></script>
+  <style>
+    :root {
+      --bg: #030308;
+      --surface: rgba(255, 255, 255, 0.03);
+      --surface-hover: rgba(255, 255, 255, 0.06);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-focus: rgba(255, 255, 255, 0.2);
+      --text: #e2e8f0;
+      --text-muted: #64748b;
+      --accent-cyan: #22d3ee;
+      --accent-violet: #a78bfa;
+      --accent-gold: #fbbf24;
+      --error: #f43f5e;
+      --success: #34d399;
+      --font-display: 'Space Grotesk', sans-serif;
+      --font-body: 'Inter', sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      font-family: var(--font-body);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── Animated Gradient Mesh Background ─── */
+    .bg-mesh {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 20% 40%, rgba(34, 211, 238, 0.15), transparent),
+        radial-gradient(ellipse 60% 40% at 80% 60%, rgba(167, 139, 250, 0.12), transparent),
+        radial-gradient(ellipse 50% 50% at 50% 50%, rgba(251, 191, 36, 0.05), transparent);
+      filter: blur(60px);
+      animation: meshMove 12s ease-in-out infinite alternate;
+    }
+    @keyframes meshMove {
+      0% { transform: translate(-2%, -2%) scale(1); }
+      100% { transform: translate(2%, 2%) scale(1.05); }
+    }
+
+    .bg-noise {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      opacity: 0.035;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-repeat: repeat;
+      background-size: 256px 256px;
+    }
+
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .orb-1 { width: 400px; height: 400px; background: rgba(34, 211, 238, 0.12); top: -100px; left: -100px; }
+    .orb-2 { width: 300px; height: 300px; background: rgba(167, 139, 250, 0.10); bottom: -80px; right: -80px; }
+    .orb-3 { width: 200px; height: 200px; background: rgba(251, 191, 36, 0.08); top: 40%; left: 60%; }
+
+    /* ─── Layout ─── */
+    .auth-stage {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      perspective: 1200px;
+    }
+
+    .card {
+      width: 420px;
+      max-width: 92vw;
+      padding: 48px 40px;
+      border-radius: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(24px) saturate(140%);
+      -webkit-backdrop-filter: blur(24px) saturate(140%);
+      box-shadow:
+        0 24px 64px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      position: relative;
+      overflow: hidden;
+      transform-style: preserve-3d;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 24px;
+      padding: 1.2px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.18), rgba(255,255,255,0.02), rgba(255,255,255,0.08));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+      mix-blend-mode: screen;
+      opacity: 0.6;
+    }
+
+    .card-shine {
+      position: absolute;
+      inset: -50%;
+      background: conic-gradient(from 180deg at 50% 50%, transparent 0deg, rgba(255,255,255,0.03) 60deg, transparent 120deg);
+      animation: shineRotate 8s linear infinite;
+      pointer-events: none;
+      mix-blend-mode: overlay;
+    }
+    @keyframes shineRotate {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ─── Typography ─── */
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+      font-family: var(--font-display);
+    }
+    .brand-logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-violet));
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      font-size: 18px;
+      color: #030308;
+      box-shadow: 0 0 20px rgba(34, 211, 238, 0.3);
+    }
+    .brand-text {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -0.5px;
+      background: linear-gradient(to right, var(--text), var(--text-muted));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    h1 {
+      font-family: var(--font-display);
+      font-size: 28px;
+      font-weight: 600;
+      letter-spacing: -0.8px;
+      margin-bottom: 8px;
+      line-height: 1.2;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 32px;
+    }
+
+    /* ─── Form ─── */
+    .form {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .field {
+      position: relative;
+    }
+    .field-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      transition: color 0.3s;
+    }
+    .field:focus-within .field-label {
+      color: var(--accent-cyan);
+    }
+
+    input {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.02);
+      color: var(--text);
+      font-size: 15px;
+      font-family: var(--font-body);
+      outline: none;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    input::placeholder { color: var(--text-muted); opacity: 0.6; }
+    input:hover { border-color: var(--border-focus); background: rgba(255,255,255,0.04); }
+    input:focus {
+      border-color: rgba(34, 211, 238, 0.4);
+      box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.08), 0 0 20px rgba(34, 211, 238, 0.06);
+      background: rgba(255,255,255,0.04);
+    }
+
+    /* ─── OTP Inputs ─── */
+    .otp-row {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    .otp-input {
+      width: 52px;
+      height: 60px;
+      text-align: center;
+      font-size: 24px;
+      font-weight: 600;
+      font-family: var(--font-display);
+      border-radius: 14px;
+      padding: 0;
+      caret-color: var(--accent-cyan);
+    }
+    .otp-input:focus {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.12), 0 0 30px rgba(34, 211, 238, 0.1);
+      transform: scale(1.05);
+    }
+
+    /* ─── Buttons ─── */
+    .btn {
+      position: relative;
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 14px;
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      cursor: pointer;
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-violet));
+      color: #030308;
+      box-shadow: 0 4px 24px rgba(34, 211, 238, 0.25), 0 2px 8px rgba(0,0,0,0.3);
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 32px rgba(34, 211, 238, 0.35), 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .btn-primary:active { transform: translateY(0) scale(0.98); }
+    .btn-primary .btn-glow {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at var(--x,50%) var(--y,50%), rgba(255,255,255,0.35), transparent 60%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      mix-blend-mode: overlay;
+    }
+    .btn-primary:hover .btn-glow { opacity: 1; }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover {
+      background: var(--surface-hover);
+      color: var(--text);
+      border-color: var(--border-focus);
+    }
+
+    /* ─── Links ─── */
+    .links {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 24px;
+      font-size: 13px;
+    }
+    .link {
+      color: var(--text-muted);
+      text-decoration: none;
+      position: relative;
+      transition: color 0.3s;
+      cursor: pointer;
+    }
+    .link::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 0;
+      height: 1px;
+      background: linear-gradient(to right, var(--accent-cyan), var(--accent-violet));
+      transition: width 0.3s;
+    }
+    .link:hover { color: var(--text); }
+    .link:hover::after { width: 100%; }
+
+    /* ─── Divider ─── */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin: 24px 0;
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--border), transparent);
+    }
+
+    /* ─── Screen states ─── */
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* ─── Error / Success ─── */
+    .toast {
+      position: absolute;
+      top: -60px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 500;
+      backdrop-filter: blur(12px);
+      border: 1px solid;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .toast.error { background: rgba(244, 63, 94, 0.1); color: var(--error); border-color: rgba(244, 63, 94, 0.2); }
+    .toast.success { background: rgba(52, 211, 153, 0.1); color: var(--success); border-color: rgba(52, 211, 153, 0.2); }
+
+    /* ─── Loading Spinner ─── */
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(3,3,8,0.3);
+      border-top-color: #030308;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ─── Decorative particles ─── */
+    .particles {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .particle {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 50%;
+    }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 480px) {
+      .card { padding: 36px 24px; border-radius: 20px; }
+      h1 { font-size: 24px; }
+      .otp-input { width: 44px; height: 52px; font-size: 20px; }
+    }
+
+    /* ─── Shake animation ─── */
+    .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+    @keyframes shake {
+      10%, 90% { transform: translate3d(-1px, 0, 0); }
+      20%, 80% { transform: translate3d(2px, 0, 0); }
+      30%, 50%, 70% { transform: translate3d(-3px, 0, 0); }
+      40%, 60% { transform: translate3d(3px, 0, 0); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background layers -->
+  <div class="bg-mesh"></div>
+  <div class="bg-noise"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="particles" id="particles"></div>
+
+  <div class="auth-stage">
+    <div class="card" id="card">
+      <div class="card-shine"></div>
+
+      <div class="brand">
+        <div class="brand-logo">₿</div>
+        <div class="brand-text">CryptoBot</div>
+      </div>
+
+      <!-- Toast -->
+      <div class="toast" id="toast"></div>
+
+      <!-- ─── LOGIN SCREEN ─── -->
+      <div class="screen active" id="screen-login">
+        <h1>Welcome back</h1>
+        <p class="subtitle">Enter your credentials to access your trading dashboard.</p>
+        <form class="form" onsubmit="return handleLogin(event)">
+          <div class="field">
+            <label class="field-label">Email Address</label>
+            <input type="email" id="login-email" placeholder="you@example.com" required />
+          </div>
+          <div class="field">
+            <label class="field-label">Password</label>
+            <input type="password" id="login-password" placeholder="••••••••" required />
+          </div>
+          <button type="submit" class="btn btn-primary" id="login-btn">
+            <div class="btn-glow"></div>
+            <span>Send OTP Code</span>
+          </button>
+        </form>
+        <div class="links">
+          <a class="link" onclick="goTo('forgot')">Forgot password?</a>
+          <a class="link" onclick="goTo('register')">Create account →</a>
+        </div>
+      </div>
+
+      <!-- ─── OTP SCREEN ─── -->
+      <div class="screen" id="screen-otp">
+        <h1>Verify identity</h1>
+        <p class="subtitle">We sent a 6-digit code to <strong id="otp-email-display" style="color:var(--text)">you@example.com</strong>. Enter it below.</p>
+        <form class="form" onsubmit="return handleOtp(event)">
+          <div class="field">
+            <div class="otp-row" id="otp-row">
+              <input class="otp-input" type="text" maxlength="1" inputmode="numeric" autocomplete="one-time-code" data-idx="0" />
+              <input class="otp-input" type="text" maxlength="1" inputmode="numeric" data-idx="1" />
+              <input class="otp-input" type="text" maxlength="1" inputmode="numeric" data-idx="2" />
+              <input class="otp-input" type="text" maxlength="1" inputmode="numeric" data-idx="3" />
+              <input class="otp-input" type="text" maxlength="1" inputmode="numeric" data-idx="4" />
+              <input class="otp-input" type="text" maxlength="1" inputmode="numeric" data-idx="5" />
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary" id="otp-btn">
+            <div class="btn-glow"></div>
+            <span>Verify & Sign In</span>
+          </button>
+        </form>
+        <div class="links">
+          <a class="link" onclick="resendOtp()">Resend code</a>
+          <a class="link" onclick="goTo('login')">← Back to login</a>
+        </div>
+      </div>
+
+      <!-- ─── REGISTER SCREEN ─── -->
+      <div class="screen" id="screen-register">
+        <h1>Create account</h1>
+        <p class="subtitle">Join thousands of traders automating their crypto strategies.</p>
+        <form class="form" onsubmit="return handleRegister(event)">
+          <div class="field">
+            <label class="field-label">Email Address</label>
+            <input type="email" id="reg-email" placeholder="you@example.com" required />
+          </div>
+          <div class="field">
+            <label class="field-label">Password</label>
+            <input type="password" id="reg-password" placeholder="Min 8 characters" required />
+          </div>
+          <div class="field">
+            <label class="field-label">Confirm Password</label>
+            <input type="password" id="reg-confirm" placeholder="Repeat password" required />
+          </div>
+          <div class="field">
+            <label class="field-label">Referral Code <span style="opacity:.5">(optional)</span></label>
+            <input type="text" id="reg-ref" placeholder="REF-XXXXXXXX" />
+          </div>
+          <button type="submit" class="btn btn-primary" id="reg-btn">
+            <div class="btn-glow"></div>
+            <span>Create Account</span>
+          </button>
+        </form>
+        <div class="divider">or</div>
+        <button class="btn btn-ghost" onclick="goTo('login')">Already have an account? Sign in</button>
+      </div>
+
+      <!-- ─── FORGOT PASSWORD SCREEN ─── -->
+      <div class="screen" id="screen-forgot">
+        <h1>Reset password</h1>
+        <p class="subtitle">Enter your email and we'll send you a secure reset link.</p>
+        <form class="form" onsubmit="return handleForgot(event)">
+          <div class="field">
+            <label class="field-label">Email Address</label>
+            <input type="email" id="forgot-email" placeholder="you@example.com" required />
+          </div>
+          <button type="submit" class="btn btn-primary" id="forgot-btn">
+            <div class="btn-glow"></div>
+            <span>Send Reset Link</span>
+          </button>
+        </form>
+        <div class="links">
+          <a class="link" onclick="goTo('login')">← Back to login</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // ═══════════════════════════════════════════════════════
+    //  GSAP SETUP & ANIMATIONS
+    // ═══════════════════════════════════════════════════════
+    gsap.registerPlugin(Flip, Draggable);
+
+    // Ambient orb float
+    gsap.to('.orb-1', { x: 40, y: 30, duration: 6, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+    gsap.to('.orb-2', { x: -30, y: -40, duration: 7, repeat: -1, yoyo: true, ease: 'sine.inOut', delay: 1 });
+    gsap.to('.orb-3', { x: 50, y: -20, duration: 8, repeat: -1, yoyo: true, ease: 'sine.inOut', delay: 2 });
+
+    // Card entrance
+    gsap.from('#card', {
+      y: 60,
+      opacity: 0,
+      rotateX: 8,
+      duration: 1.2,
+      ease: 'power3.out',
+      delay: 0.2
+    });
+    gsap.from('.brand, h1, .subtitle, .form, .links', {
+      y: 30,
+      opacity: 0,
+      stagger: 0.08,
+      duration: 0.9,
+      ease: 'power3.out',
+      delay: 0.6
+    });
+
+    // Floating particles
+    const particlesContainer = document.getElementById('particles');
+    for (let i = 0; i < 30; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.style.left = Math.random() * 100 + '%';
+      p.style.top = Math.random() * 100 + '%';
+      p.style.opacity = Math.random() * 0.4 + 0.1;
+      const size = Math.random() * 2 + 1;
+      p.style.width = size + 'px';
+      p.style.height = size + 'px';
+      particlesContainer.appendChild(p);
+      gsap.to(p, {
+        y: -100 - Math.random() * 200,
+        x: (Math.random() - 0.5) * 100,
+        opacity: 0,
+        duration: 4 + Math.random() * 6,
+        repeat: -1,
+        delay: Math.random() * 5,
+        ease: 'none',
+        onRepeat: function() {
+          gsap.set(p, { y: 20, x: 0, opacity: Math.random() * 0.4 + 0.1, left: Math.random() * 100 + '%', top: '105%' });
+        }
+      });
+    }
+
+    // Button glow tracking
+    document.querySelectorAll('.btn-primary').forEach(btn => {
+      const glow = btn.querySelector('.btn-glow');
+      if (!glow) return;
+      btn.addEventListener('mousemove', e => {
+        const rect = btn.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width) * 100;
+        const y = ((e.clientY - rect.top) / rect.height) * 100;
+        glow.style.setProperty('--x', x + '%');
+        glow.style.setProperty('--y', y + '%');
+      });
+    });
+
+    // ═══════════════════════════════════════════════════════
+    //  SCREEN TRANSITIONS
+    // ═══════════════════════════════════════════════════════
+    let currentScreen = 'login';
+
+    function goTo(screen) {
+      const from = document.getElementById('screen-' + currentScreen);
+      const to = document.getElementById('screen-' + screen);
+      if (!to || from === to) return;
+
+      const tl = gsap.timeline();
+
+      // Exit animation
+      tl.to(from.querySelectorAll('h1, .subtitle, .form, .links, .divider, .btn-ghost'), {
+        y: -20,
+        opacity: 0,
+        stagger: 0.03,
+        duration: 0.35,
+        ease: 'power2.in',
+        onComplete: () => {
+          from.classList.remove('active');
+          to.classList.add('active');
+        }
+      });
+
+      // Card subtle flip feel
+      tl.to('#card', {
+        rotateY: screen === 'register' ? 4 : screen === 'forgot' ? -4 : 0,
+        scale: 0.98,
+        duration: 0.3,
+        ease: 'power2.inOut'
+      }, 0);
+      tl.to('#card', {
+        rotateY: 0,
+        scale: 1,
+        duration: 0.5,
+        ease: 'power2.out'
+      });
+
+      // Enter animation
+      tl.fromTo(to.querySelectorAll('h1, .subtitle, .form, .links, .divider, .btn-ghost'), {
+        y: 30,
+        opacity: 0
+      }, {
+        y: 0,
+        opacity: 1,
+        stagger: 0.06,
+        duration: 0.6,
+        ease: 'power3.out'
+      });
+
+      currentScreen = screen;
+
+      // Focus first input
+      setTimeout(() => {
+        const firstInput = to.querySelector('input');
+        if (firstInput) firstInput.focus();
+      }, 400);
+    }
+
+    // ═══════════════════════════════════════════════════════
+    //  OTP INPUT LOGIC
+    // ═══════════════════════════════════════════════════════
+    const otpInputs = document.querySelectorAll('.otp-input');
+    otpInputs.forEach((input, idx) => {
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Backspace' && !input.value && idx > 0) {
+          otpInputs[idx - 1].focus();
+        }
+      });
+      input.addEventListener('input', e => {
+        const val = e.target.value.replace(/\D/g, '');
+        e.target.value = val.slice(0, 1);
+        if (val && idx < otpInputs.length - 1) {
+          otpInputs[idx + 1].focus();
+        }
+        if (idx === otpInputs.length - 1 && val) {
+          document.getElementById('otp-btn').focus();
+        }
+      });
+      input.addEventListener('paste', e => {
+        e.preventDefault();
+        const paste = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
+        paste.split('').forEach((ch, i) => {
+          if (otpInputs[i]) otpInputs[i].value = ch;
+        });
+        if (otpInputs[paste.length - 1]) otpInputs[paste.length - 1].focus();
+      });
+    });
+
+    // ═══════════════════════════════════════════════════════
+    //  FORM HANDLERS (PROTOTYPE)
+    // ═══════════════════════════════════════════════════════
+    function showToast(msg, type = 'error') {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.className = 'toast ' + type;
+      gsap.killTweensOf(toast);
+      gsap.fromTo(toast, { y: 10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: 'power2.out' });
+      gsap.to(toast, { y: 10, opacity: 0, duration: 0.4, delay: 2.5, ease: 'power2.in' });
+    }
+
+    function setLoading(btnId, loading) {
+      const btn = document.getElementById(btnId);
+      const span = btn.querySelector('span');
+      if (loading) {
+        span.style.display = 'none';
+        const spinner = document.createElement('div');
+        spinner.className = 'spinner';
+        btn.appendChild(spinner);
+        gsap.from(spinner, { scale: 0, duration: 0.3 });
+        btn.disabled = true;
+      } else {
+        const spinner = btn.querySelector('.spinner');
+        if (spinner) spinner.remove();
+        span.style.display = '';
+        btn.disabled = false;
+      }
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value;
+      const pass = document.getElementById('login-password').value;
+      if (!email || !pass) { shakeCard(); showToast('Please fill all fields'); return; }
+
+      setLoading('login-btn', true);
+      setTimeout(() => {
+        setLoading('login-btn', false);
+        document.getElementById('otp-email-display').textContent = email;
+        // Clear OTP
+        otpInputs.forEach(i => i.value = '');
+        goTo('otp');
+      }, 1200);
+    }
+
+    function handleOtp(e) {
+      e.preventDefault();
+      const code = Array.from(otpInputs).map(i => i.value).join('');
+      if (code.length !== 6) { shakeCard(); showToast('Enter the full 6-digit code'); return; }
+
+      setLoading('otp-btn', true);
+      setTimeout(() => {
+        setLoading('otp-btn', false);
+        showToast('Signed in successfully!', 'success');
+        gsap.to('#card', { scale: 0.95, opacity: 0, duration: 0.5, delay: 0.5, ease: 'power2.in' });
+      }, 1500);
+    }
+
+    function resendOtp() {
+      showToast('New OTP sent to your email', 'success');
+      gsap.fromTo('.otp-row', { x: -10 }, { x: 0, duration: 0.4, ease: 'elastic.out(1, 0.5)' });
+      otpInputs.forEach(i => i.value = '');
+      otpInputs[0].focus();
+    }
+
+    function handleRegister(e) {
+      e.preventDefault();
+      const email = document.getElementById('reg-email').value;
+      const pass = document.getElementById('reg-password').value;
+      const confirm = document.getElementById('reg-confirm').value;
+      if (!email || !pass || !confirm) { shakeCard(); showToast('Please fill all fields'); return; }
+      if (pass !== confirm) { shakeCard(); showToast('Passwords do not match'); return; }
+      if (pass.length < 8) { shakeCard(); showToast('Password must be at least 8 characters'); return; }
+
+      setLoading('reg-btn', true);
+      setTimeout(() => {
+        setLoading('reg-btn', false);
+        showToast('Account created! Check your email.', 'success');
+        setTimeout(() => goTo('login'), 1800);
+      }, 1600);
+    }
+
+    function handleForgot(e) {
+      e.preventDefault();
+      const email = document.getElementById('forgot-email').value;
+      if (!email) { shakeCard(); showToast('Enter your email address'); return; }
+
+      setLoading('forgot-btn', true);
+      setTimeout(() => {
+        setLoading('forgot-btn', false);
+        showToast('Reset link sent to ' + email, 'success');
+        setTimeout(() => goTo('login'), 2000);
+      }, 1400);
+    }
+
+    function shakeCard() {
+      const card = document.getElementById('card');
+      card.classList.remove('shake');
+      void card.offsetWidth; // reflow
+      card.classList.add('shake');
+      gsap.fromTo(card, { x: -6 }, { x: 0, duration: 0.5, ease: 'elastic.out(1, 0.4)' });
+    }
+
+    // Ambient mouse parallax on card
+    document.addEventListener('mousemove', e => {
+      const x = (e.clientX / window.innerWidth - 0.5) * 8;
+      const y = (e.clientY / window.innerHeight - 0.5) * 8;
+      gsap.to('#card', {
+        rotateY: x,
+        rotateX: -y,
+        duration: 1,
+        ease: 'power2.out'
+      });
+    });
+  </script>
+</body>
+</html>

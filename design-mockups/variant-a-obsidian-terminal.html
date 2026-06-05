@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Variant A — Obsidian Terminal</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://api.fontshare.com/v2/css?f[]=geist@400,500,600,700&f[]=satoshi@400,500,700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-base: #030712;
+      --bg-elevated: #0a0f1a;
+      --bg-card: #0f1525;
+      --accent: #2dd4bf;
+      --accent-glow: rgba(45, 212, 191, 0.12);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --border-subtle: rgba(148, 163, 184, 0.08);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html {
+      background: var(--bg-base);
+      color: var(--text-primary);
+      font-family: 'Geist', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* Mesh Gradient Background */
+    .mesh-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse 80% 50% at 20% 40%, rgba(45, 212, 191, 0.06), transparent),
+        radial-gradient(ellipse 60% 40% at 80% 60%, rgba(45, 212, 191, 0.04), transparent),
+        radial-gradient(ellipse 50% 80% at 50% 100%, rgba(6, 182, 212, 0.03), transparent);
+    }
+
+    .grain-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      opacity: 0.025;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    /* Navigation */
+    .nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 24px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      mix-blend-mode: difference;
+    }
+
+    .nav-logo {
+      font-family: 'Satoshi', sans-serif;
+      font-weight: 700;
+      font-size: 18px;
+      letter-spacing: -0.03em;
+      color: #fff;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 32px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: #fff;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      opacity: 0.6;
+      transition: opacity 0.3s ease;
+    }
+
+    .nav-links a:hover { opacity: 1; }
+
+    /* Hero — Asymmetric Split */
+    .hero {
+      position: relative;
+      min-height: 100dvh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      padding: 0 48px;
+      z-index: 10;
+    }
+
+    .hero-left {
+      padding-right: 64px;
+    }
+
+    .hero-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--accent);
+      margin-bottom: 32px;
+      font-family: 'Satoshi', sans-serif;
+    }
+
+    .hero-label::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    .hero h1 {
+      font-family: 'Satoshi', sans-serif;
+      font-size: clamp(48px, 6vw, 84px);
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      line-height: 0.95;
+      margin-bottom: 28px;
+      color: var(--text-primary);
+    }
+
+    .hero h1 .accent-line {
+      display: block;
+      color: var(--accent);
+    }
+
+    .hero-desc {
+      font-size: 17px;
+      line-height: 1.6;
+      color: var(--text-secondary);
+      max-width: 440px;
+      margin-bottom: 40px;
+    }
+
+    .hero-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 32px;
+      background: var(--accent);
+      color: #030712;
+      font-family: 'Geist', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+      box-shadow: 0 0 40px var(--accent-glow);
+    }
+
+    .hero-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 60px rgba(45, 212, 191, 0.2);
+    }
+
+    .hero-right {
+      position: relative;
+      height: 70vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Kinetic Marquee */
+    .marquee-band {
+      position: absolute;
+      width: 140%;
+      overflow: hidden;
+      white-space: nowrap;
+      font-family: 'Satoshi', sans-serif;
+      font-size: clamp(64px, 10vw, 140px);
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      color: transparent;
+      -webkit-text-stroke: 1px rgba(148, 163, 184, 0.12);
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .marquee-band span {
+      display: inline-block;
+      padding-right: 0.5em;
+    }
+
+    .marquee-1 { top: 15%; transform: rotate(-5deg) translateX(-10%); }
+    .marquee-2 { bottom: 20%; transform: rotate(3deg) translateX(-5%); }
+
+    /* Scroll Stack Section */
+    .stack-section {
+      position: relative;
+      z-index: 10;
+      padding: 120px 48px;
+    }
+
+    .stack-header {
+      max-width: 520px;
+      margin-bottom: 80px;
+    }
+
+    .stack-header h2 {
+      font-family: 'Satoshi', sans-serif;
+      font-size: clamp(36px, 4vw, 56px);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      margin-bottom: 20px;
+    }
+
+    .stack-header p {
+      font-size: 16px;
+      line-height: 1.6;
+      color: var(--text-secondary);
+    }
+
+    .stack-card {
+      position: sticky;
+      top: 100px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 24px;
+      padding: 48px;
+      margin-bottom: 40px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      transform-origin: center top;
+      will-change: transform;
+    }
+
+    .stack-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(45,212,191,0.15), transparent 50%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    .stack-card h3 {
+      font-family: 'Satoshi', sans-serif;
+      font-size: 28px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+    }
+
+    .stack-card p {
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--text-secondary);
+      max-width: 500px;
+    }
+
+    .stack-card-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .meta-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .meta-text {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Text Mask Reveal Section */
+    .mask-section {
+      position: relative;
+      min-height: 80vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      z-index: 10;
+    }
+
+    .mask-text {
+      font-family: 'Satoshi', sans-serif;
+      font-size: clamp(60px, 12vw, 180px);
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      text-align: center;
+      background: linear-gradient(135deg, #0f1525 0%, #1a2438 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      position: relative;
+      z-index: 2;
+    }
+
+    .mask-video-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      opacity: 0.4;
+      background: radial-gradient(ellipse at center, rgba(45,212,191,0.08), transparent 70%);
+    }
+
+    /* Footer */
+    .footer {
+      position: relative;
+      z-index: 10;
+      padding: 80px 48px 48px;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 48px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .footer-brand {
+      font-family: 'Satoshi', sans-serif;
+      font-weight: 700;
+      font-size: 20px;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+    }
+
+    .footer-copy {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .footer-col h4 {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    .footer-col a {
+      display: block;
+      font-size: 14px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      margin-bottom: 12px;
+      transition: color 0.2s ease;
+    }
+
+    .footer-col a:hover { color: var(--text-primary); }
+
+    @media (max-width: 768px) {
+      .hero { grid-template-columns: 1fr; padding: 100px 24px 60px; }
+      .hero-left { padding-right: 0; }
+      .hero-right { height: 40vh; }
+      .marquee-band { font-size: 48px; }
+      .stack-section { padding: 80px 24px; }
+      .stack-card { padding: 32px 24px; }
+      .footer-grid { grid-template-columns: 1fr; gap: 32px; }
+      .nav { padding: 16px 24px; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="mesh-bg"></div>
+  <div class="grain-overlay"></div>
+
+  <nav class="nav">
+    <div class="nav-logo">Terminal</div>
+    <ul class="nav-links">
+      <li><a href="#">Products</a></li>
+      <li><a href="#">Engineering</a></li>
+      <li><a href="#">Research</a></li>
+      <li><a href="#">Access</a></li>
+    </ul>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-left">
+      <div class="hero-label">System Online</div>
+      <h1>
+        Precision
+        <span class="accent-line">Execution</span>
+        Engine
+      </h1>
+      <p class="hero-desc">
+        Institutional-grade automation infrastructure for asynchronous market operations. Zero-latency signal propagation with deterministic outcomes.
+      </p>
+      <button class="hero-cta">
+        Initialize
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+    <div class="hero-right">
+      <div class="marquee-band marquee-1">
+        <span>EXECUTE / DEPLOY / SCALE / ITERATE / EXECUTE / DEPLOY / SCALE / ITERATE / </span>
+      </div>
+      <div class="marquee-band marquee-2">
+        <span>AUTOMATE / OPTIMIZE / MEASURE / REPEAT / AUTOMATE / OPTIMIZE / MEASURE / REPEAT / </span>
+      </div>
+    </div>
+  </section>
+
+  <section class="stack-section">
+    <div class="stack-header">
+      <h2>Layered Intelligence</h2>
+      <p>Sequential processing architecture with sticky context retention. Each layer compounds the previous state.</p>
+    </div>
+
+    <div class="stack-card" data-index="0">
+      <h3>Signal Acquisition</h3>
+      <p>Multi-source data ingestion with normalized schema transformation. Real-time websocket feeds converge into a unified stream processor.</p>
+      <div class="stack-card-meta">
+        <div class="meta-dot"></div>
+        <span class="meta-text">Latency: 12ms</span>
+        <span class="meta-text">Throughput: 84K ops/s</span>
+      </div>
+    </div>
+
+    <div class="stack-card" data-index="1">
+      <h3>Decision Matrix</h3>
+      <p>Probabilistic evaluation engine weighing risk parameters against portfolio constraints. Every decision leaves an auditable trail.</p>
+      <div class="stack-card-meta">
+        <div class="meta-dot"></div>
+        <span class="meta-text">Confidence: 97.3%</span>
+        <span class="meta-text">Models: 14 active</span>
+      </div>
+    </div>
+
+    <div class="stack-card" data-index="2">
+      <h3>Execution Layer</h3>
+      <p>Atomic transaction dispatch with fallback routing. Smart order routing ensures optimal venue selection under volatile conditions.</p>
+      <div class="stack-card-meta">
+        <div class="meta-dot"></div>
+        <span class="meta-text">Slippage: 0.02%</span>
+        <span class="meta-text">Uptime: 99.997%</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="mask-section">
+    <div class="mask-video-bg"></div>
+    <h2 class="mask-text">Pure<br/>Velocity</h2>
+  </section>
+
+  <footer class="footer">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand">Terminal</div>
+        <p class="footer-copy">High-frequency infrastructure for the modern operator. Built for precision, scaled for impact.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Platform</h4>
+        <a href="#">Orchestration</a>
+        <a href="#">Analytics</a>
+        <a href="#">Security</a>
+        <a href="#">Compliance</a>
+      </div>
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <a href="#">Documentation</a>
+        <a href="#">API Reference</a>
+        <a href="#">Status</a>
+        <a href="#">Changelog</a>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <a href="#">About</a>
+        <a href="#">Careers</a>
+        <a href="#">Contact</a>
+        <a href="#">Legal</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    gsap.registerPlugin(ScrollTrigger);
+
+    // Hero entrance
+    gsap.from('.hero-left > *', {
+      y: 60,
+      opacity: 0,
+      duration: 1.2,
+      stagger: 0.15,
+      ease: 'power3.out',
+      delay: 0.2
+    });
+
+    // Marquee infinite scroll
+    document.querySelectorAll('.marquee-band span').forEach((span, i) => {
+      const direction = i % 2 === 0 ? -1 : 1;
+      gsap.to(span, {
+        xPercent: direction * 50,
+        duration: 20,
+        ease: 'none',
+        repeat: -1
+      });
+    });
+
+    // Marquee scroll-speed coupling
+    let marqueeSpeed = 1;
+    ScrollTrigger.create({
+      trigger: '.hero',
+      start: 'top top',
+      end: 'bottom top',
+      onUpdate: (self) => {
+        marqueeSpeed = 1 + self.progress * 3;
+        document.querySelectorAll('.marquee-band span').forEach((span, i) => {
+          const tl = gsap.getTweensOf(span)[0];
+          if (tl) tl.timeScale(marqueeSpeed);
+        });
+      }
+    });
+
+    // Stack cards sticky stacking effect
+    const cards = gsap.utils.toArray('.stack-card');
+    cards.forEach((card, i) => {
+      gsap.from(card, {
+        scrollTrigger: {
+          trigger: card,
+          start: 'top 85%',
+          end: 'top 30%',
+          scrub: true,
+        },
+        scale: 0.9,
+        opacity: 0.5,
+        y: 60,
+        ease: 'none'
+      });
+
+      if (i < cards.length - 1) {
+        gsap.to(card, {
+          scrollTrigger: {
+            trigger: cards[i + 1],
+            start: 'top 90%',
+            end: 'top 50%',
+            scrub: true,
+          },
+          scale: 0.92,
+          filter: 'brightness(0.7)',
+          ease: 'none'
+        });
+      }
+    });
+
+    // Stack header reveal
+    gsap.from('.stack-header', {
+      scrollTrigger: {
+        trigger: '.stack-header',
+        start: 'top 80%',
+        toggleActions: 'play none none reverse'
+      },
+      y: 40,
+      opacity: 0,
+      duration: 1,
+      ease: 'power3.out'
+    });
+
+    // Mask text parallax
+    gsap.from('.mask-text', {
+      scrollTrigger: {
+        trigger: '.mask-section',
+        start: 'top bottom',
+        end: 'bottom top',
+        scrub: true
+      },
+      y: 100,
+      scale: 0.9,
+      opacity: 0.3,
+      ease: 'none'
+    });
+
+    // Nav show/hide on scroll
+    let lastScroll = 0;
+    window.addEventListener('scroll', () => {
+      const current = window.scrollY;
+      if (current > lastScroll && current > 100) {
+        gsap.to('.nav', { y: -100, duration: 0.3, ease: 'power2.out' });
+      } else {
+        gsap.to('.nav', { y: 0, duration: 0.3, ease: 'power2.out' });
+      }
+      lastScroll = current;
+    }, { passive: true });
+  </script>
+</body>
+</html>

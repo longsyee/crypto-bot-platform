@@ -25,6 +25,7 @@ import {
   AlertCircle,
   CheckCircle2,
   Globe,
+  BookOpen,
 } from "lucide-react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
@@ -168,6 +169,25 @@ export function Header() {
         <div className="sm:hidden flex items-center gap-1.5 px-2 py-1 rounded-md bg-[var(--bg-card)] border border-[var(--border-subtle)] text-[var(--success)]">
           <Wallet className="w-3 h-3" />
           <span className="font-mono text-[11px] font-semibold">{balance}</span>
+        </div>
+
+        {/* SimFunds Badge */}
+        <div
+          className="
+            hidden sm:flex items-center gap-2
+            px-2 py-1 rounded-md
+            bg-[var(--bg-card)] border border-[var(--border-subtle)]
+            text-[var(--primary)]
+          "
+        >
+          <BookOpen className="w-3.5 h-3.5" />
+          <span className="whitespace-nowrap font-mono text-[11px] font-semibold">
+            {(wallet?.simFundsBalance ?? 0).toFixed(2)} SF
+          </span>
+        </div>
+        <div className="sm:hidden flex items-center gap-1.5 px-2 py-1 rounded-md bg-[var(--bg-card)] border border-[var(--border-subtle)] text-[var(--primary)]">
+          <BookOpen className="w-3 h-3" />
+          <span className="font-mono text-[11px] font-semibold">{(wallet?.simFundsBalance ?? 0).toFixed(0)} SF</span>
         </div>
 
         {/* Language Toggle */}

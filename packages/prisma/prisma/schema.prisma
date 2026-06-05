@@ -25,6 +25,8 @@ enum TransactionType {
   referral_withdraw_approved
   refund
   admin_adjust
+  paper_topup
+  sim_funds_grant
 }
 
 enum TransactionStatus {
@@ -164,6 +166,7 @@ model Wallet {
   usdtBalance         Decimal  @default("0") @db.Decimal(20, 8) @map("usdt_balance")
   tokenBalance        Decimal  @default("0") @db.Decimal(20, 8) @map("token_balance")
   referralTokenBalance Decimal @default("0") @db.Decimal(20, 8) @map("referral_token_balance")
+  simFundsBalance     Decimal  @default("0") @db.Decimal(20, 8) @map("sim_funds_balance")
   totalDeposited      Decimal  @default("0") @db.Decimal(20, 8) @map("total_deposited")
   totalWithdrawn      Decimal  @default("0") @db.Decimal(20, 8) @map("total_withdrawn")
   totalFeesPaid       Decimal  @default("0") @db.Decimal(20, 8) @map("total_fees_paid")
@@ -495,4 +498,14 @@ model ApiKey {
   @@index([userId])
   @@index([keyHash])
   @@map("api_keys")
+}
+
+model GlobalSetting {
+  id        String   @id @default(uuid()) @db.Uuid
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt @map("updated_at")
+  updatedBy String?  @db.Uuid @map("updated_by")
+
+  @@map("global_settings")
 }

@@ -8,7 +8,7 @@ export interface ExchangeConnector {
     price?: number;
     reduceOnly?: boolean;
     positionSide?: "LONG" | "SHORT";
-  }): Promise<{ orderId: string; status: string; filled: number; remaining: number; cost?: number; fee?: number }>;
+  }): Promise<{ orderId: string; status: string; filled: number; remaining: number; cost?: number; fee?: number; rawResponse?: any }>;
   cancelOrder(orderId: string, symbol?: string): Promise<void>;
   getOrder(orderId: string, symbol: string): Promise<{ orderId: string; status: string; filled: number; remaining: number; cost?: number; fee?: number; price?: number }>;
   getTicker(symbol: string): Promise<{ bid: number; ask: number; last: number }>;

@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Variant G — Bot Terminal</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://api.fontshare.com/v2/css?f[]=geist@400,500,600,700&f[]=space-grotesk@400,500,600,700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-base: #02040a;
+      --bg-elevated: #0a0e17;
+      --bg-card: #0d111c;
+      --bg-hover: #111827;
+      --primary: #60a5fa;
+      --primary-glow: rgba(96, 165, 250, 0.08);
+      --success: #34d399;
+      --success-glow: rgba(52, 211, 153, 0.08);
+      --danger: #f87171;
+      --danger-glow: rgba(248, 113, 113, 0.08);
+      --warning: #fbbf24;
+      --accent: #2dd4bf;
+      --text-primary: #f1f5f9;
+      --text-secondary: #64748b;
+      --text-muted: #475569;
+      --border-subtle: rgba(100, 116, 139, 0.1);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html {
+      background: var(--bg-base);
+      color: var(--text-primary);
+      font-family: 'Geist', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Noise overlay */
+    .noise {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      pointer-events: none;
+      opacity: 0.02;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    .terminal {
+      display: grid;
+      grid-template-rows: 44px 1fr;
+      min-height: 100dvh;
+    }
+
+    /* Top Bar */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      background: var(--bg-elevated);
+      border-bottom: 1px solid var(--border-subtle);
+      z-index: 100;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .topbar-logo {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo-mark {
+      width: 22px; height: 22px;
+      border-radius: 5px;
+      background: linear-gradient(135deg, var(--accent), var(--success));
+    }
+
+    .topbar-nav {
+      display: flex;
+      gap: 2px;
+    }
+
+    .topbar-nav a {
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .topbar-nav a:hover, .topbar-nav a.active {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .system-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      font-family: 'Geist', monospace;
+      color: var(--text-muted);
+    }
+
+    .system-pill::before {
+      content: '';
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 6px var(--success-glow);
+      animation: statusPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes statusPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* Workspace */
+    .workspace {
+      display: grid;
+      grid-template-columns: 220px 1fr 280px;
+      gap: 1px;
+      background: var(--border-subtle);
+    }
+
+    .workspace > * { background: var(--bg-base); }
+
+    /* Left: Bot List */
+    .panel-sidebar {
+      padding: 12px;
+      overflow-y: auto;
+    }
+
+    .panel-section-title {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      padding: 0 6px;
+    }
+
+    .bot-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      border: 1px solid transparent;
+      margin-bottom: 2px;
+    }
+
+    .bot-row:hover { background: var(--bg-hover); }
+    .bot-row.active {
+      background: rgba(96, 165, 250, 0.06);
+      border-color: rgba(96, 165, 250, 0.12);
+    }
+
+    .bot-icon {
+      width: 28px; height: 28px;
+      border-radius: 7px;
+      display: grid;
+      place-items: center;
+      font-size: 10px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .bot-icon.grid { background: var(--primary-glow); color: var(--primary); border: 1px solid rgba(96,165,250,0.15); }
+    .bot-icon.mom { background: var(--success-glow); color: var(--success); border: 1px solid rgba(52,211,153,0.15); }
+    .bot-icon.dca { background: rgba(251,191,36,0.06); color: var(--warning); border: 1px solid rgba(251,191,36,0.15); }
+    .bot-icon.sig { background: rgba(139,92,246,0.08); color: #a78bfa; border: 1px solid rgba(139,92,246,0.15); }
+
+    .bot-meta { flex: 1; min-width: 0; }
+    .bot-name { font-size: 12px; font-weight: 500; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .bot-pair { font-size: 10px; color: var(--text-muted); font-family: 'Geist', monospace; }
+
+    .bot-status-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .bot-status-dot.running { background: var(--success); box-shadow: 0 0 6px var(--success-glow); }
+    .bot-status-dot.stopped { background: var(--text-muted); }
+    .bot-status-dot.error { background: var(--danger); box-shadow: 0 0 6px var(--danger-glow); }
+
+    /* Center: Detail */
+    .panel-main {
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .detail-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .detail-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .detail-title h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .detail-badges {
+      display: flex;
+      gap: 6px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 600;
+    }
+
+    .badge-green {
+      background: var(--success-glow);
+      color: var(--success);
+      border: 1px solid rgba(52, 211, 153, 0.15);
+    }
+
+    .badge-blue {
+      background: var(--primary-glow);
+      color: var(--primary);
+      border: 1px solid rgba(96, 165, 250, 0.15);
+    }
+
+    .badge-amber {
+      background: rgba(251, 191, 36, 0.08);
+      color: var(--warning);
+      border: 1px solid rgba(251, 191, 36, 0.15);
+    }
+
+    .detail-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn {
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-elevated);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: 'Geist', sans-serif;
+    }
+
+    .btn:hover { border-color: var(--text-muted); color: var(--text-primary); }
+
+    .btn-primary {
+      background: var(--primary);
+      color: var(--bg-base);
+      border-color: var(--primary);
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: var(--bg-base);
+      border-color: var(--danger);
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 2px;
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 14px;
+    }
+
+    .tab {
+      padding: 8px 16px;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab:hover { color: var(--text-primary); }
+    .tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    /* Cockpit Stats */
+    .cockpit-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border-subtle);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+
+    .cockpit-cell {
+      background: var(--bg-card);
+      padding: 14px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .cockpit-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+    }
+
+    .cockpit-value {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .cockpit-sub {
+      font-family: 'Geist', monospace;
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    /* Orders Table */
+    .table-wrap { overflow-x: auto; }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+
+    .data-table th {
+      text-align: left;
+      padding: 8px 10px;
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-subtle);
+      background: var(--bg-elevated);
+    }
+
+    .data-table td {
+      padding: 10px;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border-subtle);
+      font-family: 'Geist', monospace;
+    }
+
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: rgba(255,255,255,0.015); }
+
+    .side-buy { color: var(--success); }
+    .side-sell { color: var(--danger); }
+
+    /* Right: Live Feed */
+    .panel-right { padding: 12px; overflow-y: auto; }
+
+    .feed-header {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      padding: 0 4px;
+    }
+
+    .feed-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 6px;
+      border-bottom: 1px solid var(--border-subtle);
+      font-size: 11px;
+    }
+
+    .feed-item:last-child { border-bottom: none; }
+
+    .feed-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .feed-dot.exec { background: var(--success); box-shadow: 0 0 6px var(--success-glow); }
+    .feed-dot.paper { background: var(--primary); box-shadow: 0 0 6px var(--primary-glow); }
+    .feed-dot.warn { background: var(--warning); }
+
+    .feed-text {
+      flex: 1;
+      color: var(--text-secondary);
+      line-height: 1.3;
+    }
+
+    .feed-text strong {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .feed-time {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-family: 'Geist', monospace;
+      flex-shrink: 0;
+    }
+
+    /* Signal Setup Card */
+    .signal-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+
+    .signal-card h4 {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text-primary);
+    }
+
+    .signal-url {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      background: var(--bg-base);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      font-family: 'Geist', monospace;
+      font-size: 11px;
+      color: var(--primary);
+    }
+
+    .code-block {
+      background: var(--bg-base);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 10px;
+      font-family: 'Geist', monospace;
+      font-size: 10px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      overflow-x: auto;
+    }
+
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      font-size: 10px;
+      font-weight: 700;
+      margin-right: 8px;
+    }
+
+    .step-num.blue { background: var(--primary-glow); color: var(--primary); }
+    .step-num.green { background: var(--success-glow); color: var(--success); }
+    .step-num.amber { background: rgba(251,191,36,0.08); color: var(--warning); }
+
+    @media (max-width: 1024px) {
+      .workspace { grid-template-columns: 1fr; }
+      .panel-sidebar, .panel-right { display: none; }
+    }
+
+    @media (max-width: 768px) {
+      .cockpit-row { grid-template-columns: repeat(2, 1fr); }
+      .topbar-nav { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="noise"></div>
+
+  <div class="terminal">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-logo">
+          <div class="logo-mark"></div>
+          Flux
+        </div>
+        <nav class="topbar-nav">
+          <a href="variant-e-flux-terminal.html">Terminal</a>
+          <a href="#" class="active">Bots</a>
+          <a href="variant-h-wallet-terminal.html">Wallet</a>
+          <a href="variant-i-admin-terminal.html">Admin</a>
+        </nav>
+      </div>
+      <div class="topbar-right">
+        <div class="system-pill">8 Active</div>
+        <div style="font-family:monospace; font-size:10px; color:var(--text-muted);">v2.4.1</div>
+      </div>
+    </div>
+
+    <div class="workspace">
+      <!-- Left: Bot List -->
+      <div class="panel-sidebar">
+        <div class="panel-section-title">Running (6)</div>
+        <div class="bot-row active">
+          <div class="bot-icon grid">G</div>
+          <div class="bot-meta">
+            <div class="bot-name">Alpha Grid</div>
+            <div class="bot-pair">BTC/USDT</div>
+          </div>
+          <div class="bot-status-dot running"></div>
+        </div>
+        <div class="bot-row">
+          <div class="bot-icon mom">M</div>
+          <div class="bot-meta">
+            <div class="bot-name">Momentum V2</div>
+            <div class="bot-pair">ETH/USDT</div>
+          </div>
+          <div class="bot-status-dot running"></div>
+        </div>
+        <div class="bot-row">
+          <div class="bot-icon dca">D</div>
+          <div class="bot-meta">
+            <div class="bot-name">DCA Builder</div>
+            <div class="bot-pair">SOL/USDT</div>
+          </div>
+          <div class="bot-status-dot running"></div>
+        </div>
+        <div class="bot-row">
+          <div class="bot-icon sig">S</div>
+          <div class="bot-meta">
+            <div class="bot-name">Signal Alpha</div>
+            <div class="bot-pair">AVAX/USDT</div>
+          </div>
+          <div class="bot-status-dot running"></div>
+        </div>
+        <div class="bot-row">
+          <div class="bot-icon grid">G</div>
+          <div class="bot-meta">
+            <div class="bot-name">Grid Pro</div>
+            <div class="bot-pair">LINK/USDT</div>
+          </div>
+          <div class="bot-status-dot running"></div>
+        </div>
+        <div class="bot-row">
+          <div class="bot-icon mom">M</div>
+          <div class="bot-meta">
+            <div class="bot-name">Scalper X</div>
+            <div class="bot-pair">MATIC/USDT</div>
+          </div>
+          <div class="bot-status-dot running"></div>
+        </div>
+
+        <div class="panel-section-title" style="margin-top:16px;">Stopped (2)</div>
+        <div class="bot-row">
+          <div class="bot-icon dca">D</div>
+          <div class="bot-meta">
+            <div class="bot-name">Accumulate</div>
+            <div class="bot-pair">DOT/USDT</div>
+          </div>
+          <div class="bot-status-dot stopped"></div>
+        </div>
+        <div class="bot-row">
+          <div class="bot-icon sig">S</div>
+          <div class="bot-meta">
+            <div class="bot-name">Webhook Bot</div>
+            <div class="bot-pair">ATOM/USDT</div>
+          </div>
+          <div class="bot-status-dot error"></div>
+        </div>
+      </div>
+
+      <!-- Center: Bot Detail -->
+      <div class="panel-main">
+        <div class="detail-header">
+          <div class="detail-title">
+            <h2>Alpha Grid</h2>
+            <div class="detail-badges">
+              <span class="badge badge-green"><span style="width:5px;height:5px;border-radius:50%;background:var(--success);display:inline-block;margin-right:4px;"></span>Running</span>
+              <span class="badge badge-blue">Grid</span>
+              <span class="badge badge-amber">Paper</span>
+            </div>
+          </div>
+          <div class="detail-actions">
+            <button class="btn">Paper</button>
+            <button class="btn btn-primary">Stop</button>
+            <button class="btn btn-danger">Exit</button>
+          </div>
+        </div>
+
+        <div class="tabs">
+          <div class="tab active">Overview</div>
+          <div class="tab">Orders</div>
+          <div class="tab">Signal</div>
+          <div class="tab">Logs</div>
+          <div class="tab">Config</div>
+        </div>
+
+        <div class="cockpit-row">
+          <div class="cockpit-cell">
+            <div class="cockpit-label">Total Orders</div>
+            <div class="cockpit-value">1,247</div>
+            <div class="cockpit-sub">+34 today</div>
+          </div>
+          <div class="cockpit-cell">
+            <div class="cockpit-label">Realized PnL</div>
+            <div class="cockpit-value" style="color:var(--success)">+$1,842</div>
+            <div class="cockpit-sub">+12.4% ROI</div>
+          </div>
+          <div class="cockpit-cell">
+            <div class="cockpit-label">Avg Entry</div>
+            <div class="cockpit-value">$42,105</div>
+            <div class="cockpit-sub">Long position</div>
+          </div>
+          <div class="cockpit-cell">
+            <div class="cockpit-label">Leverage</div>
+            <div class="cockpit-value">5x</div>
+            <div class="cockpit-sub">Cross margin</div>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>Side</th>
+                <th>Amount</th>
+                <th>Price</th>
+                <th>PnL</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>BTC/USDT</td>
+                <td class="side-buy">BUY</td>
+                <td>0.0234</td>
+                <td>$43,210.50</td>
+                <td style="color:var(--success)">+$24.5</td>
+                <td>14:27:09</td>
+              </tr>
+              <tr>
+                <td>BTC/USDT</td>
+                <td class="side-sell">SELL</td>
+                <td>0.0234</td>
+                <td>$43,245.00</td>
+                <td style="color:var(--success)">+$12.8</td>
+                <td>14:15:32</td>
+              </tr>
+              <tr>
+                <td>BTC/USDT</td>
+                <td class="side-buy">BUY</td>
+                <td>0.0112</td>
+                <td>$43,180.00</td>
+                <td style="color:var(--danger)">-$1.2</td>
+                <td>13:58:41</td>
+              </tr>
+              <tr>
+                <td>BTC/USDT</td>
+                <td class="side-sell">SELL</td>
+                <td>0.0112</td>
+                <td>$43,195.50</td>
+                <td style="color:var(--success)">+$8.4</td>
+                <td>13:42:18</td>
+              </tr>
+              <tr>
+                <td>BTC/USDT</td>
+                <td class="side-buy">BUY</td>
+                <td>0.0456</td>
+                <td>$43,150.00</td>
+                <td style="color:var(--success)">+$31.2</td>
+                <td>13:21:05</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Right: Live Feed -->
+      <div class="panel-right">
+        <div class="feed-header">Execution Feed</div>
+        <div class="feed-item">
+          <div class="feed-dot exec"></div>
+          <div class="feed-text"><strong>Alpha Grid</strong> filled BUY 0.023 BTC</div>
+          <div class="feed-time">2s</div>
+        </div>
+        <div class="feed-item">
+          <div class="feed-dot paper"></div>
+          <div class="feed-text"><strong>Momentum V2</strong> paper trade SELL 1.2 ETH</div>
+          <div class="feed-time">8s</div>
+        </div>
+        <div class="feed-item">
+          <div class="feed-dot exec"></div>
+          <div class="feed-text"><strong>DCA Builder</strong> SO #4 triggered</div>
+          <div class="feed-time">14s</div>
+        </div>
+        <div class="feed-item">
+          <div class="feed-dot warn"></div>
+          <div class="feed-text"><strong>Signal Alpha</strong> webhook timeout</div>
+          <div class="feed-time">32s</div>
+        </div>
+        <div class="feed-item">
+          <div class="feed-dot exec"></div>
+          <div class="feed-text"><strong>Grid Pro</strong> TP hit +$47</div>
+          <div class="feed-time">45s</div>
+        </div>
+        <div class="feed-item">
+          <div class="feed-dot exec"></div>
+          <div class="feed-text"><strong>Scalper X</strong> opened LONG 50x</div>
+          <div class="feed-time">1m</div>
+        </div>
+        <div class="feed-item">
+          <div class="feed-dot paper"></div>
+          <div class="feed-text"><strong>Alpha Grid</strong> paper rebalance</div>
+          <div class="feed-time">2m</div>
+        </div>
+        <div class="feed-item">
+          <div class="feed-dot exec"></div>
+          <div class="feed-text"><strong>Momentum V2</strong> SL moved to BE</div>
+          <div class="feed-time">3m</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    gsap.registerPlugin(ScrollTrigger);
+
+    // Topbar entrance
+    gsap.from('.topbar', { y: -44, opacity: 0, duration: 0.5, ease: 'power3.out' });
+
+    // Bot list cascade
+    gsap.from('.bot-row', { x: -30, opacity: 0, duration: 0.4, stagger: 0.04, ease: 'power2.out', delay: 0.2 });
+
+    // Cockpit cells
+    gsap.from('.cockpit-cell', { y: 12, opacity: 0, duration: 0.4, stagger: 0.05, ease: 'power2.out', delay: 0.3 });
+
+    // Table rows
+    gsap.from('.data-table tbody tr', { y: 10, opacity: 0, duration: 0.3, stagger: 0.04, ease: 'power2.out', delay: 0.4 });
+
+    // Feed items
+    gsap.from('.feed-item', { x: 20, opacity: 0, duration: 0.35, stagger: 0.05, ease: 'power2.out', delay: 0.35 });
+
+    // Live feed pulse simulation
+    setInterval(() => {
+      const dots = document.querySelectorAll('.feed-dot.exec');
+      const dot = dots[Math.floor(Math.random() * dots.length)];
+      gsap.fromTo(dot, { scale: 1.5, opacity: 0.7 }, { scale: 1, opacity: 1, duration: 0.4, ease: 'power2.out' });
+    }, 2000);
+
+    // Tab switch simulation
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        gsap.from('.panel-main > *', { y: 8, opacity: 0, duration: 0.3, stagger: 0.02, ease: 'power2.out' });
+      });
+    });
+  </script>
+</body>
+</html>

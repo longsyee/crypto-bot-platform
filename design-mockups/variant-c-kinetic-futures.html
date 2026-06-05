@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Variant C — Kinetic Futures</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://api.fontshare.com/v2/css?f[]=geist@400,500,600,700&f[]=satoshi@400,500,700&f[]=clash-display@400,500,600,700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-base: #02040a;
+      --bg-elevated: #0a0e1a;
+      --accent: #f43f5e;
+      --accent-2: #06b6d4;
+      --text-primary: #f1f5f9;
+      --text-secondary: #64748b;
+      --text-muted: #475569;
+      --border-subtle: rgba(100, 116, 139, 0.1);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html {
+      background: var(--bg-base);
+      color: var(--text-primary);
+      font-family: 'Geist', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Custom scrollbar hide */
+    html, body {
+      overflow-x: hidden;
+    }
+
+    /* Noise texture overlay */
+    .noise {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      pointer-events: none;
+      opacity: 0.025;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    /* Hero — Curtain Reveal Setup */
+    .hero-wrapper {
+      position: relative;
+      height: 100dvh;
+      overflow: hidden;
+      z-index: 10;
+    }
+
+    .curtain {
+      position: absolute;
+      top: 0;
+      width: 50%;
+      height: 100%;
+      background: var(--bg-base);
+      z-index: 20;
+      will-change: transform;
+    }
+
+    .curtain-left { left: 0; }
+    .curtain-right { right: 0; }
+
+    .curtain-line {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 1px;
+      height: 100%;
+      background: linear-gradient(to bottom, transparent, rgba(244,63,94,0.3), transparent);
+      z-index: 25;
+      transform: translateX(-50%);
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 15;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 0 24px;
+    }
+
+    .hero-kicker {
+      font-family: 'Satoshi', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: var(--accent);
+      margin-bottom: 24px;
+      opacity: 0;
+    }
+
+    .hero h1 {
+      font-family: 'Clash Display', sans-serif;
+      font-size: clamp(56px, 10vw, 140px);
+      font-weight: 600;
+      letter-spacing: -0.04em;
+      line-height: 0.9;
+      margin-bottom: 28px;
+      opacity: 0;
+    }
+
+    .hero h1 span {
+      display: block;
+    }
+
+    .hero h1 .glitch {
+      color: var(--accent);
+      position: relative;
+    }
+
+    .hero-desc {
+      font-size: 16px;
+      line-height: 1.6;
+      color: var(--text-secondary);
+      max-width: 420px;
+      opacity: 0;
+    }
+
+    .hero-scroll {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 15;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      opacity: 0;
+    }
+
+    .hero-scroll span {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--text-muted);
+    }
+
+    .scroll-line {
+      width: 1px;
+      height: 48px;
+      background: linear-gradient(to bottom, var(--accent), transparent);
+      animation: scrollPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes scrollPulse {
+      0%, 100% { opacity: 0.3; transform: scaleY(0.6); }
+      50% { opacity: 1; transform: scaleY(1); }
+    }
+
+    /* Horizontal Scroll Hijack Section */
+    .h-scroll-wrapper {
+      position: relative;
+      z-index: 10;
+    }
+
+    .h-scroll-pin {
+      position: relative;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .h-scroll-track {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      will-change: transform;
+      padding: 0 10vw;
+      gap: 5vw;
+    }
+
+    .h-card {
+      flex-shrink: 0;
+      width: 60vw;
+      max-width: 800px;
+      height: 70vh;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: 32px;
+      padding: 48px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.4s ease;
+    }
+
+    .h-card:hover {
+      border-color: rgba(244, 63, 94, 0.2);
+    }
+
+    /* Holographic foil effect */
+    .h-card::before {
+      content: '';
+      position: absolute;
+      inset: -50%;
+      background: conic-gradient(
+        from 0deg at 50% 50%,
+        transparent 0%,
+        rgba(244, 63, 94, 0.03) 15%,
+        rgba(6, 182, 212, 0.03) 30%,
+        rgba(244, 63, 94, 0.03) 45%,
+        transparent 60%
+      );
+      animation: foilRotate 8s linear infinite;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    .h-card:hover::before { opacity: 1; }
+
+    @keyframes foilRotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .h-card-index {
+      font-family: 'Clash Display', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+
+    .h-card-title {
+      font-family: 'Clash Display', sans-serif;
+      font-size: clamp(32px, 4vw, 56px);
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      max-width: 80%;
+    }
+
+    .h-card-desc {
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--text-secondary);
+      max-width: 400px;
+    }
+
+    .h-card-visual {
+      position: absolute;
+      bottom: 48px;
+      right: 48px;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(244,63,94,0.1), transparent 70%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .h-card-visual::after {
+      content: '';
+      width: 60%;
+      height: 60%;
+      border: 1px solid var(--border-subtle);
+      border-radius: 50%;
+      animation: ringPulse 3s ease-in-out infinite;
+    }
+
+    @keyframes ringPulse {
+      0%, 100% { transform: scale(1); opacity: 0.5; }
+      50% { transform: scale(1.2); opacity: 0; }
+    }
+
+    /* Text Mask Section */
+    .mask-section {
+      position: relative;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      z-index: 10;
+    }
+
+    .mask-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 50%, rgba(244,63,94,0.06), transparent),
+        radial-gradient(ellipse 40% 40% at 30% 70%, rgba(6,182,212,0.04), transparent);
+      animation: maskBgShift 10s ease-in-out infinite;
+    }
+
+    @keyframes maskBgShift {
+      0%, 100% { transform: scale(1) translate(0, 0); }
+      50% { transform: scale(1.1) translate(-2%, -2%); }
+    }
+
+    .mask-typography {
+      position: relative;
+      z-index: 2;
+      font-family: 'Clash Display', sans-serif;
+      font-size: clamp(80px, 18vw, 240px);
+      font-weight: 700;
+      letter-spacing: -0.05em;
+      line-height: 0.9;
+      text-align: center;
+      background: linear-gradient(135deg, #1a0b2e 0%, #0f172a 50%, #1e1b4b 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      mix-blend-mode: multiply;
+    }
+
+    .mask-typography span {
+      display: block;
+    }
+
+    .mask-typography .highlight {
+      -webkit-text-fill-color: var(--accent);
+      opacity: 0.85;
+    }
+
+    /* Data Grid — Cockpit Density */
+    .data-section {
+      position: relative;
+      z-index: 10;
+      padding: 120px 48px;
+    }
+
+    .data-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 64px;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 24px;
+    }
+
+    .data-header h2 {
+      font-family: 'Clash Display', sans-serif;
+      font-size: clamp(28px, 3vw, 42px);
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .data-header .timestamp {
+      font-family: 'Geist', monospace;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .data-rows {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .data-row {
+      display: grid;
+      grid-template-columns: 1fr 120px 120px 120px 80px;
+      gap: 24px;
+      align-items: center;
+      padding: 20px 0;
+      border-top: 1px solid var(--border-subtle);
+      transition: background 0.2s ease;
+      cursor: default;
+    }
+
+    .data-row:hover {
+      background: rgba(255,255,255,0.02);
+      margin: 0 -24px;
+      padding-left: 24px;
+      padding-right: 24px;
+      border-radius: 8px;
+    }
+
+    .data-row-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .data-row-metric {
+      font-family: 'Geist', monospace;
+      font-size: 13px;
+      color: var(--text-secondary);
+      text-align: right;
+    }
+
+    .data-row-status {
+      text-align: right;
+    }
+
+    .status-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+      animation: statusBlink 3s ease-in-out infinite;
+    }
+
+    @keyframes statusBlink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* Footer */
+    .footer {
+      position: relative;
+      z-index: 10;
+      padding: 80px 48px 48px;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 48px;
+    }
+
+    .footer-brand {
+      font-family: 'Clash Display', sans-serif;
+      font-weight: 600;
+      font-size: 20px;
+      letter-spacing: -0.02em;
+    }
+
+    .footer-copy {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-top: 12px;
+    }
+
+    .footer-col h4 {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    .footer-col a {
+      display: block;
+      font-size: 14px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      margin-bottom: 12px;
+      transition: color 0.2s ease;
+    }
+
+    .footer-col a:hover { color: var(--accent); }
+
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 48px; }
+      .h-card { width: 85vw; padding: 32px; }
+      .h-card-title { font-size: 28px; }
+      .h-card-visual { width: 120px; height: 120px; bottom: 32px; right: 32px; }
+      .data-section { padding: 80px 24px; }
+      .data-row { grid-template-columns: 1fr 80px 60px; }
+      .data-row-metric:nth-child(2), .data-row-metric:nth-child(3) { display: none; }
+      .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+      .mask-typography { font-size: 60px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="noise"></div>
+
+  <!-- Hero with Curtain Reveal -->
+  <div class="hero-wrapper">
+    <div class="curtain curtain-left"></div>
+    <div class="curtain curtain-right"></div>
+    <div class="curtain-line"></div>
+
+    <div class="hero-content">
+      <div class="hero-kicker">The Next Sequence</div>
+      <h1>
+        <span>Execute</span>
+        <span class="glitch">Without</span>
+        <span>Friction</span>
+      </h1>
+      <p class="hero-desc">
+        A kinetic interface for operators who refuse to wait. Scroll-driven, physics-based, and built for momentum.
+      </p>
+    </div>
+
+    <div class="hero-scroll">
+      <span>Scroll</span>
+      <div class="scroll-line"></div>
+    </div>
+  </div>
+
+  <!-- Horizontal Scroll Hijack -->
+  <div class="h-scroll-wrapper">
+    <div class="h-scroll-pin">
+      <div class="h-scroll-track">
+        <div class="h-card">
+          <div class="h-card-index">01 / 04</div>
+          <div class="h-card-title">Continuous Deployment</div>
+          <div class="h-card-desc">Ship changes atomically. Rollback in milliseconds. Every deployment is a reversible transaction.</div>
+          <div class="h-card-visual"></div>
+        </div>
+
+        <div class="h-card">
+          <div class="h-card-index">02 / 04</div>
+          <div class="h-card-title">Signal Intelligence</div>
+          <div class="h-card-desc">Pattern recognition across distributed event streams. Anomalies surface before they cascade.</div>
+          <div class="h-card-visual"></div>
+        </div>
+
+        <div class="h-card">
+          <div class="h-card-index">03 / 04</div>
+          <div class="h-card-title">Elastic Scale</div>
+          <div class="h-card-desc">Resources breathe with demand. No over-provisioning, no capacity anxiety. Pure elasticity.</div>
+          <div class="h-card-visual"></div>
+        </div>
+
+        <div class="h-card">
+          <div class="h-card-index">04 / 04</div>
+          <div class="h-card-title">Zero Trust Mesh</div>
+          <div class="h-card-desc">Every packet authenticated, every identity cryptographic. Security woven into the fabric.</div>
+          <div class="h-card-visual"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Text Mask Section -->
+  <section class="mask-section">
+    <div class="mask-bg"></div>
+    <div class="mask-typography">
+      <span>Future</span>
+      <span class="highlight">Proof</span>
+    </div>
+  </section>
+
+  <!-- Data Grid -->
+  <section class="data-section">
+    <div class="data-header">
+      <h2>Live Telemetry</h2>
+      <div class="timestamp">SYS.TIME: 14:27:09.842 UTC</div>
+    </div>
+    <div class="data-rows">
+      <div class="data-row">
+        <div class="data-row-name">Core Gateway</div>
+        <div class="data-row-metric">2.4ms</div>
+        <div class="data-row-metric">99.2%</div>
+        <div class="data-row-metric">42.1K/s</div>
+        <div class="data-row-status"><span class="status-dot"></span></div>
+      </div>
+      <div class="data-row">
+        <div class="data-row-name">Event Router</div>
+        <div class="data-row-metric">1.1ms</div>
+        <div class="data-row-metric">99.9%</div>
+        <div class="data-row-metric">128.4K/s</div>
+        <div class="data-row-status"><span class="status-dot"></span></div>
+      </div>
+      <div class="data-row">
+        <div class="data-row-name">Auth Service</div>
+        <div class="data-row-metric">4.8ms</div>
+        <div class="data-row-metric">99.7%</div>
+        <div class="data-row-metric">18.3K/s</div>
+        <div class="data-row-status"><span class="status-dot"></span></div>
+      </div>
+      <div class="data-row">
+        <div class="data-row-name">Data Pipeline</div>
+        <div class="data-row-metric">8.2ms</div>
+        <div class="data-row-metric">98.4%</div>
+        <div class="data-row-metric">3.7K/s</div>
+        <div class="data-row-status"><span class="status-dot"></span></div>
+      </div>
+      <div class="data-row">
+        <div class="data-row-name">Model Inference</div>
+        <div class="data-row-metric">12.7ms</div>
+        <div class="data-row-metric">97.8%</div>
+        <div class="data-row-metric">892/s</div>
+        <div class="data-row-status"><span class="status-dot"></span></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand">Kinetic</div>
+        <p class="footer-copy">Interfaces built for momentum. No friction, no waiting, no filler.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Navigate</h4>
+        <a href="#">Products</a>
+        <a href="#">Solutions</a>
+        <a href="#">Docs</a>
+      </div>
+      <div class="footer-col">
+        <h4>System</h4>
+        <a href="#">Status</a>
+        <a href="#">Changelog</a>
+        <a href="#">Security</a>
+      </div>
+      <div class="footer-col">
+        <h4>Connect</h4>
+        <a href="#">Contact</a>
+        <a href="#">Careers</a>
+        <a href="#">Press</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    gsap.registerPlugin(ScrollTrigger);
+
+    // Curtain reveal animation
+    const curtainTl = gsap.timeline({
+      scrollTrigger: {
+        trigger: '.hero-wrapper',
+        start: 'top top',
+        end: '+=100%',
+        scrub: true,
+        pin: true,
+        anticipatePin: 1
+      }
+    });
+
+    curtainTl
+      .to('.curtain-left', { xPercent: -100, duration: 1, ease: 'power2.inOut' })
+      .to('.curtain-right', { xPercent: 100, duration: 1, ease: 'power2.inOut' }, '<')
+      .to('.curtain-line', { scaleY: 0, opacity: 0, duration: 0.8, ease: 'power2.in' }, '<')
+      .to('.hero-kicker', { opacity: 1, y: 0, duration: 0.3 }, 0.6)
+      .to('.hero h1', { opacity: 1, y: 0, duration: 0.4 }, 0.7)
+      .to('.hero-desc', { opacity: 1, y: 0, duration: 0.3 }, 0.85)
+      .to('.hero-scroll', { opacity: 1, duration: 0.3 }, 0.9);
+
+    // Glitch text effect on load complete
+    ScrollTrigger.create({
+      trigger: '.hero-wrapper',
+      start: 'top top',
+      onLeaveBack: () => {
+        gsap.set('.hero-kicker, .hero h1, .hero-desc, .hero-scroll', { opacity: 0, y: 20 });
+        gsap.set('.curtain-left', { xPercent: 0 });
+        gsap.set('.curtain-right', { xPercent: 0 });
+        gsap.set('.curtain-line', { scaleY: 1, opacity: 1 });
+      }
+    });
+
+    // Horizontal scroll hijack
+    const track = document.querySelector('.h-scroll-track');
+    const cards = gsap.utils.toArray('.h-card');
+    const totalWidth = track.scrollWidth - window.innerWidth;
+
+    gsap.to(track, {
+      x: () => -totalWidth,
+      ease: 'none',
+      scrollTrigger: {
+        trigger: '.h-scroll-pin',
+        start: 'top top',
+        end: () => `+=${totalWidth}`,
+        scrub: 1,
+        pin: true,
+        anticipatePin: 1,
+        invalidateOnRefresh: true
+      }
+    });
+
+    // Card entrance during horizontal scroll
+    cards.forEach((card, i) => {
+      gsap.from(card, {
+        rotateY: 15,
+        opacity: 0.4,
+        scale: 0.95,
+        scrollTrigger: {
+          trigger: '.h-scroll-pin',
+          start: () => `top+=${i * (totalWidth / cards.length)} top`,
+          end: () => `top+=${(i + 1) * (totalWidth / cards.length)} top`,
+          scrub: true,
+          containerAnimation: gsap.getById && gsap.getById('hScroll') || undefined
+        }
+      });
+    });
+
+    // Text mask parallax zoom
+    gsap.from('.mask-typography', {
+      scrollTrigger: {
+        trigger: '.mask-section',
+        start: 'top bottom',
+        end: 'bottom top',
+        scrub: true
+      },
+      scale: 0.8,
+      opacity: 0.3,
+      ease: 'none'
+    });
+
+    // Data rows stagger reveal
+    gsap.from('.data-row', {
+      scrollTrigger: {
+        trigger: '.data-rows',
+        start: 'top 80%',
+        toggleActions: 'play none none reverse'
+      },
+      x: -30,
+      opacity: 0,
+      duration: 0.6,
+      stagger: 0.08,
+      ease: 'power3.out'
+    });
+
+    // Live timestamp
+    setInterval(() => {
+      const now = new Date();
+      const ts = now.toISOString().split('T')[1].replace('Z', '').slice(0, 12);
+      const el = document.querySelector('.timestamp');
+      if (el) el.textContent = `SYS.TIME: ${ts} UTC`;
+    }, 100);
+  </script>
+</body>
+</html>

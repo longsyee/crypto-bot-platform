@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Variant E — Flux Terminal</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://api.fontshare.com/v2/css?f[]=geist@400,500,600,700&f[]=space-grotesk@400,500,600,700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-base: #02040a;
+      --bg-elevated: #0a0e17;
+      --bg-card: #0d111c;
+      --bg-hover: #111827;
+      --primary: #60a5fa;
+      --primary-glow: rgba(96, 165, 250, 0.08);
+      --success: #34d399;
+      --success-glow: rgba(52, 211, 153, 0.08);
+      --danger: #f87171;
+      --danger-glow: rgba(248, 113, 113, 0.08);
+      --warning: #fbbf24;
+      --accent: #2dd4bf;
+      --text-primary: #f1f5f9;
+      --text-secondary: #64748b;
+      --text-muted: #475569;
+      --border-subtle: rgba(100, 116, 139, 0.1);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html {
+      background: var(--bg-base);
+      color: var(--text-primary);
+      font-family: 'Geist', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* Dense Terminal Layout */
+    .terminal {
+      display: grid;
+      grid-template-rows: 48px 1fr;
+      min-height: 100dvh;
+    }
+
+    /* Top Bar */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: var(--bg-elevated);
+      border-bottom: 1px solid var(--border-subtle);
+      backdrop-filter: blur(20px);
+      z-index: 100;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .topbar-logo {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo-mark {
+      width: 24px; height: 24px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, var(--accent), var(--success));
+    }
+
+    .topbar-nav {
+      display: flex;
+      gap: 2px;
+    }
+
+    .topbar-nav a {
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .topbar-nav a:hover, .topbar-nav a.active {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .system-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-family: 'Geist', monospace;
+      color: var(--text-muted);
+    }
+
+    .system-pill::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 6px var(--success-glow);
+      animation: statusPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes statusPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* Main Grid */
+    .workspace {
+      display: grid;
+      grid-template-columns: 240px 1fr 320px;
+      gap: 1px;
+      background: var(--border-subtle);
+    }
+
+    .workspace > * {
+      background: var(--bg-base);
+    }
+
+    /* Sidebar */
+    .panel-sidebar {
+      padding: 16px;
+      overflow-y: auto;
+    }
+
+    .panel-section {
+      margin-bottom: 20px;
+    }
+
+    .panel-section-title {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      padding: 0 8px;
+    }
+
+    .panel-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      border: 1px solid transparent;
+    }
+
+    .panel-item:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+
+    .panel-item.active {
+      background: rgba(96, 165, 250, 0.06);
+      border-color: rgba(96, 165, 250, 0.15);
+      color: var(--primary);
+    }
+
+    .panel-item-delta {
+      font-family: 'Geist', monospace;
+      font-size: 11px;
+    }
+
+    .panel-item-delta.up { color: var(--success); }
+    .panel-item-delta.down { color: var(--danger); }
+
+    /* Center - Main Content */
+    .panel-main {
+      padding: 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    /* Horizontal Ticker */
+    .ticker-bar {
+      display: flex;
+      gap: 24px;
+      padding: 12px 0;
+      margin-bottom: 20px;
+      overflow-x: auto;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .ticker-bar::-webkit-scrollbar { display: none; }
+
+    .ticker-pair {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+      padding: 8px 14px;
+      border-radius: 10px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .ticker-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .ticker-price {
+      font-family: 'Geist', monospace;
+      font-size: 13px;
+      color: var(--text-primary);
+    }
+
+    .ticker-change {
+      font-family: 'Geist', monospace;
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .ticker-change.up { background: var(--success-glow); color: var(--success); }
+    .ticker-change.down { background: var(--danger-glow); color: var(--danger); }
+
+    /* Cockpit Stats */
+    .cockpit-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border-subtle);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .cockpit-cell {
+      background: var(--bg-card);
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .cockpit-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+    }
+
+    .cockpit-value {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .cockpit-sub {
+      font-family: 'Geist', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* Chart Panel */
+    .chart-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .chart-panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(96,165,250,0.1), transparent 50%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .chart-header h3 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .chart-badges {
+      display: flex;
+      gap: 8px;
+    }
+
+    .chart-badge {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 500;
+      font-family: 'Geist', monospace;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+    }
+
+    .chart-badge.active {
+      background: rgba(96, 165, 250, 0.08);
+      border-color: rgba(96, 165, 250, 0.15);
+      color: var(--primary);
+    }
+
+    /* Animated Bars */
+    .bars-container {
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 160px;
+      padding-top: 20px;
+    }
+
+    .bar {
+      flex: 1;
+      background: linear-gradient(to top, var(--primary), rgba(96, 165, 250, 0.2));
+      border-radius: 2px 2px 0 0;
+      min-height: 8px;
+      opacity: 0.7;
+      transition: opacity 0.2s ease;
+    }
+
+    .bar:hover { opacity: 1; }
+
+    .bar:nth-child(5n) {
+      background: linear-gradient(to top, var(--success), rgba(52, 211, 153, 0.2));
+    }
+
+    .bar:nth-child(7n) {
+      background: linear-gradient(to top, var(--danger), rgba(248, 113, 113, 0.2));
+    }
+
+    /* Order Book */
+    .panel-right {
+      padding: 16px;
+      overflow-y: auto;
+    }
+
+    .orderbook-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding: 0 4px;
+    }
+
+    .orderbook-header h4 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+    }
+
+    .orderbook-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      padding: 5px 4px;
+      font-size: 11px;
+      font-family: 'Geist', monospace;
+      border-radius: 4px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .orderbook-row::before {
+      content: '';
+      position: absolute;
+      top: 0; bottom: 0;
+      opacity: 0.1;
+      transition: width 0.3s ease;
+    }
+
+    .orderbook-row.ask::before {
+      right: 0;
+      background: var(--danger);
+    }
+
+    .orderbook-row.bid::before {
+      right: 0;
+      background: var(--success);
+    }
+
+    .orderbook-price { color: var(--text-secondary); text-align: left; }
+    .orderbook-size { color: var(--text-muted); text-align: center; }
+    .orderbook-total { color: var(--text-muted); text-align: right; }
+
+    .orderbook-row.ask .orderbook-price { color: var(--danger); }
+    .orderbook-row.bid .orderbook-price { color: var(--success); }
+
+    .spread-bar {
+      text-align: center;
+      padding: 8px 0;
+      font-size: 11px;
+      font-family: 'Geist', monospace;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border-subtle);
+      border-bottom: 1px solid var(--border-subtle);
+      margin: 8px 0;
+    }
+
+    /* Recent Fills */
+    .fills-header {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin: 20px 0 10px;
+      padding: 0 4px;
+    }
+
+    .fill-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 4px;
+      font-size: 11px;
+      font-family: 'Geist', monospace;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .fill-row:last-child { border-bottom: none; }
+
+    .fill-side {
+      display: inline-block;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      margin-right: 6px;
+    }
+
+    .fill-side.buy { background: var(--success); }
+    .fill-side.sell { background: var(--danger); }
+
+    @media (max-width: 1024px) {
+      .workspace { grid-template-columns: 1fr; }
+      .panel-sidebar, .panel-right { display: none; }
+    }
+
+    @media (max-width: 768px) {
+      .cockpit-row { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="terminal">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-logo">
+          <div class="logo-mark"></div>
+          Flux
+        </div>
+        <nav class="topbar-nav">
+          <a href="#" class="active">Terminal</a>
+          <a href="#">Positions</a>
+          <a href="#">Orders</a>
+          <a href="#">History</a>
+        </nav>
+      </div>
+      <div class="topbar-right">
+        <div class="system-pill">System Operational</div>
+        <div style="font-family:monospace; font-size:11px; color:var(--text-muted);">14:27:09 UTC</div>
+      </div>
+    </div>
+
+    <div class="workspace">
+      <!-- Left Panel: Watchlist -->
+      <div class="panel-sidebar">
+        <div class="panel-section">
+          <div class="panel-section-title">Favorites</div>
+          <div class="panel-item active">
+            <span>BTC/USDT</span>
+            <span class="panel-item-delta up">+2.4%</span>
+          </div>
+          <div class="panel-item">
+            <span>ETH/USDT</span>
+            <span class="panel-item-delta up">+1.8%</span>
+          </div>
+          <div class="panel-item">
+            <span>SOL/USDT</span>
+            <span class="panel-item-delta down">-0.7%</span>
+          </div>
+          <div class="panel-item">
+            <span>AVAX/USDT</span>
+            <span class="panel-item-delta up">+5.2%</span>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <div class="panel-section-title">Bot Status</div>
+          <div class="panel-item">
+            <span>Alpha Grid</span>
+            <span style="color:var(--success); font-size:10px;">Running</span>
+          </div>
+          <div class="panel-item">
+            <span>Momentum V2</span>
+            <span style="color:var(--success); font-size:10px;">Running</span>
+          </div>
+          <div class="panel-item">
+            <span>DCA Builder</span>
+            <span style="color:var(--warning); font-size:10px;">Paused</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center Panel -->
+      <div class="panel-main">
+        <!-- Ticker -->
+        <div class="ticker-bar">
+          <div class="ticker-pair">
+            <span class="ticker-name">BTC</span>
+            <span class="ticker-price">$43,210.50</span>
+            <span class="ticker-change up">+2.41%</span>
+          </div>
+          <div class="ticker-pair">
+            <span class="ticker-name">ETH</span>
+            <span class="ticker-price">$2,847.12</span>
+            <span class="ticker-change up">+1.82%</span>
+          </div>
+          <div class="ticker-pair">
+            <span class="ticker-name">SOL</span>
+            <span class="ticker-price">$142.80</span>
+            <span class="ticker-change down">-0.73%</span>
+          </div>
+          <div class="ticker-pair">
+            <span class="ticker-name">AVAX</span>
+            <span class="ticker-price">$38.45</span>
+            <span class="ticker-change up">+5.21%</span>
+          </div>
+          <div class="ticker-pair">
+            <span class="ticker-name">LINK</span>
+            <span class="ticker-price">$14.22</span>
+            <span class="ticker-change up">+3.15%</span>
+          </div>
+        </div>
+
+        <!-- Cockpit Stats -->
+        <div class="cockpit-row">
+          <div class="cockpit-cell">
+            <div class="cockpit-label">Portfolio Value</div>
+            <div class="cockpit-value" style="color:var(--primary)">$84,291</div>
+            <div class="cockpit-sub">+12.4% vs last week</div>
+          </div>
+          <div class="cockpit-cell">
+            <div class="cockpit-label">24h PnL</div>
+            <div class="cockpit-value" style="color:var(--success)">+$2,847</div>
+            <div class="cockpit-sub">Realized + unrealized</div>
+          </div>
+          <div class="cockpit-cell">
+            <div class="cockpit-label">Open Positions</div>
+            <div class="cockpit-value">7</div>
+            <div class="cockpit-sub">3 long / 4 short</div>
+          </div>
+          <div class="cockpit-cell">
+            <div class="cockpit-label">Margin Used</div>
+            <div class="cockpit-value" style="color:var(--warning)">34.2%</div>
+            <div class="cockpit-sub">$28,420 of $83,000</div>
+          </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="chart-panel">
+          <div class="chart-header">
+            <h3>BTC/USDT — Price Action</h3>
+            <div class="chart-badges">
+              <span class="chart-badge active">1H</span>
+              <span class="chart-badge">4H</span>
+              <span class="chart-badge">1D</span>
+              <span class="chart-badge">1W</span>
+            </div>
+          </div>
+          <div class="bars-container" id="chartBars">
+            <!-- Bars generated by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Panel: Order Book + Fills -->
+      <div class="panel-right">
+        <div class="orderbook-header">
+          <h4>Order Book</h4>
+          <span style="font-size:11px; color:var(--text-muted);">BTC/USDT</span>
+        </div>
+
+        <!-- Asks -->
+        <div class="orderbook-row ask" style="--depth:30%">
+          <span class="orderbook-price">43,250.00</span>
+          <span class="orderbook-size">1.234</span>
+          <span class="orderbook-total">53.4K</span>
+        </div>
+        <div class="orderbook-row ask" style="--depth:45%">
+          <span class="orderbook-price">43,245.50</span>
+          <span class="orderbook-size">2.891</span>
+          <span class="orderbook-total">125.1K</span>
+        </div>
+        <div class="orderbook-row ask" style="--depth:20%">
+          <span class="orderbook-price">43,241.00</span>
+          <span class="orderbook-size">0.567</span>
+          <span class="orderbook-total">24.5K</span>
+        </div>
+        <div class="orderbook-row ask" style="--depth:60%">
+          <span class="orderbook-price">43,238.75</span>
+          <span class="orderbook-size">4.123</span>
+          <span class="orderbook-total">178.2K</span>
+        </div>
+        <div class="orderbook-row ask" style="--depth:15%">
+          <span class="orderbook-price">43,235.00</span>
+          <span class="orderbook-size">0.312</span>
+          <span class="orderbook-total">13.5K</span>
+        </div>
+
+        <div class="spread-bar">Spread: 0.05 (0.0001%)</div>
+
+        <!-- Bids -->
+        <div class="orderbook-row bid" style="--depth:25%">
+          <span class="orderbook-price">43,230.00</span>
+          <span class="orderbook-size">0.987</span>
+          <span class="orderbook-total">42.7K</span>
+        </div>
+        <div class="orderbook-row bid" style="--depth:50%">
+          <span class="orderbook-price">43,228.50</span>
+          <span class="orderbook-size">3.456</span>
+          <span class="orderbook-total">149.4K</span>
+        </div>
+        <div class="orderbook-row bid" style="--depth:35%">
+          <span class="orderbook-price">43,225.00</span>
+          <span class="orderbook-size">1.789</span>
+          <span class="orderbook-total">77.3K</span>
+        </div>
+        <div class="orderbook-row bid" style="--depth:40%">
+          <span class="orderbook-price">43,221.25</span>
+          <span class="orderbook-size">2.234</span>
+          <span class="orderbook-total">96.5K</span>
+        </div>
+        <div class="orderbook-row bid" style="--depth:18%">
+          <span class="orderbook-price">43,218.00</span>
+          <span class="orderbook-size">0.654</span>
+          <span class="orderbook-total">28.3K</span>
+        </div>
+
+        <div class="fills-header">Recent Fills</div>
+        <div class="fill-row">
+          <span><span class="fill-side buy"></span>0.023 BTC</span>
+          <span style="color:var(--text-muted)">43,210.50</span>
+          <span style="color:var(--success)">2m</span>
+        </div>
+        <div class="fill-row">
+          <span><span class="fill-side sell"></span>1.45 ETH</span>
+          <span style="color:var(--text-muted)">2,847.12</span>
+          <span style="color:var(--danger)">5m</span>
+        </div>
+        <div class="fill-row">
+          <span><span class="fill-side buy"></span>35.2 SOL</span>
+          <span style="color:var(--text-muted)">142.80</span>
+          <span style="color:var(--success)">12m</span>
+        </div>
+        <div class="fill-row">
+          <span><span class="fill-side buy"></span>0.011 BTC</span>
+          <span style="color:var(--text-muted)">43,205.00</span>
+          <span style="color:var(--success)">18m</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    gsap.registerPlugin(ScrollTrigger);
+
+    // Generate chart bars
+    const barsContainer = document.getElementById('chartBars');
+    for (let i = 0; i < 60; i++) {
+      const bar = document.createElement('div');
+      bar.className = 'bar';
+      const h = Math.random() * 100 + 20;
+      bar.style.height = '0%';
+      bar.dataset.height = h + '%';
+      barsContainer.appendChild(bar);
+    }
+
+    // Animate bars on load
+    gsap.to('.bar', {
+      height: (i, el) => el.dataset.height,
+      duration: 0.8,
+      stagger: 0.02,
+      ease: 'power2.out',
+      delay: 0.3
+    });
+
+    // Cockpit cells entrance
+    gsap.from('.cockpit-cell', {
+      y: 16,
+      opacity: 0,
+      duration: 0.5,
+      stagger: 0.06,
+      ease: 'power3.out',
+      delay: 0.2
+    });
+
+    // Ticker slide in
+    gsap.from('.ticker-pair', {
+      x: 40,
+      opacity: 0,
+      duration: 0.6,
+      stagger: 0.08,
+      ease: 'power3.out',
+      delay: 0.1
+    });
+
+    // Order book rows cascade
+    gsap.from('.orderbook-row', {
+      x: 20,
+      opacity: 0,
+      duration: 0.4,
+      stagger: 0.03,
+      ease: 'power2.out',
+      delay: 0.4
+    });
+
+    // Live bar animation loop
+    setInterval(() => {
+      const bars = document.querySelectorAll('.bar');
+      const randomBar = bars[Math.floor(Math.random() * bars.length)];
+      const newH = Math.random() * 100 + 20;
+      gsap.to(randomBar, {
+        height: newH + '%',
+        duration: 0.6,
+        ease: 'power2.inOut'
+      });
+    }, 800);
+
+    // Topbar entrance
+    gsap.from('.topbar', {
+      y: -48,
+      opacity: 0,
+      duration: 0.5,
+      ease: 'power3.out'
+    });
+
+    // Panel sidebar entrance
+    gsap.from('.panel-sidebar', {
+      x: -40,
+      opacity: 0,
+      duration: 0.5,
+      ease: 'power3.out',
+      delay: 0.15
+    });
+  </script>
+</body>
+</html>

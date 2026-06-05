@@ -373,7 +373,6 @@ export function useCreateBot() {
       connectionId: string;
       mode: string;
       tradingPair: string;
-      paperInitialBalance?: Record<string, number>;
       config: any;
     }) =>
       api<any>("/bots", {
@@ -585,5 +584,46 @@ export function useLogin2FA() {
         method: "POST",
         body: JSON.stringify({ tempToken, code }),
       }),
+  });
+}
+
+// ------------------------------------------------------------------
+// SimFunds (Paper Trading)
+// ------------------------------------------------------------------
+
+export function useTopUpPaper() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: { usdtAmount: number }) =>
+      api<any>("/wallets/topup-paper", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["wallet"] });
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+    },
+  });
+}
+
+export function useSimFundsConfig() {
+  return useQuery({
+    queryKey: ["sim-funds-config"],
+    queryFn: () => api<Record<string, string>>("/wallets/config"),
+  });
+}
+
+export function useGrantSimFunds() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: { userId: string; amount: number; reason?: string }) =>
+      api<any>("/admin/sim-funds/grant", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+      qc.invalidateQueries({ queryKey: ["wallet"] });
+    },
   });
 }

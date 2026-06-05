@@ -1,0 +1,60 @@
+module.exports = {
+  apps: [
+    {
+      name: "api",
+      cwd: "./apps/api",
+      script: "pnpm",
+      args: "run dev",
+      autorestart: true,
+      max_restarts: 10,
+      min_uptime: "10s",
+      env: {
+        NODE_ENV: "development",
+      },
+      log_file: "./logs/api.log",
+      time: true,
+    },
+    {
+      name: "worker",
+      cwd: "./apps/worker",
+      script: "pnpm",
+      args: "run dev",
+      autorestart: true,
+      max_restarts: 10,
+      min_uptime: "10s",
+      env: {
+        NODE_ENV: "development",
+      },
+      log_file: "./logs/worker.log",
+      time: true,
+    },
+    {
+      name: "wallet-service",
+      cwd: "./apps/wallet",
+      script: "pnpm",
+      args: "run dev",
+      autorestart: true,
+      max_restarts: 10,
+      min_uptime: "10s",
+      env: {
+        NODE_ENV: "development",
+      },
+      log_file: "./logs/wallet.log",
+      time: true,
+    },
+    {
+      name: "web",
+      cwd: "./apps/web",
+      script: "pnpm",
+      args: "run dev",
+      autorestart: true,
+      max_restarts: 10,
+      min_uptime: "10s",
+      env: {
+        NODE_ENV: "development",
+      },
+      log_file: "./logs/web.log",
+      time: true,
+    },
+  ],
+};

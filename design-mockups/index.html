@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tier S Dashboard Variants — Flux Family + More</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://api.fontshare.com/v2/css?f[]=geist@400,500,600,700&f[]=satoshi@400,500,700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #030712;
+      --text: #f8fafc;
+      --muted: #64748b;
+      --border: rgba(148, 163, 184, 0.12);
+      --accent: #2dd4bf;
+      --success: #34d399;
+      --primary: #60a5fa;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Geist', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      min-height: 100dvh;
+      padding: 48px 24px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 48px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .header h1 {
+      font-family: 'Satoshi', sans-serif;
+      font-size: clamp(32px, 4vw, 52px);
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      line-height: 1.1;
+      margin-bottom: 16px;
+    }
+
+    .header p {
+      font-size: 16px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .variants {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      max-width: 1400px;
+      margin: 0 auto 64px;
+    }
+
+    .variant-card {
+      position: relative;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .variant-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1px;
+      background: radial-gradient(400px circle at var(--mx, 50%) var(--my, 50%), rgba(45,212,191,0.12), transparent 40%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    .variant-card:hover::before { opacity: 1; }
+
+    .variant-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(148, 163, 184, 0.2);
+      box-shadow: 0 24px 60px rgba(0,0,0,0.3);
+    }
+
+    .variant-number {
+      font-family: 'Satoshi', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent);
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+    }
+
+    .variant-name {
+      font-family: 'Satoshi', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 10px;
+      color: var(--text);
+    }
+
+    .variant-desc {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--muted);
+      margin-bottom: 20px;
+      flex: 1;
+    }
+
+    .variant-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 20px;
+    }
+
+    .tag {
+      padding: 3px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--muted);
+    }
+
+    .tag.featured {
+      background: rgba(45, 212, 191, 0.08);
+      border-color: rgba(45, 212, 191, 0.15);
+      color: var(--accent);
+    }
+
+    .variant-arrow {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      margin-left: auto;
+    }
+
+    .variant-card:hover .variant-arrow {
+      background: rgba(45, 212, 191, 0.1);
+      transform: translate(2px, -2px);
+    }
+
+    .divider {
+      max-width: 1400px;
+      margin: 0 auto 48px;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .alt-section {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .alt-section h2 {
+      font-family: 'Satoshi', sans-serif;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .alt-section p {
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .alt-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .alt-card {
+      position: relative;
+      background: rgba(255,255,255,0.015);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.3s ease;
+    }
+
+    .alt-card:hover {
+      border-color: rgba(148, 163, 184, 0.2);
+      transform: translateY(-3px);
+    }
+
+    .alt-card .variant-name { font-size: 16px; margin-bottom: 8px; }
+    .alt-card .variant-desc { font-size: 12px; margin-bottom: 12px; }
+    .alt-card .tag { font-size: 10px; padding: 2px 8px; }
+
+    @media (max-width: 1100px) {
+      .variants { grid-template-columns: repeat(2, 1fr); }
+      .alt-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 640px) {
+      .variants { grid-template-columns: 1fr; }
+      .alt-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Dashboard Design Variants</h1>
+    <p>Flux Terminal family + alternative directions. Each is a fully animated, self-contained HTML prototype using your exact dark glassmorphic tokens.</p>
+  </div>
+
+  <!-- FLUX FAMILY -->
+  <div class="section-label">Flux Terminal Family (Dense Cockpit Aesthetic)</div>
+
+  <div class="variants">
+    <a href="variant-e-flux-terminal.html" class="variant-card">
+      <div class="variant-number">Variant E</div>
+      <div class="variant-name">Flux Terminal</div>
+      <div class="variant-desc">
+        The original dense cockpit. 3-pane layout with live ticker bar, animated histogram chart, order book depth bars, and real-time execution feed. Designed for maximum information density.
+      </div>
+      <div class="variant-tags">
+        <span class="tag featured">Original</span>
+        <span class="tag">Order Book</span>
+        <span class="tag">Live Bars</span>
+        <span class="tag">3-Pane</span>
+      </div>
+      <div class="variant-arrow">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </a>
+
+    <a href="variant-g-bot-terminal.html" class="variant-card">
+      <div class="variant-number">Variant G</div>
+      <div class="variant-name">Bot Terminal</div>
+      <div class="variant-desc">
+        Bot management cockpit. Left panel lists all running/stopped bots with status dots. Center shows selected bot detail with tabs (Overview, Orders, Signal, Logs, Config), cockpit stats, and order history table. Right panel is a live execution feed.
+      </div>
+      <div class="variant-tags">
+        <span class="tag featured">Bot Detail</span>
+        <span class="tag">Tabbed Interface</span>
+        <span class="tag">Execution Feed</span>
+        <span class="tag">Signal Setup</span>
+      </div>
+      <div class="variant-arrow">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </a>
+
+    <a href="variant-h-wallet-terminal.html" class="variant-card">
+      <div class="variant-number">Variant H</div>
+      <div class="variant-name">Wallet Terminal</div>
+      <div class="variant-desc">
+        Wallet management cockpit. 4 balance cells with accent top borders, QR code deposit card with address copy, transaction history table with in/out icons, and right panel with USDT-to-Token convert form + reward token withdrawal toggle.
+      </div>
+      <div class="variant-tags">
+        <span class="tag featured">Wallet</span>
+        <span class="tag">Deposit QR</span>
+        <span class="tag">Convert</span>
+        <span class="tag">Withdrawal</span>
+      </div>
+      <div class="variant-arrow">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </a>
+
+    <a href="variant-i-admin-terminal.html" class="variant-card">
+      <div class="variant-number">Variant I</div>
+      <div class="variant-name">Admin Terminal</div>
+      <div class="variant-desc">
+        System administration cockpit. Animated count-up stat row, user table with role/tier badges, audit log stream, withdrawal queue with approve/reject actions, and company health mini-grid. Built for platform operators.
+      </div>
+      <div class="variant-tags">
+        <span class="tag featured">Admin</span>
+        <span class="tag">Approval Queue</span>
+        <span class="tag">Audit Log</span>
+        <span class="tag">Company Stats</span>
+      </div>
+      <div class="variant-arrow">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </a>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ALTERNATIVES -->
+  <div class="alt-section">
+    <h2>Alternative Directions</h2>
+    <p>Other aesthetic explorations if you want to step outside the Flux cockpit style.</p>
+  </div>
+
+  <div class="alt-grid">
+    <a href="variant-d-glass-command.html" class="alt-card">
+      <div class="variant-number">Variant D</div>
+      <div class="variant-name">Glass Command</div>
+      <div class="variant-desc">Your current dashboard with spotlight-border cards, stat counters, and GSAP motion.</div>
+      <div class="variant-tags">
+        <span class="tag">Spotlight</span>
+        <span class="tag">Sidebar</span>
+      </div>
+    </a>
+
+    <a href="variant-f-meridian.html" class="alt-card">
+      <div class="variant-number">Variant F</div>
+      <div class="variant-name">Meridian</div>
+      <div class="variant-desc">Editorial-dashboard hybrid. Floating nav, mega stats, bento grid, donut chart.</div>
+      <div class="variant-tags">
+        <span class="tag">Bento</span>
+        <span class="tag">Editorial</span>
+      </div>
+    </a>
+
+    <a href="variant-a-obsidian-terminal.html" class="alt-card">
+      <div class="variant-number">Marketing</div>
+      <div class="variant-name">Landing Page Variants</div>
+      <div class="variant-desc">Obsidian Terminal, Liquid Glass Bento, and Kinetic Futures for marketing pages.</div>
+      <div class="variant-tags">
+        <span class="tag">A/B/C</span>
+        <span class="tag">Landing</span>
+      </div>
+    </a>
+  </div>
+
+  <script>
+    document.querySelectorAll('.variant-card, .alt-card').forEach(card => {
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        card.style.setProperty('--mx', e.clientX - rect.left + 'px');
+        card.style.setProperty('--my', e.clientY - rect.top + 'px');
+      });
+    });
+  </script>
+</body>
+</html>

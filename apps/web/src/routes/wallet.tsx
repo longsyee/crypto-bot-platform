@@ -28,6 +28,7 @@ import {
   Info,
   Gift,
   ArrowLeftRight,
+  BookOpen,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 
@@ -156,6 +157,14 @@ function WalletPage() {
       strip: "border-[var(--success)]",
       accent: "text-[var(--success)]",
       suffix: " USDT",
+    },
+    {
+      label: t("wallet.simFundsBalance"),
+      value: wallet?.simFundsBalance ?? 0,
+      icon: BookOpen,
+      strip: "border-[var(--primary)]",
+      accent: "text-[var(--primary)]",
+      suffix: " SF",
     },
     {
       label: t("wallet.rewardToken"),

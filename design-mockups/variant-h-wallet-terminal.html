@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Variant H — Wallet Terminal</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://api.fontshare.com/v2/css?f[]=geist@400,500,600,700&f[]=space-grotesk@400,500,600,700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-base: #02040a;
+      --bg-elevated: #0a0e17;
+      --bg-card: #0d111c;
+      --bg-hover: #111827;
+      --primary: #60a5fa;
+      --primary-glow: rgba(96, 165, 250, 0.08);
+      --success: #34d399;
+      --success-glow: rgba(52, 211, 153, 0.08);
+      --danger: #f87171;
+      --danger-glow: rgba(248, 113, 113, 0.08);
+      --warning: #fbbf24;
+      --accent: #2dd4bf;
+      --text-primary: #f1f5f9;
+      --text-secondary: #64748b;
+      --text-muted: #475569;
+      --border-subtle: rgba(100, 116, 139, 0.1);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html {
+      background: var(--bg-base);
+      color: var(--text-primary);
+      font-family: 'Geist', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .noise {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      pointer-events: none;
+      opacity: 0.02;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    .terminal {
+      display: grid;
+      grid-template-rows: 44px 1fr;
+      min-height: 100dvh;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      background: var(--bg-elevated);
+      border-bottom: 1px solid var(--border-subtle);
+      z-index: 100;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .topbar-logo {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo-mark {
+      width: 22px; height: 22px;
+      border-radius: 5px;
+      background: linear-gradient(135deg, var(--accent), var(--success));
+    }
+
+    .topbar-nav {
+      display: flex;
+      gap: 2px;
+    }
+
+    .topbar-nav a {
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .topbar-nav a:hover, .topbar-nav a.active {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .wallet-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 999px;
+      background: var(--success-glow);
+      border: 1px solid rgba(52, 211, 153, 0.15);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--success);
+      font-family: 'Geist', monospace;
+    }
+
+    /* Workspace */
+    .workspace {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 1px;
+      background: var(--border-subtle);
+    }
+
+    .workspace > * { background: var(--bg-base); }
+
+    .panel-main {
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    /* Balance Cockpit */
+    .balance-cockpit {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border-subtle);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    .balance-cell {
+      background: var(--bg-card);
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .balance-cell::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      opacity: 0.5;
+    }
+
+    .balance-cell.accent-1::before { background: var(--primary); }
+    .balance-cell.accent-2::before { background: var(--success); }
+    .balance-cell.accent-3::before { background: var(--warning); }
+    .balance-cell.accent-4::before { background: var(--accent); }
+
+    .balance-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+    }
+
+    .balance-value {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .balance-sub {
+      font-family: 'Geist', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* Deposit Card */
+    .deposit-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .deposit-card h3 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    .qr-wrap {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 16px;
+    }
+
+    .qr-box {
+      width: 120px;
+      height: 120px;
+      background: #fff;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+
+    .qr-pattern {
+      width: 100px;
+      height: 100px;
+      background: repeating-linear-gradient(0deg, #000 0px, #000 4px, transparent 4px, transparent 8px),
+                  repeating-linear-gradient(90deg, #000 0px, #000 4px, transparent 4px, transparent 8px);
+      border: 8px solid #000;
+    }
+
+    .address-box {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .address-label {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .address-value {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      background: var(--bg-base);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      font-family: 'Geist', monospace;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .copy-btn {
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-elevated);
+      color: var(--text-muted);
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .copy-btn:hover { color: var(--primary); border-color: var(--primary); }
+
+    .warning-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      background: rgba(251, 191, 36, 0.04);
+      border: 1px solid rgba(251, 191, 36, 0.1);
+      border-radius: 8px;
+      font-size: 11px;
+      color: var(--warning);
+    }
+
+    /* Transaction Table */
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .section-header h3 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+
+    .data-table th {
+      text-align: left;
+      padding: 10px;
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-subtle);
+      background: var(--bg-elevated);
+    }
+
+    .data-table td {
+      padding: 12px 10px;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: rgba(255,255,255,0.015); }
+
+    .tx-icon {
+      width: 24px; height: 24px;
+      border-radius: 6px;
+      display: grid;
+      place-items: center;
+    }
+
+    .tx-icon.in {
+      background: var(--success-glow);
+      border: 1px solid rgba(52, 211, 153, 0.15);
+      color: var(--success);
+    }
+
+    .tx-icon.out {
+      background: var(--danger-glow);
+      border: 1px solid rgba(248, 113, 113, 0.15);
+      color: var(--danger);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 600;
+    }
+
+    .badge-green {
+      background: var(--success-glow);
+      color: var(--success);
+      border: 1px solid rgba(52, 211, 153, 0.15);
+    }
+
+    .badge-amber {
+      background: rgba(251, 191, 36, 0.06);
+      color: var(--warning);
+      border: 1px solid rgba(251, 191, 36, 0.15);
+    }
+
+    .badge-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+    }
+
+    .mono { font-family: 'Geist', monospace; }
+
+    /* Right Panel */
+    .panel-right {
+      padding: 16px;
+      overflow-y: auto;
+    }
+
+    .convert-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .convert-card h4 {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--text-primary);
+    }
+
+    .input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      background: var(--bg-base);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+    .input-row input {
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      font-family: 'Geist', monospace;
+      font-size: 13px;
+      width: 100%;
+      outline: none;
+    }
+
+    .input-row input::placeholder { color: var(--text-muted); }
+
+    .input-row .currency {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 600;
+      padding: 2px 8px;
+      background: var(--bg-elevated);
+      border-radius: 4px;
+    }
+
+    .convert-arrow {
+      text-align: center;
+      margin: 8px 0;
+      color: var(--text-muted);
+    }
+
+    .convert-btn {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      background: var(--primary);
+      color: var(--bg-base);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .convert-btn:hover { filter: brightness(1.1); }
+
+    .rate-text {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: 8px;
+    }
+
+    .withdraw-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .withdraw-card h4 {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--text-primary);
+    }
+
+    .withdraw-balance {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .withdraw-balance-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .toggle-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .toggle-switch {
+      width: 36px;
+      height: 20px;
+      border-radius: 999px;
+      background: var(--bg-hover);
+      border: 1px solid var(--border-subtle);
+      position: relative;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .toggle-switch::after {
+      content: '';
+      position: absolute;
+      top: 2px; left: 2px;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      transition: all 0.2s ease;
+    }
+
+    .toggle-switch.active {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .toggle-switch.active::after {
+      left: 18px;
+      background: #fff;
+    }
+
+    @media (max-width: 1024px) {
+      .workspace { grid-template-columns: 1fr; }
+      .panel-right { display: none; }
+      .balance-cockpit { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 640px) {
+      .balance-cockpit { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="noise"></div>
+
+  <div class="terminal">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-logo">
+          <div class="logo-mark"></div>
+          Flux
+        </div>
+        <nav class="topbar-nav">
+          <a href="variant-e-flux-terminal.html">Terminal</a>
+          <a href="variant-g-bot-terminal.html">Bots</a>
+          <a href="#" class="active">Wallet</a>
+          <a href="variant-i-admin-terminal.html">Admin</a>
+        </nav>
+      </div>
+      <div class="topbar-right">
+        <div class="wallet-chip">$12,847.32</div>
+        <div style="font-family:monospace; font-size:10px; color:var(--text-muted);">v2.4.1</div>
+      </div>
+    </div>
+
+    <div class="workspace">
+      <!-- Left: Main -->
+      <div class="panel-main">
+        <!-- Balance Cockpit -->
+        <div class="balance-cockpit">
+          <div class="balance-cell accent-1">
+            <div class="balance-label">USDT Balance</div>
+            <div class="balance-value">$8,420.50</div>
+            <div class="balance-sub">+$500 pending</div>
+          </div>
+          <div class="balance-cell accent-2">
+            <div class="balance-label">Token Balance</div>
+            <div class="balance-value">$3,124.80</div>
+            <div class="balance-sub">Gas: 0.42 BNB</div>
+          </div>
+          <div class="balance-cell accent-3">
+            <div class="balance-label">Reward Token</div>
+            <div class="balance-value">$847.32</div>
+            <div class="balance-sub">+$12.40 today</div>
+          </div>
+          <div class="balance-cell accent-4">
+            <div class="balance-label">Total Deposited</div>
+            <div class="balance-value">$18,200.00</div>
+            <div class="balance-sub">Lifetime inflow</div>
+          </div>
+        </div>
+
+        <!-- Deposit -->
+        <div class="deposit-card">
+          <h3>Deposit USDT (BSC)</h3>
+          <div class="qr-wrap">
+            <div class="qr-box">
+              <div class="qr-pattern"></div>
+            </div>
+            <div class="address-box">
+              <div class="address-label">Deposit Address</div>
+              <div class="address-value">
+                <span style="flex:1;overflow:hidden;text-overflow:ellipsis;">0x7a9f...3e4b</span>
+                <button class="copy-btn">Copy</button>
+              </div>
+            </div>
+          </div>
+          <div class="warning-box">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            BSC network only. 12 block confirmations required.
+          </div>
+        </div>
+
+        <!-- Transaction History -->
+        <div class="section-header">
+          <h3>Transaction History</h3>
+          <span style="font-size:11px; color:var(--text-muted); cursor:pointer;">View All</span>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Amount</th>
+              <th>Currency</th>
+              <th>Status</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <div class="tx-icon in">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+                  </div>
+                  <span>Deposit</span>
+                </div>
+              </td>
+              <td class="mono" style="color:var(--success)">+$500.00</td>
+              <td class="mono">USDT</td>
+              <td><span class="badge badge-green"><span class="badge-dot" style="background:var(--success)"></span> Completed</span></td>
+              <td class="mono">Jun 2, 14:27</td>
+            </tr>
+            <tr>
+              <td>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <div class="tx-icon out">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12l7-7 7 7"/></svg>
+                  </div>
+                  <span>Withdrawal</span>
+                </div>
+              </td>
+              <td class="mono" style="color:var(--danger)">-$1,200.00</td>
+              <td class="mono">USDT</td>
+              <td><span class="badge badge-amber"><span class="badge-dot" style="background:var(--warning)"></span> Pending</span></td>
+              <td class="mono">Jun 2, 11:05</td>
+            </tr>
+            <tr>
+              <td>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <div class="tx-icon in">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+                  </div>
+                  <span>Reward</span>
+                </div>
+              </td>
+              <td class="mono" style="color:var(--success)">+$12.40</td>
+              <td class="mono">RWD</td>
+              <td><span class="badge badge-green"><span class="badge-dot" style="background:var(--success)"></span> Completed</span></td>
+              <td class="mono">Jun 2, 09:14</td>
+            </tr>
+            <tr>
+              <td>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <div class="tx-icon out">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12l7-7 7 7"/></svg>
+                  </div>
+                  <span>Bot Payout</span>
+                </div>
+              </td>
+              <td class="mono" style="color:var(--danger)">-$124.50</td>
+              <td class="mono">USDT</td>
+              <td><span class="badge badge-green"><span class="badge-dot" style="background:var(--success)"></span> Completed</span></td>
+              <td class="mono">Jun 1, 22:38</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Right: Convert + Withdraw -->
+      <div class="panel-right">
+        <div class="convert-card">
+          <h4>Convert USDT to Token</h4>
+          <div class="input-row">
+            <input type="text" value="100" />
+            <span class="currency">USDT</span>
+          </div>
+          <div class="convert-arrow">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4M7 4L3 8M7 4l4 4M17 8v12m0-12l4 4m-4-4l-4 4"/></svg>
+          </div>
+          <div class="input-row">
+            <input type="text" value="95.24" readonly style="color:var(--text-muted);" />
+            <span class="currency">TOKEN</span>
+          </div>
+          <div class="rate-text">1 USDT = 0.9524 TOKEN</div>
+          <button class="convert-btn" style="margin-top:12px;">Convert</button>
+        </div>
+
+        <div class="withdraw-card">
+          <h4>Reward Withdrawal</h4>
+          <div class="withdraw-balance">847.32</div>
+          <div class="withdraw-balance-label">Available RWD tokens</div>
+
+          <div class="toggle-row">
+            <span class="toggle-label">Enable Withdrawal</span>
+            <div class="toggle-switch active"></div>
+          </div>
+
+          <div class="input-row">
+            <input type="text" placeholder="Amount" />
+            <span class="currency">RWD</span>
+          </div>
+          <button class="convert-btn">Request Withdrawal</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    gsap.registerPlugin(ScrollTrigger);
+
+    gsap.from('.topbar', { y: -44, opacity: 0, duration: 0.5, ease: 'power3.out' });
+    gsap.from('.balance-cell', { y: 16, opacity: 0, duration: 0.5, stagger: 0.06, ease: 'power2.out', delay: 0.2 });
+    gsap.from('.deposit-card', { y: 20, opacity: 0, duration: 0.6, ease: 'power2.out', delay: 0.35 });
+    gsap.from('.data-table tbody tr', { y: 10, opacity: 0, duration: 0.3, stagger: 0.05, ease: 'power2.out', delay: 0.45 });
+    gsap.from('.convert-card', { x: 30, opacity: 0, duration: 0.5, ease: 'power2.out', delay: 0.3 });
+    gsap.from('.withdraw-card', { x: 30, opacity: 0, duration: 0.5, ease: 'power2.out', delay: 0.4 });
+
+    // Toggle interaction
+    document.querySelectorAll('.toggle-switch').forEach(t => {
+      t.addEventListener('click', () => {
+        t.classList.toggle('active');
+        gsap.fromTo(t, { scale: 0.9 }, { scale: 1, duration: 0.2, ease: 'back.out(2)' });
+      });
+    });
+  </script>
+</body>
+</html>
